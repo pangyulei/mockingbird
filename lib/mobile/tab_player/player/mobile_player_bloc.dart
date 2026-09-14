@@ -7,9 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockingbird/mobile/app/mobile_app_route.dart';
-import 'package:mockingbird/mobile/db/entities/media_progress_entity.dart';
-import 'package:mockingbird/mobile/db/entities/sentence_entity.dart';
-import 'package:mockingbird/mobile/db/entities/subtitle_entity.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_ui.dart';
@@ -22,9 +19,12 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../db/entities/mobile_media_history.dart';
+import '../../../db/entities/sentence.dart';
+import '../../../db/entities/subtitle.dart';
+import '../../../db/mobile_db.dart';
 import '../../../tool/event_hub.dart';
 import '../../../tool/extensions.dart';
-import '../../db/db.dart';
 
 const double _kMaxPlaySpeed = 3.0;
 const double _kMinPlaySpeed = 0.2;
@@ -34,11 +34,6 @@ class SharedMobilePlayerBloc {
   static final instance = MobilePlayerBloc();
 }
 
-typedef PositionUpdated = ({
-  bool mediaCompleted,
-  SentenceEntity? completedLoopSentence,
-  bool sentenceChanged,
-});
 
 class MobilePlayerBloc extends PlayerBlocType {
   bool _mediaPlayingBeforeDrag = false;
@@ -106,7 +101,7 @@ class MobilePlayerBloc extends PlayerBlocType {
     if (media == null) return;
 
     //save position
-    await _updateProgressPosition(state.position);
+    await _updateHistoryPosition(state.position);
 
     //sync to background audio player
     final playerInfo = PlayerInfo(
@@ -122,16 +117,16 @@ class MobilePlayerBloc extends PlayerBlocType {
     EventHub.emit(HubSyncPlayerToBackgroundAudioEvent(playerInfo));
   }
 
-  Future<void> _updateProgressPosition(Duration position) async {
+  Future<void> _updateHistoryPosition(Duration position) async {
     final state = this.state;
     if (state is! MobilePlayerDataState) return;
-    final metadata = await DB.loadMetadata();
-    var progress = metadata.mediaProgressList.firstWhereOrNull(
-      (mp) => mp.mediaId == _media?.id,
+    final metadata = await MobileDB.loadMetadata();
+    var history = metadata.historyList.firstWhereOrNull(
+      (h) => h.mediaId == _media?.id,
     );
-    if (progress != null) {
-      progress = progress.copyWith(positionMs: position.inMilliseconds);
-      await DB.updateProgress(progress);
+    if (history != null) {
+      history = history.copyWith(positionMs: position.inMilliseconds);
+      await MobileDB.updateHistory(history);
     }
   }
 
@@ -142,9 +137,9 @@ class MobilePlayerBloc extends PlayerBlocType {
     var state = this.state;
     if (state is! MobilePlayerDataState) return;
     state = state.copyWith(
-      selectedSubtitleName: () => event.name,
       subtitleListVisible: false,
       subtitleState: PlayerSubtitleDataState(
+        subtitleName: event.name,
         sentenceList: state.selectedSubtitle?.sentenceList ?? [],
         initialAlignment: _spot?.alignment ?? 0,
         initialIndex: _spot?.index ?? 0,
@@ -153,13 +148,13 @@ class MobilePlayerBloc extends PlayerBlocType {
     emit(state);
     EventHub.emit(HubPlayingSentenceChangeEvent(_spot?.sentence.id));
 
-    var metadata = await DB.loadMetadata();
-    var progress = metadata.mediaProgressList.firstWhereOrNull(
-      (mp) => mp.mediaId == _media?.id,
+    var metadata = await MobileDB.loadMetadata();
+    var history = metadata.historyList.firstWhereOrNull(
+      (h) => h.mediaId == _media?.id,
     );
-    if (progress != null) {
-      progress = progress.copyWith(subtitleName: () => event.name);
-      await DB.updateProgress(progress);
+    if (history != null) {
+      history = history.copyWith(subtitleName: () => event.name);
+      await MobileDB.updateHistory(history);
     }
   }
 
@@ -227,9 +222,9 @@ class MobilePlayerBloc extends PlayerBlocType {
   //   final subtitleState = PlayerSubtitleDataState(subtitle.sentenceList);
 
   //   // Save selection to metadata
-  //   var metadata = await DB.loadMetadata();
+  //   var metadata = await MobileDB.loadMetadata();
   //   metadata = metadata.copyWith(playingSubtitleName: () => subtitle.name);
-  //   await DB.updateMetadata(metadata);
+  //   await MobileDB.updateMetadata(metadata);
 
   //   emit(
   //     state.copyWith(
@@ -338,7 +333,7 @@ class MobilePlayerBloc extends PlayerBlocType {
       await state.player.pause();
     }
     await state.player.seekTo(position);
-    final positionUpdatedResult = _updatePropertiesWithPosition(
+    final positionUpdated = _updatePropertiesWithPosition(
       position: position,
       emit: emit,
     );
@@ -346,7 +341,7 @@ class MobilePlayerBloc extends PlayerBlocType {
       state = state.copyWith(loopIndex: () => _spot?.index);
       emit(state);
     }
-    if (positionUpdatedResult.sentenceChanged) {
+    if (positionUpdated.sentenceChanged) {
       //handle scroll
       final spot = _spot;
       if (spot != null) {
@@ -522,28 +517,28 @@ class MobilePlayerBloc extends PlayerBlocType {
     Emitter<MobilePlayerState> emit,
   ) async {
     EasyLoading.show(maskType: .clear);
-    //before switch media, update old media's progress position
+    //before switch media, update old media's history position
     var state = this.state;
     if (state is MobilePlayerDataState) {
-      await _updateProgressPosition(state.position);
+      await _updateHistoryPosition(state.position);
     }
 
-    final metadata = await DB.loadMetadata();
+    final metadata = await MobileDB.loadMetadata();
     final mediaId = event.mediaId ?? metadata.playingMediaId;
     final media = mediaId == null ? null : await AssetEntity.fromId(mediaId);
     if (media == null) {
       state = await _reload(null);
     } else {
-      var progress = metadata.mediaProgressList.firstWhereOrNull(
-        (mp) => mp.mediaId == mediaId,
+      var history = metadata.historyList.firstWhereOrNull(
+        (h) => h.mediaId == mediaId,
       );
-      final position = progress?.position ?? Duration.zero;
+      final position = history?.position ?? Duration.zero;
       state = await _reload((
         media: media,
         playing: true,
         position: position,
         loopIndex: null,
-        selectedSubtitleName: progress?.subtitleName,
+        selectedSubtitleName: history?.subtitleName,
         speed: 1,
         volume: 1,
       ));
@@ -573,7 +568,7 @@ class MobilePlayerBloc extends PlayerBlocType {
         } else {
           state = await _reload((
             media: media,
-            selectedSubtitleName: state.selectedSubtitleName,
+            selectedSubtitleName: state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
             loopIndex: state.loopIndex,
             position: event.position,
             playing: event.playing,
@@ -598,10 +593,10 @@ class MobilePlayerBloc extends PlayerBlocType {
     })?
     info,
   ) async {
-    var metadata = await DB.loadMetadata();
+    var metadata = await MobileDB.loadMetadata();
     final newState = await defer<MobilePlayerState>(
       () async {
-        await DB.updateMetadata(
+        await MobileDB.updateMetadata(
           metadata.copyWith(playingMediaId: () => info?.media.id),
         );
         _media = info?.media;
@@ -627,12 +622,11 @@ class MobilePlayerBloc extends PlayerBlocType {
           ),
         );
         final title = await info.media.titleAsync;
-        var progress = metadata.mediaProgressList.firstWhereOrNull(
-          (mp) => mp.mediaId == info.media.id,
+        var history = metadata.historyList.firstWhereOrNull(
+          (h) => h.mediaId == info.media.id,
         );
         final (
           :subtitleList,
-          :selectedSubtitleName,
           :subtitleState,
           :subtitleListButtonVisible,
         ) = await _reloadSubtitle(
@@ -640,19 +634,19 @@ class MobilePlayerBloc extends PlayerBlocType {
           info.selectedSubtitleName,
           info.position,
         );
-        progress =
-            progress?.copyWith(
+        history =
+            history?.copyWith(
               mediaId: info.media.id,
               positionMs: info.position.inMilliseconds,
-              subtitleName: () => selectedSubtitleName,
+              subtitleName: () => subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
             ) ??
-            MediaProgressEntity(
+            MobileMediaHistory(
               positionMs: info.position.inMilliseconds,
               mediaId: info.media.id,
-              subtitleName: selectedSubtitleName,
+              subtitleName: subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
             );
-        if (progress.id == 0) {
-          metadata.mediaProgressList.add(progress);
+        if (history.id == 0) {
+          metadata.historyList.add(history);
         }
         await player.seekTo(info.position);
         if (info.playing) {
@@ -663,14 +657,13 @@ class MobilePlayerBloc extends PlayerBlocType {
           loopIndex = null;
         } else {
           final sentenceList = subtitleList
-              .firstWhereOrNull((s) => s.name == selectedSubtitleName)
+              .firstWhereOrNull((s) => s.name == subtitleState.as<PlayerSubtitleDataState>()?.subtitleName)
               ?.sentenceList;
           loopIndex = sentenceList?.spot(info.position)?.index;
         }
         return MobilePlayerDataState(
           aspectRatio: player.value.aspectRatio,
           subtitleList: subtitleList,
-          selectedSubtitleName: selectedSubtitleName,
           subtitleListVisible: false,
           subtitleListButtonVisible: subtitleListButtonVisible,
           volumeSliderVisible: false,
@@ -693,8 +686,7 @@ class MobilePlayerBloc extends PlayerBlocType {
 
   Future<
     ({
-      List<SubtitleEntity> subtitleList,
-      String? selectedSubtitleName,
+      List<Subtitle> subtitleList,
       PlayerSubtitleState subtitleState,
       bool subtitleListButtonVisible,
     })
@@ -718,6 +710,7 @@ class MobilePlayerBloc extends PlayerBlocType {
       subtitleState = const PlayerSubtitleEmptyState();
     } else {
       subtitleState = PlayerSubtitleDataState(
+        subtitleName: subtitle.name,
         sentenceList: subtitle.sentenceList,
         initialAlignment: spot.alignment,
         initialIndex: spot.index,
@@ -725,7 +718,6 @@ class MobilePlayerBloc extends PlayerBlocType {
     }
     return (
       subtitleList: subtitleList,
-      selectedSubtitleName: selectedSubtitleName,
       subtitleState: subtitleState,
       subtitleListButtonVisible: subtitleList.length > 1,
     );
@@ -745,7 +737,7 @@ class MobilePlayerBloc extends PlayerBlocType {
   PlayerSubtitleListBlocType get subtitleListBlocType {
     return PlayerSubtitleListBloc(
       state.as<MobilePlayerDataState>()?.subtitleList ?? [],
-      state.as<MobilePlayerDataState>()?.selectedSubtitleName,
+      state.as<MobilePlayerDataState>()?.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
     );
   }
 
@@ -770,8 +762,4 @@ class MobilePlayerBloc extends PlayerBlocType {
   //     }
   //   }
   // }
-}
-
-extension on SpotType {
-  double get alignment => index == 0 ? 0 : 0.3;
 }

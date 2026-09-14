@@ -2,6 +2,11 @@ sealed class DesktopPlayerEvent {
   const DesktopPlayerEvent();
 }
 
+class DesktopPlayerPositionChangeByPlayingEvent extends DesktopPlayerEvent {
+  final Duration position;
+  const DesktopPlayerPositionChangeByPlayingEvent(this.position);
+}
+
 class DesktopPlayerSelectMediaFromFileExplorerEvent extends DesktopPlayerEvent {
   const DesktopPlayerSelectMediaFromFileExplorerEvent();
 }

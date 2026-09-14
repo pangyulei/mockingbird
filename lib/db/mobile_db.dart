@@ -1,54 +1,38 @@
 import 'package:collection/collection.dart';
-import 'package:flutter/foundation.dart';
-import 'package:mockingbird/mobile/db/entities/media_progress_entity.dart';
-import 'package:mockingbird/mobile/db/entities/metadata_entity.dart';
-import 'package:mockingbird/mobile/db/entities/preference_entity.dart';
 import 'package:mockingbird/objectbox.g.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-// typedef MF_SF = ({File mediaFile, File? subtitleFile});
-// typedef M_SF = ({EnMedia media, File subtitleFile});
 
-class DB {
+import '../tool/extensions.dart';
+import 'entities/mobile_media_history.dart';
+import 'entities/mobile_metadata.dart';
+import 'entities/mobile_preference.dart';
+
+class MobileDB {
   static late final Store _store;
-  static Future<void> init({Store? store}) async {
-    if (store == null) {
-      final appDir = await getApplicationDocumentsDirectory();
-      // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
-      _store = await openStore(directory: p.join(appDir.path, "db_objectbox"));
-    } else {
-      _store = store;
-    }
-    if (kDebugMode) {
-      if (Admin.isAvailable()) {
-        Admin(_store);
-      } else {
-        debugPrint('ObjectBox Admin is NOT available');
-      }
-    }
+  static Future<void> init() async {
+    _store = await initDB();
+  }
+  
+  static Future<MobileMetadata> loadMetadata() async {
+    return (await _store.box<MobileMetadata>().getAllAsync()).firstOrNull ??
+        MobileMetadata();
   }
 
-  static Future<MetadataEntity> loadMetadata() async {
-    return (await _store.box<MetadataEntity>().getAllAsync()).firstOrNull ??
-        MetadataEntity();
+  static Future<MobileMetadata> updateMetadata(MobileMetadata metadata) async {
+    return await _store.box<MobileMetadata>().putAndGetAsync(metadata);
   }
 
-  static Future<MetadataEntity> updateMetadata(MetadataEntity metadata) async {
-    return await _store.box<MetadataEntity>().putAndGetAsync(metadata);
+  static Future<MobileMediaHistory> updateHistory(MobileMediaHistory progress) async {
+    return await _store.box<MobileMediaHistory>().putAndGetAsync(progress);
   }
 
-  static Future<MediaProgressEntity> updateProgress(MediaProgressEntity progress) async {
-    return await _store.box<MediaProgressEntity>().putAndGetAsync(progress);
+  static Future<MobilePreference?> loadPreference() async {
+    return (await _store.box<MobilePreference>().getAllAsync()).firstOrNull;
   }
 
-  static Future<PreferenceEntity?> loadPreference() async {
-    return (await _store.box<PreferenceEntity>().getAllAsync()).firstOrNull;
-  }
-
-  static Future<PreferenceEntity> updatePreference(
-    PreferenceEntity preference,
+  static Future<MobilePreference> updatePreference(
+    MobilePreference preference,
   ) async {
-    return await _store.box<PreferenceEntity>().putAndGetAsync(preference);
+    return await _store.box<MobilePreference>().putAndGetAsync(preference);
   }
 
   // ({List<MF_SF> mfsfList, List<M_SF> msfList}) _processMediaSubtitleFiles(
@@ -174,7 +158,7 @@ class DB {
   //   );
   //   final mediasMade = await _mediasMadeFromMFSFList(album, mfsfList);
   //   final mediasFilled = await _mediasFilledSubtitleFromMSFList(album, msfList);
-  //   await _store.box<EnMedia>().putAndGetManyAsync([
+  //   await Database.store.box<EnMedia>().putAndGetManyAsync([
   //     ...mediasMade,
   //     ...mediasFilled,
   //   ]);
@@ -183,10 +167,10 @@ class DB {
   // Future<EnMedia> updateMedia(
   //   EnMedia media, {
   //   String? name,
-  //   SubtitleEntity? Function()? subtitle,
+  //   Subtitle? Function()? subtitle,
   // }) async {
   //   if (name == null && subtitle == null) return media;
-  //   final updatedMedia = await _store.runInTransactionAsync<EnMedia, int>(
+  //   final updatedMedia = await Database.store.runInTransactionAsync<EnMedia, int>(
   //     TxMode.write,
   //     (Store store, int mediaId) {
   //       final mediaBox = store.box<EnMedia>();
@@ -194,7 +178,7 @@ class DB {
   //       if (media == null) {
   //         throw ArgumentError('mediaId $mediaId not existed');
   //       }
-  //       final subtitleBox = store.box<SubtitleEntity>();
+  //       final subtitleBox = store.box<Subtitle>();
   //       final sentenceBox = store.box<SentenceEntity>();
 
   //       EnMedia updatedMedia = media.copyWith();
@@ -218,7 +202,7 @@ class DB {
 
   //         final newSubtitle = subtitle();
   //         final newSubtitleList = newSubtitle == null
-  //             ? <SubtitleEntity>[]
+  //             ? <Subtitle>[]
   //             : [newSubtitle];
   //         updatedMedia = updatedMedia.copyWith(subtitleList: newSubtitleList);
   //       }
@@ -231,7 +215,7 @@ class DB {
   // }
 
   // Future<void> deleteMedia(EnMedia media) async {
-  //   await _store.runInTransactionAsync<void, int>(TxMode.write, (
+  //   await Database.store.runInTransactionAsync<void, int>(TxMode.write, (
   //     Store store,
   //     int mediaId,
   //   ) {
@@ -240,7 +224,7 @@ class DB {
   //     if (media == null) {
   //       return;
   //     }
-  //     final subtitleBox = store.box<SubtitleEntity>();
+  //     final subtitleBox = store.box<Subtitle>();
   //     final sentenceBox = store.box<SentenceEntity>();
 
   //     final subtitleList = media.subtitleList;
@@ -278,7 +262,7 @@ class DB {
 
   // Future<SentenceEntity?> loadSentence(int? id) async {
   //   if (id == null) return null;
-  //   return await _store.box<SentenceEntity>().getAsync(id);
+  //   return await Database.store.box<SentenceEntity>().getAsync(id);
   // }
 
   // Future<EnAlbum?> createAlbum(String name, {File? cover}) async {
@@ -299,13 +283,13 @@ class DB {
   //   //获取 最大SortOrder
   //   final maxSortOrder = await _albumMaxSortOrder;
   //   final sortOrder = maxSortOrder == null ? 0 : maxSortOrder + 1;
-  //   return await _store.box<EnAlbum>().putAndGetAsync(
+  //   return await Database.store.box<EnAlbum>().putAndGetAsync(
   //     EnAlbum(name: trimmedName, sortOrder: sortOrder, cover: coverPath, id: 0),
   //   );
   // }
 
   // Future<int?> get _albumMinSortOrder async {
-  //   final albumBox = _store.box<EnAlbum>();
+  //   final albumBox = Database.store.box<EnAlbum>();
   //   final query = albumBox.query().order(EnAlbum_.sortOrder).build();
   //   query.limit = 1;
   //   final minSortOrder = (await query.findFirstAsync())?.sortOrder;
@@ -314,7 +298,7 @@ class DB {
   // }
 
   // Future<int?> get _albumMaxSortOrder async {
-  //   final albumBox = _store.box<EnAlbum>();
+  //   final albumBox = Database.store.box<EnAlbum>();
   //   final query = albumBox
   //       .query()
   //       .order(EnAlbum_.sortOrder, flags: Order.descending)
@@ -372,7 +356,7 @@ class DB {
   //   if (updatedAlbum.cover != album.cover ||
   //       updatedAlbum.name != album.name ||
   //       updatedAlbum.sortOrder != album.sortOrder) {
-  //     return await _store.box<EnAlbum>().putAndGetAsync(updatedAlbum);
+  //     return await Database.store.box<EnAlbum>().putAndGetAsync(updatedAlbum);
   //   } else {
   //     return album;
   //   }
@@ -395,7 +379,7 @@ class DB {
   // }
 
   // Future<List<EnAlbum>> loadAlbums() async {
-  //   final query = _store
+  //   final query = Database.store
   //       .box<EnAlbum>()
   //       .query()
   //       .order(EnAlbum_.sortOrder, flags: Order.descending)
@@ -406,7 +390,7 @@ class DB {
   // }
 
   // Future<EnAlbum?> loadAlbum(int id) async {
-  //   final album = await _store.box<EnAlbum>().getAsync(id);
+  //   final album = await Database.store.box<EnAlbum>().getAsync(id);
   //   album?.sortMedias();
   //   return album;
   // }
@@ -418,7 +402,7 @@ class DB {
   //   final aSortOrder = aAlbum.sortOrder;
   //   aAlbum = aAlbum.copyWith(sortOrder: bAlbum.sortOrder);
   //   bAlbum = bAlbum.copyWith(sortOrder: aSortOrder);
-  //   await _store.box<EnAlbum>().putManyAsync([aAlbum, bAlbum]);
+  //   await Database.store.box<EnAlbum>().putManyAsync([aAlbum, bAlbum]);
   //   return (aAlbum, bAlbum);
   // }
 
@@ -430,12 +414,12 @@ class DB {
   //   if (albums.isEmpty) return;
   //   albums = albums.where((a) => a.id > 0).toList();
 
-  //   await _store.runInTransactionAsync(TxMode.write, (
+  //   await Database.store.runInTransactionAsync(TxMode.write, (
   //     Store store,
   //     List<int> albumIdList,
   //   ) {
   //     final mediaBox = store.box<EnMedia>();
-  //     final subtitleBox = store.box<SubtitleEntity>();
+  //     final subtitleBox = store.box<Subtitle>();
   //     final sentenceBox = store.box<SentenceEntity>();
   //     final albumBox = store.box<EnAlbum>();
 
@@ -475,7 +459,7 @@ class DB {
   // }
 
   // Future<EnMedia?> loadMedia(int id) async {
-  //   return await _store.box<EnMedia>().getAsync(id);
+  //   return await Database.store.box<EnMedia>().getAsync(id);
   // }
 }
 

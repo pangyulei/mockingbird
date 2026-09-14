@@ -1,8 +1,9 @@
-import 'package:mockingbird/mobile/db/entities/subtitle_entity.dart';
+
+import '../../../db/entities/subtitle.dart';
 
 class PlayerSubtitleListState {
   final String? selectedSubtitleName;
-  final List<SubtitleEntity> subtitleList;
+  final List<Subtitle> subtitleList;
 
   const PlayerSubtitleListState(this.selectedSubtitleName, this.subtitleList);
 

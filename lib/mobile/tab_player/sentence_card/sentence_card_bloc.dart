@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mockingbird/mobile/db/entities/sentence_entity.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
@@ -9,6 +8,8 @@ import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_state.
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import 'package:mockingbird/tool/event_hub.dart';
 import 'package:mockingbird/tool/extensions.dart';
+
+import '../../../db/entities/sentence.dart';
 
 class SentenceCardBloc extends SentenceCardBlocType {
   final _subList = <StreamSubscription>[];

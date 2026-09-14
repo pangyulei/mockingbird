@@ -7,7 +7,8 @@ import 'package:mockingbird/mobile/tab_albums/album_list/album_list_state.dart';
 import 'package:mockingbird/tool/event_hub.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../../db/db.dart';
+import '../../../db/mobile_db.dart';
+
 
 class AlbumListBloc extends Bloc<AlbumListEvent, AlbumListState> {
   final _subscriptionList = <StreamSubscription>[];
@@ -42,7 +43,7 @@ class AlbumListBloc extends Bloc<AlbumListEvent, AlbumListState> {
   }
 
   Future<AlbumListState> _reload() async {
-    final metadata = await DB.loadMetadata();
+    final metadata = await MobileDB.loadMetadata();
     if (!metadata.permissionRequested) {
       return const AlbumListNotYetRequestedState();
     }
@@ -72,9 +73,9 @@ class AlbumListBloc extends Bloc<AlbumListEvent, AlbumListState> {
     Emitter<AlbumListState> emit,
   ) async {
     await PhotoManager.requestPermissionExtend();
-    var metadata = await DB.loadMetadata();
+    var metadata = await MobileDB.loadMetadata();
     metadata = metadata.copyWith(permissionRequested: true);
-    await DB.updateMetadata(metadata);
+    await MobileDB.updateMetadata(metadata);
     emit(await _reload());
   }
 }

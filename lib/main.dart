@@ -6,14 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:mockingbird/desktop/desktop_sub_window.dart';
 import 'package:mockingbird/mobile/app/mobile_app_lifecycler.dart';
 import 'package:mockingbird/mobile/app/mobile_app_ui.dart';
-import 'package:mockingbird/mobile/db/db.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_background_audio_player.dart';
 import 'package:mockingbird/tool/extensions.dart';
+import 'package:video_player_win/video_player_win.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'db/desktop_db.dart';
+import 'db/mobile_db.dart';
 import 'desktop/desktop_app_ui.dart';
 
 void main(List<String> argList) async {
+  WidgetsFlutterBinding.ensureInitialized(); //objectbox official code
   switch (kPlatformType) {
     case .desktop:
       await _runDesktopApp(argList);
@@ -23,11 +26,11 @@ void main(List<String> argList) async {
 }
 
 Future<void> _runDesktopApp(List<String> argList) async {
-  WidgetsFlutterBinding.ensureInitialized(); //objectbox official code
-  await DB.init();
+  await DesktopDB.init();
   await windowManager.ensureInitialized();
   final windowController = await WindowController.fromCurrentEngine();
   await windowController.bindMethods();
+  WindowsVideoPlayer.registerWith();
 
   // 判断是否通过 multi_window 启动
   if (argList.isNotEmpty && argList[0] == 'multi_window') {
@@ -80,8 +83,7 @@ Future<void> _runSubWindow(String id, SubWindowType type) async {
 }
 
 Future<void> _runMobileApp() async {
-  WidgetsFlutterBinding.ensureInitialized(); //objectbox official code
-  await DB.init();
+  await MobileDB.init();
   await AudioService.init(
     builder: () => MobileBackgroundAudioPlayer(),
     config: const AudioServiceConfig(

@@ -2,30 +2,30 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class MediaProgressEntity {
+class DesktopMediaHistory {
   @Id()
   int id;
-  final String mediaId;
+  final String mediaPath;
   final String? subtitleName;
   final int positionMs;
 
-  MediaProgressEntity({
+  DesktopMediaHistory({
+    required this.mediaPath,
     this.id = 0,
-    this.mediaId = '',
     this.subtitleName,
     this.positionMs = 0,
   });
 
-  MediaProgressEntity copyWith({
+  DesktopMediaHistory copyWith({
     String? Function()? subtitleName,
     int? positionMs,
-    String? mediaId,
+    String? mediaPath,
   }) {
-    return MediaProgressEntity(
+    return DesktopMediaHistory(
       id: id,
       subtitleName: subtitleName == null ? this.subtitleName : subtitleName(),
       positionMs: positionMs ?? this.positionMs,
-      mediaId: mediaId ?? this.mediaId,
+      mediaPath: mediaPath ?? this.mediaPath,
     );
   }
 
@@ -33,6 +33,6 @@ class MediaProgressEntity {
 
   @override
   String toString() {
-    return 'MediaProgressEntity(id: $id, mediaId: $mediaId, subtitleName: $subtitleName, positionMs: $positionMs)';
+    return 'MediaProgressEntity(id: $id, mediaPath: $mediaPath, subtitleName: $subtitleName, positionMs: $positionMs)';
   }
 }

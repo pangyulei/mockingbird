@@ -1,8 +1,9 @@
 import 'dart:async';
 
-import 'package:mockingbird/mobile/db/entities/sentence_entity.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:rxdart/rxdart.dart';
+
+import '../db/entities/sentence.dart';
 
 sealed class HubEvent {
   const HubEvent();

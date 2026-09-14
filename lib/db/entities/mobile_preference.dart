@@ -1,23 +1,23 @@
 import 'package:objectbox/objectbox.dart';
 
 @Entity()
-class PreferenceEntity {
+class MobilePreference {
   @Id()
   int id;
   final bool loop;
 
-  PreferenceEntity({
+  MobilePreference({
     required this.id,
     required this.loop,
   });
 
-  PreferenceEntity.empty()
+  MobilePreference.empty()
     : this(id: 0, loop: false, );
 
-  PreferenceEntity copyWith({
+  MobilePreference copyWith({
     bool? loop,
   }) {
-    return PreferenceEntity(
+    return MobilePreference(
       id: id,
       loop: loop ?? this.loop,
     );

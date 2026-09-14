@@ -2,14 +2,17 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
-import 'package:mockingbird/mobile/db/entities/subtitle_entity.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:window_manager/window_manager.dart';
 
-import '../mobile/db/entities/sentence_entity.dart';
+import '../db/entities/sentence.dart';
+import '../db/entities/subtitle.dart';
+import '../objectbox.g.dart';
 
 extension WindowControllerHelper on WindowController {
   Future<void> bindMethods() async {
@@ -92,7 +95,7 @@ const kVideoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm',
 const kSubtitleExtensions = {'srt', 'vtt'};
 
 extension AssetEntityHelper on AssetEntity {
-  Future<List<SubtitleEntity>> get subtitleList async {
+  Future<List<Subtitle>> get subtitleList async {
     //找到同目录下的名称对应上的srt或vtt字幕文件
     final mediaFile = await file;
     return mediaFile == null ? [] : await mediaFile.subtitleList;
@@ -100,8 +103,8 @@ extension AssetEntityHelper on AssetEntity {
 }
 
 extension FileHelper on File {
-  Future<List<SubtitleEntity>> get subtitleList async {
-    final subtitleList = <SubtitleEntity>[];
+  Future<List<Subtitle>> get subtitleList async {
+    final subtitleList = <Subtitle>[];
     await for (final anyFile in parent.list()) {
       if (anyFile is! File) continue;
       final extension = p.extension(anyFile.path).substring(1);
@@ -112,9 +115,9 @@ extension FileHelper on File {
         mediaName.toLowerCase(),
       );
       if (matched) {
-        final subtitleEntity = await SubtitleParser.parseFile(anyFile);
-        if (subtitleEntity != null) {
-          subtitleList.add(subtitleEntity);
+        final Subtitle = await SubtitleParser.parseFile(anyFile);
+        if (Subtitle != null) {
+          subtitleList.add(Subtitle);
         }
       }
     }
@@ -135,6 +138,10 @@ extension DurationHelper on Duration {
 }
 
 typedef SpotType = ({int index, SentenceEntity sentence});
+
+extension SpotTypeHelper on SpotType {
+  double get alignment => index == 0 ? 0 : 0.3;
+}
 
 extension SentenceListHelper on List<SentenceEntity> {
   SpotType? spot(Duration position) {
@@ -180,3 +187,26 @@ PlatformType get kPlatformType {
   }
   return .mobile; //TODO here should differ tablet version
 }
+
+Future<Store> initDB({Store? store}) async {
+  if (store == null) {
+    final appDir = await getApplicationDocumentsDirectory();
+    // Future<Store> openStore() {...} is defined in the generated objectbox.g.dart
+    store = await openStore(directory: p.join(appDir.path, "db_objectbox"));
+  }
+  if (kDebugMode) {
+    if (Admin.isAvailable()) {
+      Admin(store);
+    } else {
+      debugPrint('ObjectBox Admin is NOT available');
+    }
+  }
+  return store;
+}
+
+
+typedef PositionUpdated = ({
+  bool mediaCompleted,
+  SentenceEntity? completedLoopSentence,
+  bool sentenceChanged,
+});

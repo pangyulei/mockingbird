@@ -10,7 +10,8 @@ import 'package:mockingbird/tool/event_hub.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../../db/db.dart';
+import '../../../db/mobile_db.dart';
+
 
 class MediaCardBloc extends MediaCardBlocType {
   final AssetEntity? _media;
@@ -43,7 +44,7 @@ class MediaCardBloc extends MediaCardBlocType {
     }
     final title = await _media.titleAsync;
     final subtitleList = await _media.subtitleList;
-    final metadata = await DB.loadMetadata();
+    final metadata = await MobileDB.loadMetadata();
     final playing = metadata.playingMediaId == _media.id;
     emit(
       MediaCardState(

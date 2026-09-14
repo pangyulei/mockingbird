@@ -4,28 +4,47 @@
   "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
   "entities": [
     {
-      "id": "1:3030178926161484220",
-      "lastPropertyId": "4:3226993927567055729",
-      "name": "MediaProgressEntity",
+      "id": "6:6202775987213355286",
+      "lastPropertyId": "2:2648320414307703706",
+      "name": "MobilePreference",
       "properties": [
         {
-          "id": "1:6565769422699195530",
+          "id": "1:2731549087838187397",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:389736387513142301",
+          "id": "2:2648320414307703706",
+          "name": "loop",
+          "type": 1
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "7:2714835044046722673",
+      "lastPropertyId": "4:8761472094172892443",
+      "name": "MobileMediaHistory",
+      "properties": [
+        {
+          "id": "1:9202197224829722199",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6293589664703460246",
           "name": "mediaId",
           "type": 9
         },
         {
-          "id": "3:174286496292825493",
+          "id": "3:5654180501971968190",
           "name": "subtitleName",
           "type": 9
         },
         {
-          "id": "4:3226993927567055729",
+          "id": "4:8761472094172892443",
           "name": "positionMs",
           "type": 6
         }
@@ -33,69 +52,141 @@
       "relations": []
     },
     {
-      "id": "2:1897043011007689547",
-      "lastPropertyId": "4:4913153491893946685",
-      "name": "MetadataEntity",
+      "id": "9:9208580515780358623",
+      "lastPropertyId": "4:6557004410571388940",
+      "name": "DesktopMediaHistory",
       "properties": [
         {
-          "id": "1:5765895156983240802",
+          "id": "1:9216836816049524193",
           "name": "id",
           "type": 6,
           "flags": 1
         },
         {
-          "id": "2:5848116898749714899",
-          "name": "databaseVersion",
+          "id": "2:1288440393985498923",
+          "name": "mediaPath",
+          "type": 9
+        },
+        {
+          "id": "3:2929956396009028133",
+          "name": "subtitleName",
+          "type": 9
+        },
+        {
+          "id": "4:6557004410571388940",
+          "name": "positionMs",
+          "type": 6
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "10:2578396172358526017",
+      "lastPropertyId": "3:3878688060143980435",
+      "name": "DesktopMetadata",
+      "properties": [
+        {
+          "id": "1:2537618684622954215",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:3661545470369014788",
+          "name": "dbVersion",
           "type": 6
         },
         {
-          "id": "3:1125869841378442241",
+          "id": "3:3878688060143980435",
+          "name": "playingMediaPath",
+          "type": 9
+        }
+      ],
+      "relations": [
+        {
+          "id": "5:2865608107249620262",
+          "name": "historyList",
+          "targetId": "9:9208580515780358623"
+        }
+      ]
+    },
+    {
+      "id": "11:1354444275416375122",
+      "lastPropertyId": "4:3541490505502659659",
+      "name": "MobileMetadata",
+      "properties": [
+        {
+          "id": "1:6148706328154635218",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6942993485982277422",
+          "name": "dbVersion",
+          "type": 6
+        },
+        {
+          "id": "3:7071772372996378426",
           "name": "playingMediaId",
           "type": 9
         },
         {
-          "id": "4:4913153491893946685",
+          "id": "4:3541490505502659659",
           "name": "permissionRequested",
           "type": 1
         }
       ],
       "relations": [
         {
-          "id": "1:8120597125827812487",
-          "name": "mediaProgressList",
-          "targetId": "1:3030178926161484220"
+          "id": "6:1677193273882790991",
+          "name": "historyList",
+          "targetId": "7:2714835044046722673"
         }
       ]
-    },
-    {
-      "id": "3:2343069060099765624",
-      "lastPropertyId": "2:5604436848019543146",
-      "name": "PreferenceEntity",
-      "properties": [
-        {
-          "id": "1:6540010619243389851",
-          "name": "id",
-          "type": 6,
-          "flags": 1
-        },
-        {
-          "id": "2:5604436848019543146",
-          "name": "loop",
-          "type": 1
-        }
-      ],
-      "relations": []
     }
   ],
-  "lastEntityId": "3:2343069060099765624",
+  "lastEntityId": "11:1354444275416375122",
   "lastIndexId": "0:0",
-  "lastRelationId": "1:8120597125827812487",
+  "lastRelationId": "6:1677193273882790991",
   "lastSequenceId": "0:0",
   "modelVersion": 5,
   "modelVersionParserMinimum": 5,
-  "retiredEntityUids": [],
+  "retiredEntityUids": [
+    3030178926161484220,
+    1897043011007689547,
+    2343069060099765624,
+    8235315373163725935,
+    6043521327364359792,
+    6213276034966737467
+  ],
   "retiredIndexUids": [],
-  "retiredPropertyUids": [],
-  "retiredRelationUids": [],
+  "retiredPropertyUids": [
+    6565769422699195530,
+    389736387513142301,
+    174286496292825493,
+    3226993927567055729,
+    5765895156983240802,
+    5848116898749714899,
+    1125869841378442241,
+    4913153491893946685,
+    6540010619243389851,
+    5604436848019543146,
+    4500859275243138373,
+    4043791378371685777,
+    5704773672675919935,
+    334461718986669627,
+    3459922745804372448,
+    3828963159419384571,
+    6931156173474758208,
+    2613595193551879395,
+    8146104931619489166,
+    2698077894751143262,
+    1978754741528573916,
+    1288073627125696056
+  ],
+  "retiredRelationUids": [
+    7188549749246275438
+  ],
   "version": 1
 }

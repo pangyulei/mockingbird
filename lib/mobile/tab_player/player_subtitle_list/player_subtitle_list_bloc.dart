@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mockingbird/mobile/db/entities/subtitle_entity.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_event.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_state.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
 
+import '../../../db/entities/subtitle.dart';
+
 class PlayerSubtitleListBloc extends PlayerSubtitleListBlocType {
-  final List<SubtitleEntity> _subtitleList;
+  final List<Subtitle> _subtitleList;
   final String? _selectedSubtitleName;
 
   PlayerSubtitleListBloc(this._subtitleList, this._selectedSubtitleName)

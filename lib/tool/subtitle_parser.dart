@@ -4,16 +4,17 @@ import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
-import '../mobile/db/entities/sentence_entity.dart';
-import '../mobile/db/entities/subtitle_entity.dart';
+import '../db/entities/sentence.dart';
+import '../db/entities/subtitle.dart';
+
 
 class SubtitleParser {
-  static Future<SubtitleEntity?> parsePath(String pathStr) async {
+  static Future<Subtitle?> parsePath(String pathStr) async {
     final file = File(pathStr);
     return await parseFile(file);
   }
 
-  static Future<SubtitleEntity?> parseFile(File file) async {
+  static Future<Subtitle?> parseFile(File file) async {
     final content = await file.readAsString();
     final extension = p.extension(file.path);
     if (extension.toLowerCase() == '.srt') {
@@ -27,7 +28,7 @@ class SubtitleParser {
     return null;
   }
 
-  static SubtitleEntity? _parseSrt(String path, String content) {
+  static Subtitle? _parseSrt(String path, String content) {
     final sentenceList = <SentenceEntity>[];
     // Split by double newline (supporting both \n and \r\n)
     final blocks = content.trim().split(RegExp(r'(\r?\n){2,}'));
@@ -75,7 +76,7 @@ class SubtitleParser {
       }
     }
     if (sentenceList.isNotEmpty) {
-      return SubtitleEntity(path: path, sentenceList: sentenceList);
+      return Subtitle(path: path, sentenceList: sentenceList);
     } else {
       return null;
     }
@@ -100,7 +101,7 @@ class SubtitleParser {
     );
   }
 
-  static SubtitleEntity? _parseVtt(String path, String content) {
+  static Subtitle? _parseVtt(String path, String content) {
     final sentenceList = <SentenceEntity>[];
     final blocks = content.trim().split(RegExp(r'(\r?\n){2,}'));
 
@@ -146,7 +147,7 @@ class SubtitleParser {
       }
     }
     if (sentenceList.isNotEmpty) {
-      return SubtitleEntity(path: path, sentenceList: sentenceList);
+      return Subtitle(path: path, sentenceList: sentenceList);
     } else {
       return null;
     }
