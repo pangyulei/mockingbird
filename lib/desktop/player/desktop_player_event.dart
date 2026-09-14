@@ -2,8 +2,8 @@ sealed class DesktopPlayerEvent {
   const DesktopPlayerEvent();
 }
 
-class DesktopPlayerLoadMediaEvent extends DesktopPlayerEvent {
-  const DesktopPlayerLoadMediaEvent();
+class DesktopPlayerSelectMediaFromFileExplorerEvent extends DesktopPlayerEvent {
+  const DesktopPlayerSelectMediaFromFileExplorerEvent();
 }
 
 class DesktopPlayerResetSpeedEvent extends DesktopPlayerEvent {

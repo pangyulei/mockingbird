@@ -1,36 +1,34 @@
 
+import 'dart:io';
+
+import 'package:defer/defer.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 
+import '../../tool/extensions.dart';
+
 class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   DesktopPlayerBloc() : super(const DesktopPlayerEmptyState()) {
-    on<DesktopPlayerLoadMediaEvent>(_loadMedia);
+    on<DesktopPlayerSelectMediaFromFileExplorerEvent>(_selectMediaFromFileExplorer);
   }
 
-  void _loadMedia(DesktopPlayerLoadMediaEvent event, Emitter<DesktopPlayerState> emit) {
+  void _selectMediaFromFileExplorer(DesktopPlayerSelectMediaFromFileExplorerEvent event, Emitter<DesktopPlayerState> emit) async {
+    await defer(()async{},() async{});
+    final xfile = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: [
+        ...kVideoExtensions,
+        ...kAudioExtensions
+      ],
+    );
+    final filePath = xfile?.path;
+    if (filePath == null) return;
+    final mediaFile = File(filePath);
 
   }
-  // onTap
-  // final result = await FilePicker.pickFiles(
-  //   type: FileType.custom,
-  //   allowedExtensions: [
-  //     'mp4',
-  //     'mov',
-  //     'avi',
-  //     'mkv',
-  //     'mp3',
-  //     'wav',
-  //     'm4a',
-  //     'flac',
-  //   ],
-  // );
-  // if (result.isNotEmpty) {
-  //   if (context.mounted) {
-  //     _handleFileSelection(context, result.first.xFile.path);
-  //   }
-  // }
-  
+
   // Future<void> _handleFileSelection(
   //   BuildContext context,
   //   String filePath,

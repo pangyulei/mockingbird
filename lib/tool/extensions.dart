@@ -75,23 +75,44 @@ extension ScrollHelper on ItemScrollController {
   }
 }
 
+
+const kAudioExtensions = {
+  'mp3', 'm4a', 'wav', 'flac', 'aac',
+  'ogg', 'oga', 'ape', 'wma', 'amr',
+  'opus', 'mid', 'midi', 'aif', 'aiff',
+  'aifc', 'mp4a', 'mpc', 'm4r' // m4r 是 iPhone 铃声
+};
+
+const kVideoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm',
+  'flv', 'f4v', 'ts', 'wmv', 'm4v',
+  'mts', 'm2ts', 'rmvb', 'rm', 'mpg',
+  'mpeg', 'mpe', '3gp', '3g2', 'vob',
+  'asf', 'ogv'};
+
+const kSubtitleExtensions = {'srt', 'vtt'};
+
 extension AssetEntityHelper on AssetEntity {
   Future<List<SubtitleEntity>> get subtitleList async {
     //找到同目录下的名称对应上的srt或vtt字幕文件
     final mediaFile = await file;
-    if (mediaFile == null) return [];
+    return mediaFile == null ? [] : await mediaFile.subtitleList;
+  }
+}
+
+extension FileHelper on File {
+  Future<List<SubtitleEntity>> get subtitleList async {
     final subtitleList = <SubtitleEntity>[];
-    await for (final subFile in mediaFile.parent.list()) {
-      if (subFile is! File) continue;
-      final extension = p.extension(subFile.path); //带.
-      if (!{'.srt', '.vtt'}.contains(extension)) continue;
-      final subtitleName = p.basenameWithoutExtension(subFile.path);
-      final mediaName = p.basenameWithoutExtension(mediaFile.path);
+    await for (final anyFile in parent.list()) {
+      if (anyFile is! File) continue;
+      final extension = p.extension(anyFile.path).substring(1);
+      if (!kSubtitleExtensions.contains(extension)) continue;
+      final subtitleName = p.basenameWithoutExtension(anyFile.path);
+      final mediaName = p.basenameWithoutExtension(path);
       final matched = subtitleName.toLowerCase().contains(
         mediaName.toLowerCase(),
       );
       if (matched) {
-        final subtitleEntity = await SubtitleParser.parseFile(subFile);
+        final subtitleEntity = await SubtitleParser.parseFile(anyFile);
         if (subtitleEntity != null) {
           subtitleList.add(subtitleEntity);
         }

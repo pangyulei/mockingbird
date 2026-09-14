@@ -35,7 +35,7 @@ class DesktopPlayerUI extends StatelessWidget {
             );
             switch (stateType) {
               case DesktopPlayerEmptyState:
-                return _pageForEmpty(context);
+                return _pageForEmpty();
               case DesktopPlayerDataState:
                 return _pageForData(context);
               default:
@@ -75,7 +75,10 @@ class DesktopPlayerUI extends StatelessWidget {
           Expanded(
             child: Builder(
               builder: (context) {
-                final title = 'thmedia title'; //TODO
+                final title = context.select<DesktopPlayerBloc, String>(
+                  (bloc) =>
+                      bloc.state.as<DesktopPlayerDataState>()?.title ?? '',
+                );
                 return SizedBox(
                   height: 24,
                   child: title.isEmpty
@@ -493,62 +496,66 @@ class DesktopPlayerUI extends StatelessWidget {
   }
 
 
-  Widget _pageForEmpty(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+  Widget _pageForEmpty() {
     return Center(
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: () {
-          
-          },
-          child: Container(
-            margin: const EdgeInsets.all(32),
-            padding: const EdgeInsets.all(48),
-            decoration: BoxDecoration(
-              color: colorScheme.surface.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.4),
-                width: 2,
-                style: BorderStyle.solid,
+        child: Builder(
+          builder: (context) {
+            final colorScheme = Theme.of(context).colorScheme;
+            final textTheme = Theme.of(context).textTheme;
+            return GestureDetector(
+              onTap: () {
+                context.read<DesktopPlayerBloc>().add(const DesktopPlayerSelectMediaFromFileExplorerEvent());
+              },
+              child: Container(
+                margin: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(48),
+                decoration: BoxDecoration(
+                  color: colorScheme.surface.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.4),
+                    width: 2,
+                    style: BorderStyle.solid,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.cloud_upload_outlined,
+                        size: 48,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Drag & Drop Media File Here',
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'or click anywhere in this area to browse your video/audio files',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.outline,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.cloud_upload_outlined,
-                    size: 48,
-                    color: colorScheme.primary,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Drag & Drop Media File Here',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'or click anywhere in this area to browse your video/audio files',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.outline,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
+            );
+          }
         ),
       ),
     );

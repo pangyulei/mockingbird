@@ -47,16 +47,3 @@
 //     throw ArgumentError('Unsupported file extension: $extension');
 //   }
 // }
-
-// const kAudioExtensions = {
-//   'mp3',
-//   'm4a',
-//   'aac',
-//   'wav',
-//   'ogg',
-//   'oga',
-//   'flac',
-//   'amr',
-// };
-// const kVideoExtensions = {'mp4', 'm4v', 'mkv', 'webm', '3gp', 'ts', 'flv'};
-// const kSubtitleExtensions = {'srt', 'vtt'};
