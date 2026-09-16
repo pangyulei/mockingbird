@@ -27,6 +27,10 @@ class DesktopPlayerShowSubtitleListEvent extends DesktopPlayerEvent {
   const DesktopPlayerShowSubtitleListEvent();
 }
 
+class DesktopPlayerHideSubtitleListEvent extends DesktopPlayerEvent {
+  const DesktopPlayerHideSubtitleListEvent();
+}
+
 class DesktopPlayerToggleLoopEvent extends DesktopPlayerEvent {
   const DesktopPlayerToggleLoopEvent();
 }

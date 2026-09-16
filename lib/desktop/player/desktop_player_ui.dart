@@ -8,6 +8,7 @@ import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
+import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import 'package:mockingbird/mobile/tab_settings/about/about_ui.dart';
@@ -28,24 +29,51 @@ class DesktopPlayerUI extends StatelessWidget {
       create: (context) => DesktopPlayerBloc(),
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Builder(
-          builder: (context) {
-            final stateType = context.select<DesktopPlayerBloc, Type>(
-              (bloc) => bloc.state.runtimeType,
-            );
-            switch (stateType) {
-              case DesktopPlayerEmptyState:
-                return _pageForEmpty();
-              case DesktopPlayerDataState:
-                return _pageForData(context);
-              default:
-                assert(false, 'stateType $stateType missed');
-                return const SizedBox.shrink();
-            }
+        body: BlocListener<DesktopPlayerBloc, DesktopPlayerState>(
+          listenWhen: (previous, current) {
+            return (previous is! DesktopPlayerDataState || previous.subtitleListVisible == false) && current is DesktopPlayerDataState && current.subtitleListVisible;
           },
+          listener: (context, state) => _showSubtitleList(context),
+          child: Builder(
+            builder: (context) {
+              final stateType = context.select<DesktopPlayerBloc, Type>(
+                (bloc) => bloc.state.runtimeType,
+              );
+              switch (stateType) {
+                case DesktopPlayerEmptyState:
+                  return _pageForEmpty();
+                case DesktopPlayerDataState:
+                  return _pageForData(context);
+                default:
+                  assert(false, 'stateType $stateType missed');
+                  return const SizedBox.shrink();
+              }
+            },
+          ),
         ),
       ),
     );
+  }
+
+  void _showSubtitleList(BuildContext context) {
+    final state = context
+        .read<DesktopPlayerBloc>().state.as<DesktopPlayerDataState>();
+    if (state == null) return;
+    final bloc = PlayerSubtitleListBloc(state.subtitleList, state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return PlayerSubtitleListUI(bloc);
+      },
+    ).whenComplete(() {
+      if (context.mounted) {
+        context.read<DesktopPlayerBloc>().add(
+          const DesktopPlayerHideSubtitleListEvent(),
+        );
+      }
+    });
   }
 
   Widget _pageForData(BuildContext context) {

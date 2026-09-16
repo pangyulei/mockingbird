@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marquee/marquee.dart';
+import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
@@ -32,26 +33,10 @@ class MobilePlayerUI extends StatelessWidget {
     return BlocProvider.value(
       value: _bloc,
       child: BlocListener<PlayerBlocType, MobilePlayerState>(
-        listener: (context, state) {
-          if (state is! MobilePlayerDataState) {
-            assert(
-              false,
-              'player only listen when state is PlayerDataState, but now it is $state',
-            );
-            return;
-          }
-          if (state.subtitleListVisible) {
-            _showSubtitleList(context);
-          }
-        },
         listenWhen: (previous, current) {
-          if (current is! MobilePlayerDataState) return false;
-          if (previous is MobilePlayerDataState) {
-            return previous.subtitleListVisible != current.subtitleListVisible;
-          } else {
-            return true;
-          }
+          return (previous is! MobilePlayerDataState || previous.subtitleListVisible == false) && current is MobilePlayerDataState && current.subtitleListVisible;
         },
+        listener: (context, state) => _showSubtitleList(context),
         child: Builder(
           builder: (context) {
             final stateType = context.select<PlayerBlocType, Type>(

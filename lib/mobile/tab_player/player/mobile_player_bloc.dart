@@ -205,6 +205,7 @@ class MobilePlayerBloc extends PlayerBlocType {
     emit(state.copyWith(subtitleListVisible: false));
   }
 
+  //TODO if no subtitle match, able to select subtitle
   // void _onPickLibraryFileForSubtitle() async {
 
   // }

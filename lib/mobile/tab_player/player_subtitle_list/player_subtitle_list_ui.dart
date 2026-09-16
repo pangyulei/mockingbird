@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_event.dart';
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_state.dart';
-import 'package:mockingbird/tool/event_hub.dart';
 
 abstract class PlayerSubtitleListBlocType
     extends Bloc<PlayerSubtitleListEvent, PlayerSubtitleListState> {
@@ -51,27 +50,29 @@ class PlayerSubtitleListUI extends StatelessWidget {
                       final subtitle = subtitleList[index];
                       final isSelected = subtitle.name == selectedName;
 
-                      return ListTile(
-                        leading: Icon(
-                          Icons.subtitles_rounded,
-                          color: isSelected ? colorScheme.primary : colorScheme.outline,
-                        ),
-                        title: Text(
-                          subtitle.name,
-                          style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          leading: Icon(
+                            Icons.subtitles_rounded,
+                            color: isSelected ? colorScheme.primary : colorScheme.outline,
                           ),
+                          title: Text(
+                            subtitle.name,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? Icon(Icons.check_circle_rounded, color: colorScheme.primary)
+                              : null,
+                          onTap: () {
+                            context.read<PlayerSubtitleListBlocType>().add(
+                              PlayerSubtitleListSelectNameEvent(subtitle.name, context),
+                            );
+                          },
                         ),
-                        trailing: isSelected
-                            ? Icon(Icons.check_circle_rounded, color: colorScheme.primary)
-                            : null,
-                        onTap: () {
-                          EventHub.emit(HubSubtitleChangeEvent(subtitle.name));
-                          context.read<PlayerSubtitleListBlocType>().add(
-                            PlayerSubtitleListSelectNameEvent(subtitle.name, context),
-                          );
-                        },
                       );
                     },
                   );

@@ -34,7 +34,28 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   DesktopPlayerBloc() : super(const DesktopPlayerEmptyState()) {
     on<DesktopPlayerSelectMediaFromFileExplorerEvent>(_selectMediaFromFileExplorer);
     on<DesktopPlayerPositionChangeByPlayingEvent>(_onPositionChangeByPlaying);
+    on<DesktopPlayerShowSubtitleListEvent>(_onShowSubtitleList);
+    on<DesktopPlayerHideSubtitleListEvent>(_onHideSubtitleList);
   }
+
+  void _onHideSubtitleList(
+      DesktopPlayerHideSubtitleListEvent event,
+      Emitter<DesktopPlayerState> emit,
+      ) {
+    final state = this.state;
+    if (state is! DesktopPlayerDataState) return;
+    emit(state.copyWith(subtitleListVisible: false));
+  }
+
+  void _onShowSubtitleList(
+      DesktopPlayerShowSubtitleListEvent event,
+      Emitter<DesktopPlayerState> emit,
+      ) {
+    final state = this.state;
+    if (state is! DesktopPlayerDataState) return;
+    emit(state.copyWith(subtitleListVisible: true));
+  }
+
 
   void _onPositionChangeByPlaying(
       DesktopPlayerPositionChangeByPlayingEvent event,

@@ -5,6 +5,7 @@ import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtit
 import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
 
 import '../../../db/entities/subtitle.dart';
+import '../../../tool/event_hub.dart';
 
 class PlayerSubtitleListBloc extends PlayerSubtitleListBlocType {
   final List<Subtitle> _subtitleList;
@@ -20,6 +21,7 @@ class PlayerSubtitleListBloc extends PlayerSubtitleListBlocType {
     Emitter<PlayerSubtitleListState> emit,
   ) {
     if (_selectedSubtitleName != event.name) {
+      EventHub.emit(HubSubtitleChangeEvent(event.name));
       emit(PlayerSubtitleListState(event.name, _subtitleList));
     }
     Navigator.pop(event.context);
