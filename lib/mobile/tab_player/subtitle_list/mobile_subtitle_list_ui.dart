@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_event.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_state.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_event.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_state.dart';
 
-abstract class PlayerSubtitleListBlocType
-    extends Bloc<PlayerSubtitleListEvent, PlayerSubtitleListState> {
-  PlayerSubtitleListBlocType(super.initialState);
+abstract class MobileSubtitleListBlocType
+    extends Bloc<MobileSubtitleListEvent, MobileSubtitleListState> {
+  MobileSubtitleListBlocType(super.initialState);
 }
 
-class PlayerSubtitleListUI extends StatelessWidget {
-  final PlayerSubtitleListBlocType _bloc;
+class MobileSubtitleListUI extends StatelessWidget {
+  final MobileSubtitleListBlocType _bloc;
 
-  const PlayerSubtitleListUI(this._bloc, {super.key});
+  const MobileSubtitleListUI(this._bloc, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class PlayerSubtitleListUI extends StatelessWidget {
             Flexible(
               child: Builder(
                 builder: (context) {
-                  final state = context.watch<PlayerSubtitleListBlocType>().state;
+                  final state = context.watch<MobileSubtitleListBlocType>().state;
                   final subtitleList = state.subtitleList;
                   final selectedName = state.selectedSubtitleName;
                   return ListView.builder(
@@ -68,8 +68,8 @@ class PlayerSubtitleListUI extends StatelessWidget {
                               ? Icon(Icons.check_circle_rounded, color: colorScheme.primary)
                               : null,
                           onTap: () {
-                            context.read<PlayerSubtitleListBlocType>().add(
-                              PlayerSubtitleListSelectNameEvent(subtitle.name, context),
+                            context.read<MobileSubtitleListBlocType>().add(
+                              MobileSubtitleListSelectNameEvent(subtitle.name, context),
                             );
                           },
                         ),

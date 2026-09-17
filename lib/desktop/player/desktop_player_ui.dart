@@ -8,8 +8,8 @@ import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import 'package:mockingbird/mobile/tab_settings/about/about_ui.dart';
 import 'package:mockingbird/tool/extensions.dart';
@@ -59,13 +59,13 @@ class DesktopPlayerUI extends StatelessWidget {
     final state = context
         .read<DesktopPlayerBloc>().state.as<DesktopPlayerDataState>();
     if (state == null) return;
-    final bloc = PlayerSubtitleListBloc(state.subtitleList, state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName);
+    final bloc = MobileSubtitleListBloc(state.subtitleList, state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return PlayerSubtitleListUI(bloc);
+        return MobileSubtitleListUI(bloc);
       },
     ).whenComplete(() {
       if (context.mounted) {
@@ -430,18 +430,50 @@ class DesktopPlayerUI extends StatelessWidget {
 
   Widget _subtitleListButton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return IconButton(
-      onPressed: () {
-        context.read<DesktopPlayerBloc>().add(
-          const DesktopPlayerShowSubtitleListEvent(),
+    final state = context.watch<DesktopPlayerBloc>().state.as<DesktopPlayerDataState>();
+    if (state == null) return const SizedBox.shrink();
+    
+    final currentSubtitleName = state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName;
+
+    return MenuAnchor(
+      builder: (context, controller, child) {
+        return IconButton(
+          onPressed: () {
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open();
+            }
+          },
+          icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline, size: 20),
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          padding: EdgeInsets.zero,
+          tooltip: 'Select Subtitle',
         );
       },
-      icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline, size: 20),
-      style: IconButton.styleFrom(
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      padding: EdgeInsets.zero,
+      menuChildren: state.subtitleList.map((subtitle) {
+        final isSelected = subtitle.name == currentSubtitleName;
+        return MenuItemButton(
+          leadingIcon: Icon(
+            isSelected ? Icons.check_circle_rounded : Icons.subtitles_rounded,
+            color: isSelected ? colorScheme.primary : colorScheme.outline,
+            size: 18,
+          ),
+          child: Text(
+            subtitle.name,
+            style: TextStyle(
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+            ),
+          ),
+          onPressed: () {
+            context.read<DesktopPlayerBloc>().add(DesktopPlayerSelectSubtitleEvent(subtitle.name));
+          },
+        );
+      }).toList(),
     );
   }
 

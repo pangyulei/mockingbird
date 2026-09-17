@@ -36,6 +36,29 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     on<DesktopPlayerPositionChangeByPlayingEvent>(_onPositionChangeByPlaying);
     on<DesktopPlayerShowSubtitleListEvent>(_onShowSubtitleList);
     on<DesktopPlayerHideSubtitleListEvent>(_onHideSubtitleList);
+    on<DesktopPlayerSelectSubtitleEvent>(_onSelectSubtitle);
+  }
+
+  void _onSelectSubtitle(
+      DesktopPlayerSelectSubtitleEvent event,
+      Emitter<DesktopPlayerState> emit,
+      ) async {
+    var state = this.state;
+    if (state is! DesktopPlayerDataState || _media == null) return;
+    final (:subtitleList, :subtitleState, :subtitleListButtonVisible) = await _reloadSubtitle(_media!, event.name, state.position);
+    emit(state.copyWith(
+      subtitleList: subtitleList,
+      subtitleState: subtitleState,
+      subtitleListButtonVisible: subtitleListButtonVisible
+    ));
+    EventHub.emit(HubPlayingSentenceChangeEvent(_spot?.sentence.id));
+
+    var metadata = await DesktopDB.loadMetadata();
+    final index = metadata.historyList.indexWhere((h) => h.mediaPath == _media!.path);
+    if (index != -1) {
+      metadata.historyList[index] = metadata.historyList[index].copyWith(subtitleName: () => event.name);
+      await DesktopDB.updateMetadata(metadata);
+    }
   }
 
   void _onHideSubtitleList(

@@ -10,8 +10,8 @@ import 'package:mockingbird/mobile/app/mobile_app_route.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_ui.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
@@ -735,8 +735,8 @@ class MobilePlayerBloc extends PlayerBlocType {
   }
 
   @override
-  PlayerSubtitleListBlocType get subtitleListBlocType {
-    return PlayerSubtitleListBloc(
+  MobileSubtitleListBlocType get subtitleListBlocType {
+    return MobileSubtitleListBloc(
       state.as<MobilePlayerDataState>()?.subtitleList ?? [],
       state.as<MobilePlayerDataState>()?.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
     );

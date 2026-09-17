@@ -4,7 +4,7 @@ import 'package:marquee/marquee.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
-import 'package:mockingbird/mobile/tab_player/player_subtitle_list/player_subtitle_list_ui.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -14,7 +14,7 @@ import 'package:video_player/video_player.dart';
 abstract interface class PlayerBlocITF {
   SentenceCardBlocType sentenceCardBlocAtIndex(int index);
 
-  PlayerSubtitleListBlocType get subtitleListBlocType;
+  MobileSubtitleListBlocType get subtitleListBlocType;
 }
 
 abstract class PlayerBlocType extends Bloc<MobilePlayerEvent, MobilePlayerState>
@@ -68,7 +68,7 @@ class MobilePlayerUI extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return PlayerSubtitleListUI(subtitleListBloc);
+        return MobileSubtitleListUI(subtitleListBloc);
       },
     ).whenComplete(() {
       if (context.mounted) {
