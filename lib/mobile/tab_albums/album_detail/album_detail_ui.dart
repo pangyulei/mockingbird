@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/mobile/tab_albums/album_detail/album_detail_event.dart';
 import 'package:mockingbird/mobile/tab_albums/album_detail/album_detail_state.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -25,7 +26,7 @@ class AlbumDetailUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) {
-        debugPrint('albumdetail ui blocprovider create called');
+        i('albumdetail ui blocprovider create called');
         return _bloc..add(const AlbumDetailInitEvent());
       },
       child: Builder(

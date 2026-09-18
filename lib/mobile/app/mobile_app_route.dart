@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/mobile/tab_albums/album_detail/album_detail_bloc.dart';
 import 'package:mockingbird/mobile/tab_albums/album_detail/album_detail_ui.dart';
 import 'package:mockingbird/mobile/tab_albums/album_list/album_list_ui.dart';
@@ -55,7 +56,7 @@ class MobileAppRoute {
         path: ':albumId',
         builder: (BuildContext context, GoRouterState state) {
           final albumId = state.pathParameters['albumId'];
-          debugPrint('albumdetail go-router create instance $albumId');
+          i('albumdetail go-router create instance $albumId');
           return AlbumDetailUI(AlbumDetailBloc(albumId));
         },
       ),
@@ -67,7 +68,7 @@ class MobileAppRoute {
     builder: (BuildContext context, GoRouterState state) {
       // final mediaId = state.pathParameters['mediaId'];
       final mediaId = state.uri.queryParameters['mediaId'];
-      debugPrint('player go-router create mediaId($mediaId)');
+      i('player go-router create mediaId($mediaId)');
       final playerBloc = SharedMobilePlayerBloc.instance;
       return MobilePlayerUI(playerBloc..add(MobilePlayerInitEvent(mediaId)));
     },

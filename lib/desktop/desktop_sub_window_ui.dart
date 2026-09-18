@@ -1,6 +1,7 @@
-import 'package:collection/collection.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:mockingbird/desktop/subtitle/desktop_subtitle_ui.dart';
+import 'package:mockingbird/mobile/tab_settings/about/about_ui.dart';
 import 'package:mockingbird/tool/extensions.dart';
 
 const kSubWindowTypeKey = 'type';
@@ -17,11 +18,11 @@ enum SubWindowType {
   }
 }
 
-class DesktopSubWindow extends StatelessWidget {
+class DesktopSubWindowUI extends StatelessWidget {
   final String _id;
   final SubWindowType _type;
 
-  const DesktopSubWindow({super.key, required this._id, required this._type});
+  const DesktopSubWindowUI({super.key, required this._id, required this._type});
 
   @override
   Widget build(BuildContext context) {
@@ -48,16 +49,9 @@ class DesktopSubWindow extends StatelessWidget {
   }
 
   Widget _buildWindowBody() {
-    switch (_type) {
-      case .subtitle:
-        return const Center(
-          child: Text(
-            'Subtitle Floating Window Content',
-            style: TextStyle(fontSize: 20, color: Colors.yellow),
-          ),
-        );
-      case .about:
-        return const Center(child: Text('About This Desktop App'));
-    }
+    return switch (_type) {
+      .subtitle => const DesktopSubtitleUI(),
+      .about => const AboutUI()
+    };
   }
 }

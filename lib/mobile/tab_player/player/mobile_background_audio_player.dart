@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/tool/event_hub.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:path/path.dart' as p;
@@ -110,7 +110,7 @@ class MobileBackgroundAudioPlayer extends BaseAudioHandler {
     if (mediaItem.valueOrNull == null) return;
     final playing = playbackState.value.playing;
     final position = playbackState.value.position;
-    debugPrint('Syncing back to player UI: playing=$playing, position=${position.desc}');
+    i('Syncing back to player UI: playing=$playing, position=${position.desc}');
     //remove mediaItem, stop audio player
     mediaItem.add(null);
     await _audioPlayer.stop();

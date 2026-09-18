@@ -1,20 +1,13 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:marquee/marquee.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
-import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
-import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
-import 'package:mockingbird/mobile/tab_settings/about/about_ui.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
 enum DesktopLayoutMode { stacked, snappedSide, detached }
@@ -24,56 +17,29 @@ class DesktopPlayerUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('desktop player ui building');
+    i('desktop player ui building');
     return BlocProvider(
       create: (context) => DesktopPlayerBloc(),
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: BlocListener<DesktopPlayerBloc, DesktopPlayerState>(
-          listenWhen: (previous, current) {
-            return (previous is! DesktopPlayerDataState || previous.subtitleListVisible == false) && current is DesktopPlayerDataState && current.subtitleListVisible;
+        body: Builder(
+          builder: (context) {
+            final stateType = context.select<DesktopPlayerBloc, Type>(
+              (bloc) => bloc.state.runtimeType,
+            );
+            switch (stateType) {
+              case DesktopPlayerEmptyState:
+                return _pageForEmpty(context);
+              case DesktopPlayerDataState:
+                return _pageForData(context);
+              default:
+                assert(false, 'stateType $stateType missed');
+                return const SizedBox.shrink();
+            }
           },
-          listener: (context, state) => _showSubtitleList(context),
-          child: Builder(
-            builder: (context) {
-              final stateType = context.select<DesktopPlayerBloc, Type>(
-                (bloc) => bloc.state.runtimeType,
-              );
-              switch (stateType) {
-                case DesktopPlayerEmptyState:
-                  return _pageForEmpty();
-                case DesktopPlayerDataState:
-                  return _pageForData(context);
-                default:
-                  assert(false, 'stateType $stateType missed');
-                  return const SizedBox.shrink();
-              }
-            },
-          ),
         ),
       ),
     );
-  }
-
-  void _showSubtitleList(BuildContext context) {
-    final state = context
-        .read<DesktopPlayerBloc>().state.as<DesktopPlayerDataState>();
-    if (state == null) return;
-    final bloc = MobileSubtitleListBloc(state.subtitleList, state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName);
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return MobileSubtitleListUI(bloc);
-      },
-    ).whenComplete(() {
-      if (context.mounted) {
-        context.read<DesktopPlayerBloc>().add(
-          const DesktopPlayerHideSubtitleListEvent(),
-        );
-      }
-    });
   }
 
   Widget _pageForData(BuildContext context) {
@@ -126,6 +92,17 @@ class DesktopPlayerUI extends StatelessWidget {
               },
             ),
           ),
+          const SizedBox(width: 16),
+          // Short cuts or indicator icons
+          IconButton(
+            icon: const Icon(
+              Icons.dashboard_customize_rounded,
+              color: Colors.white70,
+              size: 20,
+            ),
+            onPressed: () {},
+            tooltip: 'Layout & Options Menu',
+          ),
         ],
       ),
     );
@@ -136,7 +113,8 @@ class DesktopPlayerUI extends StatelessWidget {
       builder: (context) {
         final mediaType = context.select<DesktopPlayerBloc, AssetType>(
           (bloc) =>
-              bloc.state.as<DesktopPlayerDataState>()?.mediaType ?? AssetType.video,
+              bloc.state.as<DesktopPlayerDataState>()?.mediaType ??
+              AssetType.video,
         );
         if (mediaType == AssetType.video) {
           return _videoDisplayer(context);
@@ -154,7 +132,9 @@ class DesktopPlayerUI extends StatelessWidget {
         Builder(
           builder: (context) {
             final aspectRatio = context.select<DesktopPlayerBloc, double>(
-              (bloc) => bloc.state.as<DesktopPlayerDataState>()?.aspectRatio ?? 16 / 9,
+              (bloc) =>
+                  bloc.state.as<DesktopPlayerDataState>()?.aspectRatio ??
+                  16 / 9,
             );
             return AspectRatio(aspectRatio: aspectRatio, child: _player());
           },
@@ -250,7 +230,8 @@ class DesktopPlayerUI extends StatelessWidget {
         builder: (context) {
           const double maxVolume = 1;
           final volume = context.select<DesktopPlayerBloc, double>(
-            (bloc) => bloc.state.as<DesktopPlayerDataState>()?.volume ?? maxVolume,
+            (bloc) =>
+                bloc.state.as<DesktopPlayerDataState>()?.volume ?? maxVolume,
           );
           return Slider(
             value: volume,
@@ -281,8 +262,10 @@ class DesktopPlayerUI extends StatelessWidget {
           final (position, duration) = context
               .select<DesktopPlayerBloc, (Duration, Duration)>(
                 (bloc) => (
-                  bloc.state.as<DesktopPlayerDataState>()?.position ?? Duration.zero,
-                  bloc.state.as<DesktopPlayerDataState>()?.duration ?? Duration.zero,
+                  bloc.state.as<DesktopPlayerDataState>()?.position ??
+                      Duration.zero,
+                  bloc.state.as<DesktopPlayerDataState>()?.duration ??
+                      Duration.zero,
                 ),
               );
           final max = duration.inMilliseconds.toDouble();
@@ -373,9 +356,13 @@ class DesktopPlayerUI extends StatelessWidget {
         return IconButton.filled(
           onPressed: () {
             if (playing) {
-              context.read<DesktopPlayerBloc>().add(const DesktopPlayerPauseEvent());
+              context.read<DesktopPlayerBloc>().add(
+                const DesktopPlayerPauseEvent(),
+              );
             } else {
-              context.read<DesktopPlayerBloc>().add(const DesktopPlayerPlayEvent());
+              context.read<DesktopPlayerBloc>().add(
+                const DesktopPlayerPlayEvent(),
+              );
             }
           },
           icon: Icon(
@@ -401,7 +388,7 @@ class DesktopPlayerUI extends StatelessWidget {
         final hasSubtitle = context.select<DesktopPlayerBloc, bool>(
           (bloc) =>
               bloc.state.as<DesktopPlayerDataState>()?.subtitleState
-                  is PlayerSubtitleDataState,
+                  is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final loop = context.select<DesktopPlayerBloc, bool>(
@@ -430,50 +417,18 @@ class DesktopPlayerUI extends StatelessWidget {
 
   Widget _subtitleListButton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final state = context.watch<DesktopPlayerBloc>().state.as<DesktopPlayerDataState>();
-    if (state == null) return const SizedBox.shrink();
-    
-    final currentSubtitleName = state.subtitleState.as<PlayerSubtitleDataState>()?.subtitleName;
-
-    return MenuAnchor(
-      builder: (context, controller, child) {
-        return IconButton(
-          onPressed: () {
-            if (controller.isOpen) {
-              controller.close();
-            } else {
-              controller.open();
-            }
-          },
-          icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline, size: 20),
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          padding: EdgeInsets.zero,
-          tooltip: 'Select Subtitle',
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(
+          const DesktopPlayerShowSubtitleListEvent(),
         );
       },
-      menuChildren: state.subtitleList.map((subtitle) {
-        final isSelected = subtitle.name == currentSubtitleName;
-        return MenuItemButton(
-          leadingIcon: Icon(
-            isSelected ? Icons.check_circle_rounded : Icons.subtitles_rounded,
-            color: isSelected ? colorScheme.primary : colorScheme.outline,
-            size: 18,
-          ),
-          child: Text(
-            subtitle.name,
-            style: TextStyle(
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-            ),
-          ),
-          onPressed: () {
-            context.read<DesktopPlayerBloc>().add(DesktopPlayerSelectSubtitleEvent(subtitle.name));
-          },
-        );
-      }).toList(),
+      icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline, size: 20),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
     );
   }
 
@@ -481,7 +436,9 @@ class DesktopPlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<DesktopPlayerBloc>().add(const DesktopPlayerDecSpeedEvent());
+          context.read<DesktopPlayerBloc>().add(
+            const DesktopPlayerDecSpeedEvent(),
+          );
         },
         icon: const Icon(Icons.remove_circle_outline_rounded, size: 20),
         color: Theme.of(context).colorScheme.outline,
@@ -498,7 +455,9 @@ class DesktopPlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<DesktopPlayerBloc>().add(const DesktopPlayerIncSpeedEvent());
+          context.read<DesktopPlayerBloc>().add(
+            const DesktopPlayerIncSpeedEvent(),
+          );
         },
         icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
         color: Theme.of(context).colorScheme.outline,
@@ -542,67 +501,60 @@ class DesktopPlayerUI extends StatelessWidget {
     );
   }
 
-
-  Widget _pageForEmpty() {
+  Widget _pageForEmpty(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Center(
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
-        child: Builder(
-          builder: (context) {
-            final colorScheme = Theme.of(context).colorScheme;
-            final textTheme = Theme.of(context).textTheme;
-            return GestureDetector(
-              onTap: () {
-                context.read<DesktopPlayerBloc>().add(const DesktopPlayerSelectMediaFromFileExplorerEvent());
-              },
-              child: Container(
-                margin: const EdgeInsets.all(32),
-                padding: const EdgeInsets.all(48),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.4),
-                    width: 2,
-                    style: BorderStyle.solid,
+        child: GestureDetector(
+          onTap: () => context.read<DesktopPlayerBloc>().add(const DesktopPlayerSelectMediaFromFileExplorerEvent()),
+          child: Container(
+            margin: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(48),
+            decoration: BoxDecoration(
+              color: colorScheme.surface.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: colorScheme.primary.withValues(alpha: 0.4),
+                width: 2,
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.cloud_upload_outlined,
+                    size: 48,
+                    color: colorScheme.primary,
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.cloud_upload_outlined,
-                        size: 48,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Drag & Drop Media File Here',
-                      style: textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'or click anywhere in this area to browse your video/audio files',
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.outline,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                const SizedBox(height: 24),
+                Text(
+                  'Drag & Drop Media File Here',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            );
-          }
+                const SizedBox(height: 8),
+                Text(
+                  'or click anywhere in this area to browse your video/audio files',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.outline,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -3,8 +3,8 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mockingbird/desktop/player/desktop_player_ui.dart';
 
-class DesktopAppUI extends StatelessWidget {
-  const DesktopAppUI({super.key});
+class DesktopMainWindowUI extends StatelessWidget {
+  const DesktopMainWindowUI({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -26,7 +26,7 @@ class DesktopPlayerDataState extends DesktopPlayerState {
   final AssetType mediaType;
   final bool subtitleListVisible;
   final List<Subtitle> subtitleList;
-  final PlayerSubtitleState subtitleState;
+  final SubtitleState subtitleState;
   final VideoPlayerController player;
   final ItemScrollController scroller;
   final bool subtitleListButtonVisible;
@@ -55,7 +55,7 @@ class DesktopPlayerDataState extends DesktopPlayerState {
     double? aspectRatio,
     double? volume,
     double? speed,
-    PlayerSubtitleState? subtitleState,
+    SubtitleState? subtitleState,
     AssetType? mediaType,
     bool? subtitleListVisible,
     bool? subtitleListButtonVisible,
@@ -85,7 +85,7 @@ class DesktopPlayerDataState extends DesktopPlayerState {
 
   Subtitle? get selectedSubtitle {
     final subtitleState = this.subtitleState;
-    if (subtitleState is! PlayerSubtitleDataState) return null;
+    if (subtitleState is! SubtitleDataState) return null;
     return subtitleList.firstWhereOrNull((s) => s.name == subtitleState.subtitleName);
   }
 }

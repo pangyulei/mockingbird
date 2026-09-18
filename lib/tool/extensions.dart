@@ -1,8 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -12,22 +15,54 @@ import 'package:window_manager/window_manager.dart';
 
 import '../db/entities/sentence.dart';
 import '../db/entities/subtitle.dart';
+import '../desktop/desktop_sub_window_ui.dart';
 import '../objectbox.g.dart';
+
+extension StringHelper on String {
+  Map<String, dynamic> get json => jsonDecode(this);
+}
+
+extension JsonHelper on Map<String, dynamic> {
+  String get string => jsonEncode(this);
+}
 
 extension WindowControllerHelper on WindowController {
   Future<void> bindMethods() async {
     await setWindowMethodHandler((call) async {
       switch (call.method) {
+        case 'window_center':
+          return await windowManager.center();
         case 'window_close':
-          return await windowManager.close(); // real close, not hide
+          await windowManager.close();
+        case 'window_set_title':
+          await windowManager.setTitle(call.arguments as String);
+        case 'window_set_frame':
+          final map = call.arguments as Map;
+          final rect = Rect.fromLTWH(
+            map['left'],
+            map['top'],
+            map['width'],
+            map['height'],
+          );
+          return await windowManager.setBounds(rect);
         default:
           throw Exception('Not implemented: ${call.method}');
       }
     });
   }
-
-  Future<void> close() => invokeMethod('window_close'); // this is what you want
+  Future<void> center() => invokeMethod('window_center');
+  Future<void> setTitle(String title) => invokeMethod('window_set_title', title);
+  Future<void> close() => invokeMethod('window_close');
+  Future<void> setFrame(Rect frame) => invokeMethod('window_set_frame', {
+    'left': frame.left,
+    'top': frame.top,
+    'width': frame.width,
+    'height': frame.height,
+  });
 }
+
+Future<WindowController> spawnSubWindow(SubWindowType type) async => await WindowController.create(WindowConfiguration(arguments: type.raw));
+
 
 extension ObjectHelper on Object {
   T? as<T>() {
@@ -51,10 +86,10 @@ extension IterableHelper<E> on Iterable<E> {
 extension ScrollHelper on ItemScrollController {
   void safeJumpTo(int? index, {double alignment = 0}) {
     if (isAttached && index != null) {
-      // debugPrint('${identityHashCode(this)} will jump to index $index');
+      // i('${identityHashCode(this)} will jump to index $index');
       jumpTo(index: index, alignment: alignment);
     } else {
-      // debugPrint(
+      // i(
       //   '${identityHashCode(this)} jump fail, attached $isAttached, index $index',
       // );
     }
@@ -66,12 +101,12 @@ extension ScrollHelper on ItemScrollController {
     Duration duration = const Duration(milliseconds: 250),
   }) {
     if (isAttached && index != null) {
-      // debugPrint(
+      // i(
       //   '${identityHashCode(this)} will scroll to index $index align $alignment',
       // );
       scrollTo(index: index, duration: duration, alignment: alignment);
     } else {
-      // debugPrint(
+      // i(
       //   '${identityHashCode(this)} scroll fail, attached $isAttached, index $index',
       // );
     }
@@ -198,7 +233,7 @@ Future<Store> initDB({Store? store}) async {
     if (Admin.isAvailable()) {
       Admin(store);
     } else {
-      debugPrint('ObjectBox Admin is NOT available');
+      i('ObjectBox Admin is NOT available');
     }
   }
   return store;

@@ -31,7 +31,7 @@ class MobilePlayerDataState extends MobilePlayerState {
   final AssetType mediaType;
   final bool subtitleListVisible;
   final List<Subtitle> subtitleList;
-  final PlayerSubtitleState subtitleState;
+  final SubtitleState subtitleState;
   final VideoPlayerController player;
   final ItemScrollController scroller;
   final bool subtitleListButtonVisible;
@@ -61,7 +61,7 @@ class MobilePlayerDataState extends MobilePlayerState {
     double? aspectRatio,
     double? volume,
     double? speed,
-    PlayerSubtitleState? subtitleState,
+    SubtitleState? subtitleState,
     AssetType? mediaType,
     bool? volumeSliderVisible,
     bool? subtitleListVisible,
@@ -95,26 +95,26 @@ class MobilePlayerDataState extends MobilePlayerState {
 
   Subtitle? get selectedSubtitle {
     final subtitleState = this.subtitleState;
-    if (subtitleState is! PlayerSubtitleDataState) return null;
+    if (subtitleState is! SubtitleDataState) return null;
     return subtitleList.firstWhereOrNull((s) => s.name == subtitleState.subtitleName);
   }
 }
 
-sealed class PlayerSubtitleState {
-  const PlayerSubtitleState();
+sealed class SubtitleState {
+  const SubtitleState();
 }
 
-class PlayerSubtitleEmptyState extends PlayerSubtitleState {
-  const PlayerSubtitleEmptyState();
+class SubtitleEmptyState extends SubtitleState {
+  const SubtitleEmptyState();
 }
 
-class PlayerSubtitleDataState extends PlayerSubtitleState {
+class SubtitleDataState extends SubtitleState {
   final String subtitleName;
   final List<SentenceEntity> sentenceList;
   final double initialAlignment;
   final int initialIndex;
 
-  const PlayerSubtitleDataState({
+  const SubtitleDataState({
     required this.subtitleName,
     required this.sentenceList,
     required this.initialAlignment,

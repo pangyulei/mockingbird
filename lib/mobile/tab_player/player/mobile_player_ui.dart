@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marquee/marquee.dart';
-import 'package:mockingbird/desktop/player/desktop_player_state.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
@@ -29,7 +29,7 @@ class MobilePlayerUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('player ui building');
+    i('player ui building');
     return BlocProvider.value(
       value: _bloc,
       child: BlocListener<PlayerBlocType, MobilePlayerState>(
@@ -239,7 +239,7 @@ class MobilePlayerUI extends StatelessWidget {
             final (subtitleState, scroller) = context
                 .select<
                   PlayerBlocType,
-                  (PlayerSubtitleState?, ItemScrollController?)
+                  (SubtitleState?, ItemScrollController?)
                 >((bloc) {
                   final dataState = bloc.state.as<MobilePlayerDataState>();
                   return (dataState?.subtitleState, dataState?.scroller);
@@ -248,8 +248,8 @@ class MobilePlayerUI extends StatelessWidget {
               return const SizedBox.shrink();
             }
             switch (subtitleState) {
-              case PlayerSubtitleDataState subtitleState:
-                debugPrint(
+              case SubtitleDataState subtitleState:
+                i(
                   'player ui align:${subtitleState.initialAlignment} index:${subtitleState.initialIndex}',
                 );
                 return ScrollablePositionedList.builder(
@@ -265,7 +265,7 @@ class MobilePlayerUI extends StatelessWidget {
                     return SentenceCardUI(sentenceCardBloc);
                   },
                 );
-              case PlayerSubtitleEmptyState _:
+              case SubtitleEmptyState _:
                 return _noSubtitle(context);
             }
           },
@@ -310,7 +310,7 @@ class MobilePlayerUI extends StatelessWidget {
         final hasSubtitle = context.select<PlayerBlocType, bool>(
           (bloc) =>
               bloc.state.as<MobilePlayerDataState>()?.subtitleState
-                  is PlayerSubtitleDataState,
+                  is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final colorScheme = Theme.of(context).colorScheme;
@@ -712,7 +712,7 @@ class MobilePlayerUI extends StatelessWidget {
         final hasSubtitle = context.select<PlayerBlocType, bool>(
           (bloc) =>
               bloc.state.as<MobilePlayerDataState>()?.subtitleState
-                  is PlayerSubtitleDataState,
+                  is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final loop = context.select<PlayerBlocType, bool>(

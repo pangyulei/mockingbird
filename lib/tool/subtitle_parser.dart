@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -22,7 +22,7 @@ class SubtitleParser {
     } else if (extension.toLowerCase() == '.vtt') {
       return _parseVtt(file.path, content);
     }
-    debugPrint(
+    i(
       'We only support .srt .vtt,\nyour subtitle: ${p.extension(file.path)}',
     );
     return null;
@@ -72,7 +72,7 @@ class SubtitleParser {
         }
       } catch (e) {
         // Skip malformed blocks
-        debugPrint('Error parsing SRT block: $e');
+        i('Error parsing SRT block: $e');
       }
     }
     if (sentenceList.isNotEmpty) {
@@ -143,7 +143,7 @@ class SubtitleParser {
           );
         }
       } catch (e) {
-        debugPrint('Error parsing VTT block: $e');
+        i('Error parsing VTT block: $e');
       }
     }
     if (sentenceList.isNotEmpty) {

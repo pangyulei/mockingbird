@@ -17,8 +17,16 @@ import 'package:path/path.dart' as p;
 import '../../db/desktop_db.dart';
 import '../../db/entities/subtitle.dart';
 import '../../mobile/tab_player/player/mobile_player_state.dart';
+import '../../mobile/tab_player/sentence_card/sentence_card_bloc.dart';
+import '../../mobile/tab_player/sentence_card/sentence_card_event.dart';
+import '../../mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import '../../tool/event_hub.dart';
 import '../../tool/extensions.dart';
+import '../desktop_sub_window_ui.dart';
+
+class SharedDesktopPlayerBloc {
+  static final instance = DesktopPlayerBloc();
+}
 
 class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   File? _media;
@@ -176,9 +184,14 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
 
     EasyLoading.show(maskType: .clear);
     final mediaFile = File(filePath);
-    emit(await _reload(mediaFile));
+    final state = await _reload(mediaFile);
+    emit(state);
     EasyLoading.dismiss();
-
+    if (state is DesktopPlayerDataState && state.subtitleState is SubtitleDataState) {
+      final subtitleWindow = await spawnSubWindow(SubWindowType.subtitle);
+      // await subtitleWindow.setTitle('my very subtitle window');
+      await subtitleWindow.show();
+    }
   }
 
   Future<DesktopPlayerState> _reload(File? media) async {
@@ -223,12 +236,12 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
             history?.copyWith(
               mediaPath: media.path,
               positionMs: position.inMilliseconds,
-              subtitleName: () => subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
+              subtitleName: () => subtitleState.as<SubtitleDataState>()?.subtitleName,
             ) ??
                 DesktopMediaHistory(
                     mediaPath: media.path,
                     positionMs: position.inMilliseconds,
-                    subtitleName: subtitleState.as<PlayerSubtitleDataState>()?.subtitleName,
+                    subtitleName: subtitleState.as<SubtitleDataState>()?.subtitleName,
                 );
         if (history.id == 0) {
           metadata.historyList.add(history);
@@ -240,7 +253,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
           loopIndex = null;
         } else {
           final sentenceList = subtitleList
-              .firstWhereOrNull((s) => s.name == subtitleState.as<PlayerSubtitleDataState>()?.subtitleName)
+              .firstWhereOrNull((s) => s.name == subtitleState.as<SubtitleDataState>()?.subtitleName)
               ?.sentenceList;
           loopIndex = sentenceList?.spot(position)?.index;
         }
@@ -267,11 +280,10 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     return newState;
   }
 
-
   Future<
       ({
       List<Subtitle> subtitleList,
-      PlayerSubtitleState subtitleState,
+      SubtitleState subtitleState,
       bool subtitleListButtonVisible,
       })
   >
@@ -289,11 +301,11 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     );
     final spot = subtitle?.sentenceList.spot(position);
     EventHub.emit(HubPlayingSentenceChangeEvent(spot?.sentence.id));
-    final PlayerSubtitleState subtitleState;
+    final SubtitleState subtitleState;
     if (spot == null || subtitle == null) {
-      subtitleState = const PlayerSubtitleEmptyState();
+      subtitleState = const SubtitleEmptyState();
     } else {
-      subtitleState = PlayerSubtitleDataState(
+      subtitleState = SubtitleDataState(
         subtitleName: subtitle.name,
         sentenceList: subtitle.sentenceList,
         initialAlignment: spot.alignment,
@@ -305,6 +317,12 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     subtitleState: subtitleState,
     subtitleListButtonVisible: subtitleList.length > 1,
     );
+  }
+
+  SentenceCardBlocType sentenceCardBlocAtIndex(int index) {
+    final sentence = state.as<DesktopPlayerDataState>()?.selectedSubtitle?.sentenceList[index];
+    final playing = _spot?.index == index;
+    return SentenceCardBloc(sentence)..add(SentenceCardInitEvent(playing));
   }
 
   // Future<void> _handleFileSelection(
@@ -358,7 +376,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   //       );
   //     }
   //   } catch (e) {
-  //     debugPrint('Error handling file selection: $e');
+  //     i('Error handling file selection: $e');
   //     EasyLoading.showError('Failed to load file into player.');
   //   } finally {
   //     EasyLoading.dismiss();
