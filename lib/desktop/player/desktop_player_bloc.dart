@@ -210,6 +210,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
           'title':subtitleName,
         }.string;
         subtitleWindow = await WindowController.create(WindowConfiguration(arguments: arguments));
+        // subtitleWindow..setFrame(Offset.zero & const Size(300, 400))..setTitle(subtitleName)..show();
         await subtitleWindow.show();
       }
       // await subtitleWindow.setTitle(subtitleName);

@@ -29,8 +29,9 @@ Future<void> _runDesktopApp(List<String> argList) async {
   i('argList: $argList');
   final window = await WindowController.fromCurrentEngine();
   await window.bindMethods();
-  i('windowId: ${window.windowId}, arguments: ${window.arguments}');
   if (argList.firstOrNull == 'multi_window') {
+    i('sub window id: ${window.windowId}');
+    i('sub window arguments: ${window.arguments}');
     // Sub-windows should NOT initialize window_manager as it crashes the secondary engines.
     // They should use their own WindowController for window management.
     final argumentMap = window.arguments.json;
@@ -38,6 +39,8 @@ Future<void> _runDesktopApp(List<String> argList) async {
     final type = DesktopSubWindowType.raw(argumentMap['type']);
     await _runDesktopSubWindow(window, title, type);
   } else {
+    i('main window id: ${window.windowId}');
+    i('main window arguments: ${window.arguments}');
     await DesktopDB.init();
     // Only the main window isolate initializes window_manager.
     await windowManager.ensureInitialized();
@@ -68,9 +71,7 @@ Future<void> _runDesktopSubWindow(WindowController window, String title, Desktop
   // Do NOT call window.setFrame or center() here using the controller instance in the sub-engine.
   // Those calls rely on the static channel being registered in the sub-engine, which crashes.
   // 运行子窗口应用
-  // await window.setFrame(Offset.zero & const Size(300, 400));
-  // await window.setMinimumSize(const Size(300, 400));
-  // await window.setTitle(title);
+  // window..setFrame(Offset.zero & const Size(300, 400))..setMinimumSize(const Size(300, 400))..setTitle(title);
   runApp(DesktopSubWindowUI(id: window.windowId, title: title, type: type,));
 }
 
