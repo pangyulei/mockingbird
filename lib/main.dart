@@ -3,7 +3,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:mixin_logger/mixin_logger.dart';
-import 'package:mockingbird/desktop/desktop_sub_window_ui.dart';
+import 'package:mockingbird/desktop/sub_window/desktop_sub_window_ui.dart';
 import 'package:mockingbird/mobile/app/mobile_app_lifecycler.dart';
 import 'package:mockingbird/mobile/app/mobile_app_ui.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_background_audio_player.dart';
@@ -16,7 +16,7 @@ import 'db/mobile_db.dart';
 import 'desktop/desktop_main_window_ui.dart';
 
 void main(List<String> argList) async {
-  WidgetsFlutterBinding.ensureInitialized(); //objectbox official code
+  WidgetsFlutterBinding.ensureInitialized();
   switch (kPlatformType) {
     case .desktop:
       await _runDesktopApp(argList);
@@ -29,12 +29,14 @@ Future<void> _runDesktopApp(List<String> argList) async {
   i('argList: $argList');
   final window = await WindowController.fromCurrentEngine();
   await window.bindMethods();
-  i('windowId: ${window.windowId}');
+  i('windowId: ${window.windowId}, arguments: ${window.arguments}');
   if (argList.firstOrNull == 'multi_window') {
     // Sub-windows should NOT initialize window_manager as it crashes the secondary engines.
     // They should use their own WindowController for window management.
-    final type = SubWindowType.raw(window.arguments);
-    await _runDesktopSubWindow(window, type);
+    final argumentMap = window.arguments.json;
+    final title = argumentMap['title'];
+    final type = DesktopSubWindowType.raw(argumentMap['type']);
+    await _runDesktopSubWindow(window, title, type);
   } else {
     await DesktopDB.init();
     // Only the main window isolate initializes window_manager.
@@ -62,16 +64,14 @@ Future<void> _runDesktopMainWindow(WindowController window) async {
   runApp(const DesktopMainWindowUI());
 }
 
-Future<void> _runDesktopSubWindow(WindowController window, SubWindowType type) async {
-  // switch (type) {
-  //   case .subtitle:
-  //     await window.setFrame(const Offset(100, 100) & const Size(600, 400));
-  //   case .about:
-  //     await window.setFrame(const Offset(100, 100) & const Size(600, 400));
-  // }
+Future<void> _runDesktopSubWindow(WindowController window, String title, DesktopSubWindowType type) async {
+  // Do NOT call window.setFrame or center() here using the controller instance in the sub-engine.
+  // Those calls rely on the static channel being registered in the sub-engine, which crashes.
   // 运行子窗口应用
-  final subWindow = DesktopSubWindowUI(id: window.windowId, type: type);
-  runApp(subWindow);
+  // await window.setFrame(Offset.zero & const Size(300, 400));
+  // await window.setMinimumSize(const Size(300, 400));
+  // await window.setTitle(title);
+  runApp(DesktopSubWindowUI(id: window.windowId, title: title, type: type,));
 }
 
 Future<void> _runMobileApp() async {

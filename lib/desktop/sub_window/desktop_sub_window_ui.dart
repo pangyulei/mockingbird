@@ -6,23 +6,17 @@ import 'package:mockingbird/tool/extensions.dart';
 
 const kSubWindowTypeKey = 'type';
 
-enum SubWindowType {
-  subtitle('subtitle'),
-  about('about');
-
-  final String raw;
-  const SubWindowType(this.raw);
-  factory SubWindowType.raw(String raw) {
-    final type = SubWindowType.values.firstWhere((e) => e.raw == raw);
-    return type;
-  }
-}
 
 class DesktopSubWindowUI extends StatelessWidget {
+  final DesktopSubWindowType _type;
+  final String _title;
   final String _id;
-  final SubWindowType _type;
-
-  const DesktopSubWindowUI({super.key, required this._id, required this._type});
+  const DesktopSubWindowUI({
+    required this._type,
+    required this._id,
+    required this._title,
+    super.key
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +25,7 @@ class DesktopSubWindowUI extends StatelessWidget {
       theme: ThemeData.dark(),
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Window ID: $_id'),
+          title: Text(_title),
           actions: [
             // 子窗口主动关闭自身的按钮
             IconButton(
@@ -53,5 +47,17 @@ class DesktopSubWindowUI extends StatelessWidget {
       .subtitle => const DesktopSubtitleUI(),
       .about => const AboutUI()
     };
+  }
+}
+
+enum DesktopSubWindowType {
+  subtitle('subtitle'),
+  about('about');
+
+  final String raw;
+  const DesktopSubWindowType(this.raw);
+  factory DesktopSubWindowType.raw(String raw) {
+    final type = DesktopSubWindowType.values.firstWhere((e) => e.raw == raw);
+    return type;
   }
 }

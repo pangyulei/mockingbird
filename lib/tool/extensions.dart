@@ -15,15 +15,28 @@ import 'package:window_manager/window_manager.dart';
 
 import '../db/entities/sentence.dart';
 import '../db/entities/subtitle.dart';
-import '../desktop/desktop_sub_window_ui.dart';
 import '../objectbox.g.dart';
 
 extension StringHelper on String {
-  Map<String, dynamic> get json => jsonDecode(this);
+  Map<String, dynamic> get json {
+    try {
+      return jsonDecode(this);
+    } catch (e) {
+      i('convert $this to json error: $e');
+      return {};
+    }
+  }
 }
 
 extension JsonHelper on Map<String, dynamic> {
-  String get string => jsonEncode(this);
+  String get string {
+    try {
+      return jsonEncode(this);
+    } catch (e) {
+      i('conver $this to string error: $e');
+      return '';
+    }
+  }
 }
 
 extension WindowControllerHelper on WindowController {
@@ -44,7 +57,7 @@ extension WindowControllerHelper on WindowController {
             map['width'],
             map['height'],
           );
-          return await windowManager.setBounds(rect);
+          await windowManager.setBounds(rect);
         case 'window_set_minimum_size':
           final map = call.arguments as Map;
           final double width = map['width'];
@@ -69,9 +82,6 @@ extension WindowControllerHelper on WindowController {
     'height': size.height,
   });
 }
-
-Future<WindowController> spawnSubWindow(SubWindowType type) async => await WindowController.create(WindowConfiguration(arguments: type.raw));
-
 
 extension ObjectHelper on Object {
   T? as<T>() {

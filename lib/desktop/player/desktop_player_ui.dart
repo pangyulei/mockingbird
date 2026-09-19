@@ -92,17 +92,6 @@ class DesktopPlayerUI extends StatelessWidget {
               },
             ),
           ),
-          const SizedBox(width: 16),
-          // Short cuts or indicator icons
-          IconButton(
-            icon: const Icon(
-              Icons.dashboard_customize_rounded,
-              color: Colors.white70,
-              size: 20,
-            ),
-            onPressed: () {},
-            tooltip: 'Layout & Options Menu',
-          ),
         ],
       ),
     );

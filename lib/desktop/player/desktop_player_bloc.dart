@@ -1,12 +1,15 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:collection/collection.dart';
 import 'package:defer/defer.dart';
+import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/db/entities/desktop_media_history.dart';
 import 'package:mockingbird/db/entities/sentence.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
@@ -22,7 +25,7 @@ import '../../mobile/tab_player/sentence_card/sentence_card_event.dart';
 import '../../mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import '../../tool/event_hub.dart';
 import '../../tool/extensions.dart';
-import '../desktop_sub_window_ui.dart';
+import '../sub_window/desktop_sub_window_ui.dart';
 
 class SharedDesktopPlayerBloc {
   static final instance = DesktopPlayerBloc();
@@ -187,10 +190,29 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     final state = await _reload(mediaFile);
     emit(state);
     EasyLoading.dismiss();
-    if (state is DesktopPlayerDataState && state.subtitleState is SubtitleDataState) {
-      final subtitleWindow = await spawnSubWindow(SubWindowType.subtitle);
-      // await subtitleWindow.setTitle('my very subtitle window');
-      await subtitleWindow.show();
+    await _setupSubtitleWindow(state);
+  }
+  
+  Future<void> _setupSubtitleWindow(DesktopPlayerState state) async {
+    var subtitleWindow = (await WindowController.getAll()).firstWhereOrNull( (w) {
+      return w.arguments.json['type'] == DesktopSubWindowType.subtitle.raw;
+    });
+    final subtitleName = state.as<DesktopPlayerDataState>()?.subtitleState.as<SubtitleDataState>()?.subtitleName;
+    if (subtitleName == null) {
+      //close subttile window
+      await subtitleWindow?.close();
+
+    } else {
+      //open subtitle window
+      if (subtitleWindow == null) {
+        final arguments = {
+          'type':DesktopSubWindowType.subtitle.raw,
+          'title':subtitleName,
+        }.string;
+        subtitleWindow = await WindowController.create(WindowConfiguration(arguments: arguments));
+        await subtitleWindow.show();
+      }
+      // await subtitleWindow.setTitle(subtitleName);
     }
   }
 
