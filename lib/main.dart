@@ -46,15 +46,19 @@ Future<void> _runDesktopApp(List<String> argList) async {
 
 Future<void> _runDesktopMainWindow(WindowController window) async {
   // 运行主窗口应用
-  const options = WindowOptions(
-    size: Size(600, 400),
-    minimumSize: Size(600, 400),
-    center: true,
-  );
-  await windowManager.waitUntilReadyToShow(options, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  // const options = WindowOptions(
+  //   size: Size(600, 400),
+  //   minimumSize: Size(600, 400),
+  //   center: true,
+  // );
+  // await windowManager.waitUntilReadyToShow(options, () async {
+  //   await windowManager.show();
+  //   await windowManager.focus();
+  // });
+  await window.setTitle('Mockingbird');
+  await window.setFrame(Offset.zero & const Size(600, 400));
+  await window.setMinimumSize(const Size(600, 400));
+  await window.center();
   runApp(const DesktopMainWindowUI());
 }
 

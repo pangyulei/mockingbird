@@ -45,6 +45,11 @@ extension WindowControllerHelper on WindowController {
             map['height'],
           );
           return await windowManager.setBounds(rect);
+        case 'window_set_minimum_size':
+          final map = call.arguments as Map;
+          final double width = map['width'];
+          final double height = map['height'];
+          await windowManager.setMinimumSize(Size(width, height));
         default:
           throw Exception('Not implemented: ${call.method}');
       }
@@ -58,6 +63,10 @@ extension WindowControllerHelper on WindowController {
     'top': frame.top,
     'width': frame.width,
     'height': frame.height,
+  });
+  Future<void> setMinimumSize(Size size) => invokeMethod('window_set_minimum_size', {
+    'width': size.width,
+    'height': size.height,
   });
 }
 
