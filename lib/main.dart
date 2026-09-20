@@ -37,7 +37,7 @@ Future<void> _runDesktopApp(List<String> argList) async {
   );
   const options = WindowOptions(
     size: minimumSize,
-    minimumSize: minimumSize,
+    minimumSize: minimumSize, // 保持最小尺寸限制
     center: true,
     title: 'Mockingbird',
   );

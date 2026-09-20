@@ -49,8 +49,8 @@ class _DesktopMainWindowUIState extends State<DesktopMainWindowUI> {
             if (splitter == null) return const SizedBox.shrink();
             return MultiSplitView(
               controller: splitter,
-              onDividerDragEnd: (index) {},
-              axis: .horizontal,
+              axis: Axis.horizontal,
+              resizable: false,
             );
           },
         ),

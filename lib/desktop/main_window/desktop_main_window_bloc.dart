@@ -12,7 +12,7 @@ import 'desktop_main_window_event.dart';
 const double kDesktopPlayerMinWidth = 600;
 const double kDesktopSubtitleMinWidth = 300;
 const double kDesktopMainWindowMinHeight = 500;
-const double kDesktopMainWindowDividerThickness = 4;
+const double kDesktopMainWindowDividerThickness = 6; // 稍微加粗一点，方便鼠标抓取
 
 class DesktopMainWindowBloc
     extends Bloc<DesktopMainWindowEvent, DesktopMainWindowState>
@@ -31,15 +31,15 @@ class DesktopMainWindowBloc
     //TODO read db to get window frame, size
     _splitter.addArea(
       Area(
-        flex: 6,
-        min: kDesktopPlayerMinWidth,
+        flex: 2,
+        // min: kDesktopPlayerMinWidth,
         builder: (context, area) => const DesktopPlayerUI(),
       ),
     );
     _splitter.addArea(
       Area(
-        flex: 4,
-        min: kDesktopSubtitleMinWidth,
+        flex: 1,
+        // min: kDesktopSubtitleMinWidth,
         builder: (context, area) => const DesktopSubtitleUI(),
       ),
     );
