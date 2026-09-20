@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mockingbird/desktop/player/desktop_player_ui.dart';
+import 'package:mockingbird/desktop/subtitle/desktop_subtitle_ui.dart';
 
 class DesktopMainWindowUI extends StatelessWidget {
   const DesktopMainWindowUI({super.key});
@@ -12,7 +13,39 @@ class DesktopMainWindowUI extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: _theme(),
       builder: EasyLoading.init(),
-      home: const DesktopPlayerUI(),
+      home: _home(),
+    );
+  }
+
+  Widget _home() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fullWidth = constraints.maxWidth;
+        const minimumSubtitleWidth = 300.0;
+
+        // 计算 subtitle 的实际宽度
+        double subtitleWidth = fullWidth * 0.2;
+        if (subtitleWidth < minimumSubtitleWidth) {
+          subtitleWidth = minimumSubtitleWidth;
+        }
+
+        // 防止总宽度不够时出现负数
+        subtitleWidth = subtitleWidth.clamp(0.0, fullWidth);
+        final playerWidth = fullWidth - subtitleWidth;
+
+        return Row(
+          children: [
+            SizedBox(
+              width: playerWidth,
+              child: const DesktopPlayerUI(), // 你的 childA
+            ),
+            SizedBox(
+              width: subtitleWidth,
+              child: const DesktopSubtitleUI(), // 你的 childB
+            ),
+          ],
+        );
+      },
     );
   }
 
