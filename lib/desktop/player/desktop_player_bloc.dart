@@ -169,7 +169,6 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     );
   }
 
-
   void _selectMediaFromFileExplorer(DesktopPlayerSelectMediaFromFileExplorerEvent event, Emitter<DesktopPlayerState> emit) async {
     final xfile = await FilePicker.pickFile(
       type: FileType.custom,

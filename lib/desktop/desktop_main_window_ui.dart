@@ -1,11 +1,20 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mockingbird/desktop/player/desktop_player_ui.dart';
 import 'package:mockingbird/desktop/subtitle/desktop_subtitle_ui.dart';
 
-class DesktopMainWindowUI extends StatelessWidget {
+class DesktopMainWindowUI extends StatefulWidget {
   const DesktopMainWindowUI({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _DesktopMainWindowUIState();
+}
+
+class _DesktopMainWindowUIState extends State<DesktopMainWindowUI> {
+  
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +29,12 @@ class DesktopMainWindowUI extends StatelessWidget {
   Widget _home() {
     return LayoutBuilder(
       builder: (context, constraints) {
+        //TODO reset width while resizing window
         final fullWidth = constraints.maxWidth;
         const minimumSubtitleWidth = 300.0;
 
         // 计算 subtitle 的实际宽度
-        double subtitleWidth = fullWidth * 0.2;
-        if (subtitleWidth < minimumSubtitleWidth) {
-          subtitleWidth = minimumSubtitleWidth;
-        }
+        double subtitleWidth = max(fullWidth * 0.2, minimumSubtitleWidth);
 
         // 防止总宽度不够时出现负数
         subtitleWidth = subtitleWidth.clamp(0.0, fullWidth);

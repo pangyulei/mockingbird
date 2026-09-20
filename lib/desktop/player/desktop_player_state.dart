@@ -1,7 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../db/entities/subtitle.dart';

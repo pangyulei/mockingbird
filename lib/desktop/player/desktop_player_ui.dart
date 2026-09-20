@@ -5,7 +5,6 @@ import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
-import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';

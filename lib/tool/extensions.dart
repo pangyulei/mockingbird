@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:ui';
 
-import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/tool/subtitle_parser.dart';
@@ -11,7 +9,6 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import 'package:window_manager/window_manager.dart';
 
 import '../db/entities/sentence.dart';
 import '../db/entities/subtitle.dart';
@@ -37,50 +34,6 @@ extension JsonHelper on Map<String, dynamic> {
       return '';
     }
   }
-}
-
-extension WindowControllerHelper on WindowController {
-  Future<void> bindMethods() async {
-    await setWindowMethodHandler((call) async {
-      switch (call.method) {
-        case 'window_center':
-          return await windowManager.center();
-        case 'window_close':
-          await windowManager.close();
-        case 'window_set_title':
-          await windowManager.setTitle(call.arguments as String);
-        case 'window_set_frame':
-          final map = call.arguments as Map;
-          final rect = Rect.fromLTWH(
-            map['left'],
-            map['top'],
-            map['width'],
-            map['height'],
-          );
-          await windowManager.setBounds(rect);
-        case 'window_set_minimum_size':
-          final map = call.arguments as Map;
-          final double width = map['width'];
-          final double height = map['height'];
-          await windowManager.setMinimumSize(Size(width, height));
-        default:
-          throw Exception('Not implemented: ${call.method}');
-      }
-    });
-  }
-  Future<void> center() => invokeMethod('window_center');
-  Future<void> setTitle(String title) => invokeMethod('window_set_title', title);
-  Future<void> close() => invokeMethod('window_close');
-  Future<void> setFrame(Rect frame) => invokeMethod('window_set_frame', {
-    'left': frame.left,
-    'top': frame.top,
-    'width': frame.width,
-    'height': frame.height,
-  });
-  Future<void> setMinimumSize(Size size) => invokeMethod('window_set_minimum_size', {
-    'width': size.width,
-    'height': size.height,
-  });
 }
 
 extension ObjectHelper on Object {

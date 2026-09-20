@@ -222,7 +222,7 @@ class MobilePlayerUI extends StatelessWidget {
   }
 
   Widget _subtitleWidget(BuildContext context) {
-    return Expanded(
+    return Expanded( //TODO do we need expanded here?
       child: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: const MobileSubtitleUI(),

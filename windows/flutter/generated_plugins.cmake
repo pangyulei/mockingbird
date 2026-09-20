@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
-  desktop_multi_window
   objectbox_flutter_libs
   permission_handler_windows
   screen_retriever_windows

@@ -7,7 +7,6 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../tool/extensions.dart';
 import '../player/mobile_player_state.dart';
-import '../player/mobile_player_ui.dart';
 import '../sentence_card/sentence_card_ui.dart';
 
 class MobileSubtitleUI extends StatelessWidget {

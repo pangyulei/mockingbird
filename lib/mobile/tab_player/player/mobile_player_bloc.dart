@@ -9,7 +9,6 @@ import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/mobile/app/mobile_app_route.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
-import 'package:mockingbird/mobile/tab_player/player/mobile_player_ui.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_bloc.dart';
@@ -724,7 +723,6 @@ class MobilePlayerBloc extends Bloc<MobilePlayerEvent,MobilePlayerState> {
     );
   }
 
-  @override
   SentenceCardBlocType sentenceCardBlocAtIndex(int index) {
     final sentence = state
         .as<MobilePlayerDataState>()
@@ -734,7 +732,6 @@ class MobilePlayerBloc extends Bloc<MobilePlayerEvent,MobilePlayerState> {
     return SentenceCardBloc(sentence)..add(SentenceCardInitEvent(playing));
   }
 
-  @override
   MobileSubtitleListBlocType get subtitleListBlocType {
     return MobileSubtitleListBloc(
       state.as<MobilePlayerDataState>()?.subtitleList ?? [],
