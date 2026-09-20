@@ -21,24 +21,21 @@ class DesktopPlayerUI extends StatelessWidget {
     i('desktop player ui building');
     return BlocProvider.value(
       value: DesktopPlayerBloc.shared,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Builder(
-          builder: (context) {
-            final stateType = context.select<DesktopPlayerBloc, Type>(
-              (bloc) => bloc.state.runtimeType,
-            );
-            switch (stateType) {
-              case DesktopPlayerEmptyState:
-                return _pageForEmpty(context);
-              case DesktopPlayerDataState:
-                return _pageForData(context);
-              default:
-                assert(false, 'stateType $stateType missed');
-                return const SizedBox.shrink();
-            }
-          },
-        ),
+      child: Builder(
+        builder: (context) {
+          final stateType = context.select<DesktopPlayerBloc, Type>(
+            (bloc) => bloc.state.runtimeType,
+          );
+          switch (stateType) {
+            case DesktopPlayerEmptyState:
+              return _pageForEmpty(context);
+            case DesktopPlayerDataState:
+              return _pageForData(context);
+            default:
+              assert(false, 'stateType $stateType missed');
+              return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }
@@ -48,8 +45,8 @@ class DesktopPlayerUI extends StatelessWidget {
   }
 
   Widget _mediaWidget(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(color: Colors.black),
+    return ColoredBox(
+      color: Colors.blueAccent,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -498,51 +495,58 @@ class DesktopPlayerUI extends StatelessWidget {
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
-          onTap: () => context.read<DesktopPlayerBloc>().add(const DesktopPlayerSelectMediaFromFileExplorerEvent()),
-          child: Container(
-            margin: const EdgeInsets.all(32),
-            padding: const EdgeInsets.all(48),
-            decoration: BoxDecoration(
-              color: colorScheme.surface.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: colorScheme.primary.withValues(alpha: 0.4),
-                width: 2,
-                style: BorderStyle.solid,
+          onTap: () => context.read<DesktopPlayerBloc>().add(
+            const DesktopPlayerSelectMediaFromFileExplorerEvent(),
+          ),
+          child: ColoredBox(
+            color: Colors.blueAccent,
+            child: Container(
+              margin: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(48),
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.4),
+                  width: 2,
+                  style: BorderStyle.solid,
+                ),
               ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withValues(
+                        alpha: 0.2,
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 48,
+                      color: colorScheme.primary,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.cloud_upload_outlined,
-                    size: 48,
-                    color: colorScheme.primary,
+                  const SizedBox(height: 24),
+                  Text(
+                    'Drag & Drop Media File Here',
+                    style: textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'Drag & Drop Media File Here',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 8),
+                  Text(
+                    'or click anywhere in this area to browse your video/audio files',
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.outline,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'or click anywhere in this area to browse your video/audio files',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.outline,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

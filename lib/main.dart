@@ -1,4 +1,3 @@
-
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:mixin_logger/mixin_logger.dart';
@@ -11,7 +10,8 @@ import 'package:window_manager/window_manager.dart';
 
 import 'db/desktop_db.dart';
 import 'db/mobile_db.dart';
-import 'desktop/desktop_main_window_ui.dart';
+import 'desktop/main_window/desktop_main_window_bloc.dart';
+import 'desktop/main_window/desktop_main_window_ui.dart';
 
 void main(List<String> argList) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,12 +29,17 @@ Future<void> _runDesktopApp(List<String> argList) async {
   // Only the main window isolate initializes window_manager.
   await windowManager.ensureInitialized();
   WindowsVideoPlayer.registerWith();
-  const minimumSize = Size(900, 500);
+  const minimumSize = Size(
+    kDesktopPlayerMinWidth +
+        kDesktopSubtitleMinWidth +
+        kDesktopMainWindowDividerThickness,
+    kDesktopMainWindowMinHeight,
+  );
   const options = WindowOptions(
-      size: minimumSize,
-      minimumSize: minimumSize,
-      center: true,
-      title: 'Mockingbird'
+    size: minimumSize,
+    minimumSize: minimumSize,
+    center: true,
+    title: 'Mockingbird',
   );
   await windowManager.waitUntilReadyToShow(options, () async {
     await windowManager.show();
@@ -46,7 +51,6 @@ Future<void> _runDesktopApp(List<String> argList) async {
   // await window.center();
   runApp(const DesktopMainWindowUI());
 }
-
 
 Future<void> _runMobileApp() async {
   await MobileDB.init();

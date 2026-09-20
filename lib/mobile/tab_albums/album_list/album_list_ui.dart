@@ -6,8 +6,8 @@ import 'package:mockingbird/mobile/tab_albums/album_card/album_card_ui.dart';
 import 'package:mockingbird/mobile/tab_albums/album_list/album_list_bloc.dart';
 import 'package:mockingbird/mobile/tab_albums/album_list/album_list_event.dart';
 import 'package:mockingbird/mobile/tab_albums/album_list/album_list_state.dart';
-import 'package:photo_manager/photo_manager.dart';
 import 'package:mockingbird/tool/extensions.dart';
+import 'package:photo_manager/photo_manager.dart';
 
 class AlbumListUI extends StatelessWidget {
   const AlbumListUI({super.key});
@@ -18,7 +18,9 @@ class AlbumListUI extends StatelessWidget {
       create: (context) => AlbumListBloc()..add(const AlbumListInitEvent()),
       child: Builder(
         builder: (context) {
-          final stateType = context.select<AlbumListBloc, Type>((bloc) => bloc.state.runtimeType);
+          final stateType = context.select<AlbumListBloc, Type>(
+            (bloc) => bloc.state.runtimeType,
+          );
           switch (stateType) {
             case AlbumListInitState:
               return _pageForInit();
@@ -132,8 +134,9 @@ class AlbumListUI extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               FilledButton.icon(
-                onPressed: () =>
-                    context.read<AlbumListBloc>().add(const AlbumListRequestPermissionEvent()),
+                onPressed: () => context.read<AlbumListBloc>().add(
+                  const AlbumListRequestPermissionEvent(),
+                ),
                 icon: const Icon(Icons.settings_suggest_rounded),
                 label: const Text('Grant Permission'),
               ),
@@ -217,9 +220,9 @@ class AlbumListUI extends StatelessWidget {
               if (albumCount == null) return const SizedBox.shrink();
               return Text(
                 '$albumCount albums',
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.outline,
+                ),
               );
             },
           ),
@@ -249,7 +252,9 @@ class AlbumListUI extends StatelessWidget {
             crossAxisSpacing: 4,
           ),
           itemBuilder: (context, i) {
-            return AlbumCardUI(AlbumCardBloc(albumList[i])..add(const AlbumCardInitEvent()));
+            return AlbumCardUI(
+              AlbumCardBloc(albumList[i])..add(const AlbumCardInitEvent()),
+            );
           },
         );
       },
