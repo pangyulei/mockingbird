@@ -47,11 +47,7 @@ class _DesktopMainWindowUIState extends State<DesktopMainWindowUI> {
                       bloc.state.as<DesktopMainWindowDataState>()?.splitter,
                 );
             if (splitter == null) return const SizedBox.shrink();
-            return MultiSplitView(
-              controller: splitter,
-              axis: Axis.horizontal,
-              resizable: false,
-            );
+            return MultiSplitView(controller: splitter, axis: Axis.horizontal);
           },
         ),
       ),

@@ -31,15 +31,17 @@ class DesktopMainWindowBloc
     //TODO read db to get window frame, size
     _splitter.addArea(
       Area(
-        flex: 2,
-        // min: kDesktopPlayerMinWidth,
+        // flex: 2,
+        size: kDesktopPlayerMinWidth,
+        min: kDesktopPlayerMinWidth,
         builder: (context, area) => const DesktopPlayerUI(),
       ),
     );
     _splitter.addArea(
       Area(
-        flex: 1,
-        // min: kDesktopSubtitleMinWidth,
+        // flex: 1,
+        size: kDesktopSubtitleMinWidth,
+        min: kDesktopSubtitleMinWidth,
         builder: (context, area) => const DesktopSubtitleUI(),
       ),
     );
