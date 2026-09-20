@@ -10,6 +10,8 @@ import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../mobile/tab_player/subtitle/subtitle_state.dart';
+
 enum DesktopLayoutMode { stacked, snappedSide, detached }
 
 class DesktopPlayerUI extends StatelessWidget {
@@ -18,8 +20,8 @@ class DesktopPlayerUI extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     i('desktop player ui building');
-    return BlocProvider(
-      create: (context) => DesktopPlayerBloc(),
+    return BlocProvider.value(
+      value: DesktopPlayerBloc.shared,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Builder(

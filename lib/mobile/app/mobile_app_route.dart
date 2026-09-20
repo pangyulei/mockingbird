@@ -69,8 +69,8 @@ class MobileAppRoute {
       // final mediaId = state.pathParameters['mediaId'];
       final mediaId = state.uri.queryParameters['mediaId'];
       i('player go-router create mediaId($mediaId)');
-      final playerBloc = SharedMobilePlayerBloc.instance;
-      return MobilePlayerUI(playerBloc..add(MobilePlayerInitEvent(mediaId)));
+      final bloc = MobilePlayerBloc.shared;
+      return MobilePlayerUI(bloc..add(MobilePlayerInitEvent(mediaId)));
     },
   );
 

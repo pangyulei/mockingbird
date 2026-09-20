@@ -25,20 +25,19 @@ import '../../../db/entities/subtitle.dart';
 import '../../../db/mobile_db.dart';
 import '../../../tool/event_hub.dart';
 import '../../../tool/extensions.dart';
+import '../subtitle/subtitle_state.dart';
 
 const double _kMaxPlaySpeed = 3.0;
 const double _kMinPlaySpeed = 0.2;
 const double _kStepPlaySpeed = 0.1;
 
-class SharedMobilePlayerBloc {
-  static final instance = MobilePlayerBloc();
-}
 
+class MobilePlayerBloc extends Bloc<MobilePlayerEvent,MobilePlayerState> {
+  static final shared = MobilePlayerBloc._();
 
-class MobilePlayerBloc extends PlayerBlocType {
   bool _mediaPlayingBeforeDrag = false;
   AssetEntity? _media;
-
+  final _scroller = ItemScrollController();
   SpotType? get _spot {
     final state = this.state;
     if (state is! MobilePlayerDataState) return null;
@@ -51,7 +50,7 @@ class MobilePlayerBloc extends PlayerBlocType {
 
   final _subscriptionList = <StreamSubscription>[];
 
-  MobilePlayerBloc() : super(const MobilePlayerInitState()) {
+  MobilePlayerBloc._() : super(const MobilePlayerInitState()) {
     i('player bloc ${identityHashCode(this)} created');
     on<MobilePlayerInitEvent>(_onInit);
     on<MobilePlayerSelectAnotherSubtitleFromListEvent>(
@@ -143,6 +142,7 @@ class MobilePlayerBloc extends PlayerBlocType {
         sentenceList: state.selectedSubtitle?.sentenceList ?? [],
         initialAlignment: _spot?.alignment ?? 0,
         initialIndex: _spot?.index ?? 0,
+        scroller: _scroller,
       ),
     );
     emit(state);
@@ -181,7 +181,7 @@ class MobilePlayerBloc extends PlayerBlocType {
     }
     EventHub.emit(HubPlayingSentenceChangeEvent(sentence.id));
     final double alignment = sentenceIndex == 0 ? 0 : 0.3;
-    dataState.scroller.safeScrollTo(sentenceIndex, alignment: alignment);
+    _scroller.safeScrollTo(sentenceIndex, alignment: alignment);
     emit(dataState.copyWith(playing: true));
     await dataState.player.seekTo(sentence.start);
     await dataState.player.play();
@@ -240,7 +240,7 @@ class MobilePlayerBloc extends PlayerBlocType {
     MobilePlayerScrollToTopEvent event,
     Emitter<MobilePlayerState> emit,
   ) {
-    state.as<MobilePlayerDataState>()?.scroller.safeScrollTo(0);
+    _scroller.safeScrollTo(0);
   }
 
   void _onScrollToBottom(
@@ -251,7 +251,7 @@ class MobilePlayerBloc extends PlayerBlocType {
     if (dataState is! MobilePlayerDataState) return;
     final subtitle = dataState.selectedSubtitle;
     if (subtitle == null || subtitle.sentenceList.isEmpty) return;
-    dataState.scroller.safeScrollTo(subtitle.sentenceList.length - 1);
+    _scroller.safeScrollTo(subtitle.sentenceList.length - 1);
   }
 
   void _onScrollToPlayingSentence(
@@ -260,7 +260,7 @@ class MobilePlayerBloc extends PlayerBlocType {
   ) {
     final index = _spot?.index;
     if (index == null) return;
-    state.as<MobilePlayerDataState>()?.scroller.safeScrollTo(
+    _scroller.safeScrollTo(
       index,
       alignment: 0.3,
     );
@@ -314,7 +314,7 @@ class MobilePlayerBloc extends PlayerBlocType {
       //handle scroll
       if (state.loopIndex == null) {
         //playing auto scroll to next sentence, not for loop mode
-        state.scroller.safeScrollTo(
+        _scroller.safeScrollTo(
           _spot?.index,
           alignment: _spot?.alignment ?? 0,
         );
@@ -346,7 +346,7 @@ class MobilePlayerBloc extends PlayerBlocType {
       //handle scroll
       final spot = _spot;
       if (spot != null) {
-        state.scroller.safeJumpTo(spot.index, alignment: spot.alignment);
+        _scroller.safeJumpTo(spot.index, alignment: spot.alignment);
       }
     }
   }
@@ -678,7 +678,6 @@ class MobilePlayerBloc extends PlayerBlocType {
           mediaType: info.media.type,
           title: title,
           player: player,
-          scroller: ItemScrollController(),
         );
       },
     );
@@ -715,6 +714,7 @@ class MobilePlayerBloc extends PlayerBlocType {
         sentenceList: subtitle.sentenceList,
         initialAlignment: spot.alignment,
         initialIndex: spot.index,
+        scroller: _scroller,
       );
     }
     return (

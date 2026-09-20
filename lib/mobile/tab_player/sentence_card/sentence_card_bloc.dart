@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/player/mobile_player_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_ui.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
@@ -31,7 +32,7 @@ class SentenceCardBloc extends SentenceCardBlocType {
   void _onClick(SentenceCardClickEvent event, Emitter<SentenceCardState> emit) {
     final sentenceId = _sentence?.id;
     if (sentenceId == null) return;
-    event.context.read<PlayerBlocType>().add(
+    event.context.read<MobilePlayerBloc>().add(
       MobilePlayerClickSentenceEvent(sentenceId),
     );
   }

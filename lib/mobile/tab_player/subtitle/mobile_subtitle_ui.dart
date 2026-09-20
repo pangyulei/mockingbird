@@ -1,22 +1,25 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
-import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
+import 'package:mockingbird/mobile/tab_player/player/mobile_player_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle/subtitle_state.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
-import '../../mobile/tab_player/subtitle/subtitle_state.dart';
-import '../../tool/extensions.dart';
 
-class DesktopSubtitleUI extends StatelessWidget {
-  const DesktopSubtitleUI({super.key});
+import '../../../tool/extensions.dart';
+import '../player/mobile_player_state.dart';
+import '../player/mobile_player_ui.dart';
+import '../sentence_card/sentence_card_ui.dart';
+
+class MobileSubtitleUI extends StatelessWidget {
+  const MobileSubtitleUI({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider.value(
-      value: DesktopPlayerBloc.shared,
+      value: MobilePlayerBloc.shared,
       child: Builder(builder: (context) {
         final subtitleState = context
-            .select<DesktopPlayerBloc, SubtitleState?>((bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState);
+            .select<MobilePlayerBloc, SubtitleState?>((bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState);
         switch (subtitleState) {
           case null || SubtitleEmptyState():
             return _noSubtitle(context);
@@ -29,7 +32,7 @@ class DesktopSubtitleUI extends StatelessWidget {
               initialScrollIndex: data.initialIndex,
               itemBuilder: (context, i) {
                 final sentenceCardBloc = context
-                    .read<DesktopPlayerBloc>()
+                    .read<MobilePlayerBloc>()
                     .sentenceCardBlocAtIndex(i);
                 return SentenceCardUI(sentenceCardBloc);
               },
@@ -69,4 +72,5 @@ class DesktopSubtitleUI extends StatelessWidget {
       ),
     );
   }
+
 }

@@ -20,15 +20,15 @@ import '../../mobile/tab_player/player/mobile_player_state.dart';
 import '../../mobile/tab_player/sentence_card/sentence_card_bloc.dart';
 import '../../mobile/tab_player/sentence_card/sentence_card_event.dart';
 import '../../mobile/tab_player/sentence_card/sentence_card_ui.dart';
+import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../../tool/event_hub.dart';
 import '../../tool/extensions.dart';
 
-class SharedDesktopPlayerBloc {
-  static final instance = DesktopPlayerBloc();
-}
 
 class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
+  static final shared = DesktopPlayerBloc._();
   File? _media;
+  final _scroller = ItemScrollController();
   SpotType? get _spot {
     final state = this.state;
     if (state is! DesktopPlayerDataState) return null;
@@ -38,7 +38,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   }
   SpotType? _prevSpot;
 
-  DesktopPlayerBloc() : super(const DesktopPlayerEmptyState()) {
+  DesktopPlayerBloc._() : super(const DesktopPlayerEmptyState()) {
     on<DesktopPlayerSelectMediaFromFileExplorerEvent>(_selectMediaFromFileExplorer);
     on<DesktopPlayerPositionChangeByPlayingEvent>(_onPositionChangeByPlaying);
     on<DesktopPlayerShowSubtitleListEvent>(_onShowSubtitleList);
@@ -118,7 +118,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
       //handle scroll
       if (state.loopIndex == null) {
         //playing auto scroll to next sentence, not for loop mode
-        state.scroller.safeScrollTo(
+        _scroller.safeScrollTo(
           _spot?.index,
           alignment: _spot?.alignment ?? 0,
         );
@@ -267,7 +267,6 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
           mediaType: kAudioExtensions.contains(mediaExtension) ? .audio : .video,
           title: title,
           player: player,
-          scroller: ItemScrollController(),
         );
       },
     );
@@ -304,6 +303,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
         sentenceList: subtitle.sentenceList,
         initialAlignment: spot.alignment,
         initialIndex: spot.index,
+        scroller: _scroller,
       );
     }
     return (

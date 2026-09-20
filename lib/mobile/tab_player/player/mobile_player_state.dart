@@ -1,9 +1,9 @@
 import 'package:collection/collection.dart';
-import 'package:mockingbird/db/entities/sentence.dart';
 import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
+
+import '../subtitle/subtitle_state.dart';
 
 sealed class MobilePlayerState {
   const MobilePlayerState();
@@ -33,7 +33,6 @@ class MobilePlayerDataState extends MobilePlayerState {
   final List<Subtitle> subtitleList;
   final SubtitleState subtitleState;
   final VideoPlayerController player;
-  final ItemScrollController scroller;
   final bool subtitleListButtonVisible;
 
   const MobilePlayerDataState({
@@ -41,7 +40,6 @@ class MobilePlayerDataState extends MobilePlayerState {
     required this.subtitleListButtonVisible,
     required this.subtitleList,
     required this.subtitleListVisible,
-    required this.scroller,
     required this.player,
     required this.volumeSliderVisible,
     required this.loopIndex,
@@ -89,7 +87,6 @@ class MobilePlayerDataState extends MobilePlayerState {
       position: position ?? this.position,
       duration: duration ?? this.duration,
       player: player,
-      scroller: scroller,
     );
   }
 
@@ -100,24 +97,3 @@ class MobilePlayerDataState extends MobilePlayerState {
   }
 }
 
-sealed class SubtitleState {
-  const SubtitleState();
-}
-
-class SubtitleEmptyState extends SubtitleState {
-  const SubtitleEmptyState();
-}
-
-class SubtitleDataState extends SubtitleState {
-  final String subtitleName;
-  final List<SentenceEntity> sentenceList;
-  final double initialAlignment;
-  final int initialIndex;
-
-  const SubtitleDataState({
-    required this.subtitleName,
-    required this.sentenceList,
-    required this.initialAlignment,
-    required this.initialIndex,
-  });
-}

@@ -5,6 +5,7 @@ import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../db/entities/subtitle.dart';
+import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 
 sealed class DesktopPlayerState {
   const DesktopPlayerState();
@@ -28,7 +29,6 @@ class DesktopPlayerDataState extends DesktopPlayerState {
   final List<Subtitle> subtitleList;
   final SubtitleState subtitleState;
   final VideoPlayerController player;
-  final ItemScrollController scroller;
   final bool subtitleListButtonVisible;
 
   const DesktopPlayerDataState({
@@ -36,7 +36,6 @@ class DesktopPlayerDataState extends DesktopPlayerState {
     required this.subtitleListButtonVisible,
     required this.subtitleList,
     required this.subtitleListVisible,
-    required this.scroller,
     required this.player,
     required this.loopIndex,
     required this.playing,
@@ -79,7 +78,6 @@ class DesktopPlayerDataState extends DesktopPlayerState {
       position: position ?? this.position,
       duration: duration ?? this.duration,
       player: player,
-      scroller: scroller,
     );
   }
 

@@ -2,29 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marquee/marquee.dart';
 import 'package:mixin_logger/mixin_logger.dart';
+import 'package:mockingbird/mobile/tab_player/player/mobile_player_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
-import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
-abstract interface class PlayerBlocITF {
-  SentenceCardBlocType sentenceCardBlocAtIndex(int index);
+import '../subtitle/mobile_subtitle_ui.dart';
+import '../subtitle/subtitle_state.dart';
 
-  MobileSubtitleListBlocType get subtitleListBlocType;
-}
-
-abstract class PlayerBlocType extends Bloc<MobilePlayerEvent, MobilePlayerState>
-    implements PlayerBlocITF {
-  PlayerBlocType(super.initialState);
-}
 
 class MobilePlayerUI extends StatelessWidget {
-  final PlayerBlocType _bloc;
-
+  final MobilePlayerBloc _bloc;
   const MobilePlayerUI(this._bloc, {super.key});
 
   @override
@@ -32,14 +23,14 @@ class MobilePlayerUI extends StatelessWidget {
     i('player ui building');
     return BlocProvider.value(
       value: _bloc,
-      child: BlocListener<PlayerBlocType, MobilePlayerState>(
+      child: BlocListener<MobilePlayerBloc, MobilePlayerState>(
         listenWhen: (previous, current) {
           return (previous is! MobilePlayerDataState || previous.subtitleListVisible == false) && current is MobilePlayerDataState && current.subtitleListVisible;
         },
         listener: (context, state) => _showSubtitleList(context),
         child: Builder(
           builder: (context) {
-            final stateType = context.select<PlayerBlocType, Type>(
+            final stateType = context.select<MobilePlayerBloc, Type>(
               (bloc) => bloc.state.runtimeType,
             );
             switch (stateType) {
@@ -61,7 +52,7 @@ class MobilePlayerUI extends StatelessWidget {
 
   void _showSubtitleList(BuildContext context) {
     final subtitleListBloc = context
-        .read<PlayerBlocType>()
+        .read<MobilePlayerBloc>()
         .subtitleListBlocType;
     showModalBottomSheet(
       context: context,
@@ -72,7 +63,7 @@ class MobilePlayerUI extends StatelessWidget {
       },
     ).whenComplete(() {
       if (context.mounted) {
-        context.read<PlayerBlocType>().add(
+        context.read<MobilePlayerBloc>().add(
           const MobilePlayerHideSubtitleListEvent(),
         );
       }
@@ -116,7 +107,7 @@ class MobilePlayerUI extends StatelessWidget {
   Widget _displayer() {
     return Builder(
       builder: (context) {
-        final mediaType = context.select<PlayerBlocType, AssetType>(
+        final mediaType = context.select<MobilePlayerBloc, AssetType>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.mediaType ?? .video,
         );
         if (mediaType == .video) {
@@ -136,7 +127,7 @@ class MobilePlayerUI extends StatelessWidget {
         children: [
           Builder(
             builder: (context) {
-              final aspectRatio = context.select<PlayerBlocType, double>(
+              final aspectRatio = context.select<MobilePlayerBloc, double>(
                 (bloc) =>
                     bloc.state.as<MobilePlayerDataState>()?.aspectRatio ??
                     16 / 9,
@@ -174,7 +165,7 @@ class MobilePlayerUI extends StatelessWidget {
   Widget _player() {
     return Builder(
       builder: (context) {
-        final player = context.select<PlayerBlocType, VideoPlayerController?>(
+        final player = context.select<MobilePlayerBloc, VideoPlayerController?>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.player,
         );
         if (player == null) return const SizedBox.shrink();
@@ -234,72 +225,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Expanded(
       child: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
-        child: Builder(
-          builder: (context) {
-            final (subtitleState, scroller) = context
-                .select<
-                  PlayerBlocType,
-                  (SubtitleState?, ItemScrollController?)
-                >((bloc) {
-                  final dataState = bloc.state.as<MobilePlayerDataState>();
-                  return (dataState?.subtitleState, dataState?.scroller);
-                });
-            if (subtitleState == null || scroller == null) {
-              return const SizedBox.shrink();
-            }
-            switch (subtitleState) {
-              case SubtitleDataState subtitleState:
-                i(
-                  'player ui align:${subtitleState.initialAlignment} index:${subtitleState.initialIndex}',
-                );
-                return ScrollablePositionedList.builder(
-                  key: ValueKey(subtitleState),
-                  itemCount: subtitleState.sentenceList.length,
-                  itemScrollController: scroller,
-                  initialAlignment: subtitleState.initialAlignment,
-                  initialScrollIndex: subtitleState.initialIndex,
-                  itemBuilder: (context, i) {
-                    final sentenceCardBloc = context
-                        .read<PlayerBlocType>()
-                        .sentenceCardBlocAtIndex(i);
-                    return SentenceCardUI(sentenceCardBloc);
-                  },
-                );
-              case SubtitleEmptyState _:
-                return _noSubtitle(context);
-            }
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _noSubtitle(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return InkWell(
-      onTap: () {
-        // => _onAddSubtitle(ref)
-      },
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.subtitles_off_rounded,
-              size: 48,
-              color: colorScheme.outline.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Subtitles Found',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.outline,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        child: const MobileSubtitleUI(),
       ),
     );
   }
@@ -307,7 +233,7 @@ class MobilePlayerUI extends StatelessWidget {
   Widget? _floatingButtons() {
     return Builder(
       builder: (context) {
-        final hasSubtitle = context.select<PlayerBlocType, bool>(
+        final hasSubtitle = context.select<MobilePlayerBloc, bool>(
           (bloc) =>
               bloc.state.as<MobilePlayerDataState>()?.subtitleState
                   is SubtitleDataState,
@@ -320,7 +246,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_top',
               onPressed: () {
-                context.read<PlayerBlocType>().add(
+                context.read<MobilePlayerBloc>().add(
                   const MobilePlayerScrollToTopEvent(),
                 );
               },
@@ -332,7 +258,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_focus',
               onPressed: () {
-                context.read<PlayerBlocType>().add(
+                context.read<MobilePlayerBloc>().add(
                   const MobilePlayerScrollToPlayingSentenceEvent(),
                 );
               },
@@ -342,7 +268,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_bottom',
               onPressed: () {
-                context.read<PlayerBlocType>().add(
+                context.read<MobilePlayerBloc>().add(
                   const MobilePlayerScrollToBottomEvent(),
                 );
               },
@@ -362,7 +288,7 @@ class MobilePlayerUI extends StatelessWidget {
       children: [
         Builder(
           builder: (context) {
-            final bool showVolumeSlider = context.select<PlayerBlocType, bool>(
+            final bool showVolumeSlider = context.select<MobilePlayerBloc, bool>(
               (bloc) =>
                   bloc.state.as<MobilePlayerDataState>()?.volumeSliderVisible ??
                   false,
@@ -386,7 +312,7 @@ class MobilePlayerUI extends StatelessWidget {
         _volumeButton(),
         Builder(
           builder: (context) {
-            final bool showVolumeSlider = context.select<PlayerBlocType, bool>(
+            final bool showVolumeSlider = context.select<MobilePlayerBloc, bool>(
               (bloc) =>
                   bloc.state.as<MobilePlayerDataState>()?.volumeSliderVisible ??
                   false,
@@ -405,7 +331,7 @@ class MobilePlayerUI extends StatelessWidget {
   Widget _volumeButton() {
     return Builder(
       builder: (context) {
-        final volume = context.select<PlayerBlocType, double>(
+        final volume = context.select<MobilePlayerBloc, double>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.volume ?? 1,
         );
         final icon = volume == 0
@@ -413,7 +339,7 @@ class MobilePlayerUI extends StatelessWidget {
             : Icons.volume_up_rounded;
         return IconButton(
           onPressed: () {
-            context.read<PlayerBlocType>().add(
+            context.read<MobilePlayerBloc>().add(
               const MobilePlayerToggleVolumeEvent(),
             );
           },
@@ -445,7 +371,7 @@ class MobilePlayerUI extends StatelessWidget {
       child: Builder(
         builder: (context) {
           const double maxVolume = 1;
-          final volume = context.select<PlayerBlocType, double>(
+          final volume = context.select<MobilePlayerBloc, double>(
             (bloc) =>
                 bloc.state.as<MobilePlayerDataState>()?.volume ?? maxVolume,
           );
@@ -453,7 +379,7 @@ class MobilePlayerUI extends StatelessWidget {
             value: volume,
             max: maxVolume,
             onChanged: (volume) {
-              context.read<PlayerBlocType>().add(
+              context.read<MobilePlayerBloc>().add(
                 MobilePlayerVolumeChangeEvent(volume),
               );
             },
@@ -481,7 +407,7 @@ class MobilePlayerUI extends StatelessWidget {
           final (
             position,
             duration,
-          ) = context.select<PlayerBlocType, (Duration, Duration)>(
+          ) = context.select<MobilePlayerBloc, (Duration, Duration)>(
             (bloc) => (
               bloc.state.as<MobilePlayerDataState>()?.position ?? Duration.zero,
               bloc.state.as<MobilePlayerDataState>()?.duration ?? Duration.zero,
@@ -494,7 +420,7 @@ class MobilePlayerUI extends StatelessWidget {
             value: val,
             max: max,
             onChangeStart: (val) {
-              context.read<PlayerBlocType>().add(
+              context.read<MobilePlayerBloc>().add(
                 MobilePlayerMediaSliderStartChangeEvent(
                   Duration(milliseconds: val.toInt()),
                   duration,
@@ -502,7 +428,7 @@ class MobilePlayerUI extends StatelessWidget {
               );
             },
             onChanged: (val) {
-              context.read<PlayerBlocType>().add(
+              context.read<MobilePlayerBloc>().add(
                 MobilePlayerMediaSliderChangingEvent(
                   Duration(milliseconds: val.toInt()),
                   duration,
@@ -510,7 +436,7 @@ class MobilePlayerUI extends StatelessWidget {
               );
             },
             onChangeEnd: (val) {
-              context.read<PlayerBlocType>().add(
+              context.read<MobilePlayerBloc>().add(
                 MobilePlayerMediaSliderEndChangeEvent(
                   Duration(milliseconds: val.toInt()),
                   duration,
@@ -580,7 +506,7 @@ class MobilePlayerUI extends StatelessWidget {
               const SizedBox(height: 32),
               FilledButton.icon(
                 onPressed: () {
-                  context.read<PlayerBlocType>().add(
+                  context.read<MobilePlayerBloc>().add(
                     MobilePlayerGoToAlbumListEvent(context),
                   );
                 },
@@ -607,7 +533,7 @@ class MobilePlayerUI extends StatelessWidget {
       height: 24,
       child: Builder(
         builder: (context) {
-          final title = context.select<PlayerBlocType, String>(
+          final title = context.select<MobilePlayerBloc, String>(
             (bloc) => bloc.state.as<MobilePlayerDataState>()?.title ?? '',
           );
           if (title.isEmpty) {
@@ -643,7 +569,7 @@ class MobilePlayerUI extends StatelessWidget {
       child: Builder(
         builder: (context) {
           final subtitleListButtonVisible = context
-              .select<PlayerBlocType, bool>(
+              .select<MobilePlayerBloc, bool>(
                 (bloc) =>
                     bloc.state
                         .as<MobilePlayerDataState>()
@@ -676,17 +602,17 @@ class MobilePlayerUI extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Builder(
       builder: (context) {
-        final playing = context.select<PlayerBlocType, bool>(
+        final playing = context.select<MobilePlayerBloc, bool>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.playing ?? false,
         );
         return IconButton.filled(
           onPressed: () {
             if (playing) {
-              context.read<PlayerBlocType>().add(
+              context.read<MobilePlayerBloc>().add(
                 const MobilePlayerPauseEvent(),
               );
             } else {
-              context.read<PlayerBlocType>().add(const MobilePlayerPlayEvent());
+              context.read<MobilePlayerBloc>().add(const MobilePlayerPlayEvent());
             }
           },
           icon: Icon(
@@ -709,18 +635,18 @@ class MobilePlayerUI extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Builder(
       builder: (context) {
-        final hasSubtitle = context.select<PlayerBlocType, bool>(
+        final hasSubtitle = context.select<MobilePlayerBloc, bool>(
           (bloc) =>
               bloc.state.as<MobilePlayerDataState>()?.subtitleState
                   is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
-        final loop = context.select<PlayerBlocType, bool>(
+        final loop = context.select<MobilePlayerBloc, bool>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.loopIndex != null,
         );
         return IconButton(
           onPressed: () {
-            context.read<PlayerBlocType>().add(
+            context.read<MobilePlayerBloc>().add(
               const MobilePlayerToggleLoopEvent(),
             );
           },
@@ -740,7 +666,7 @@ class MobilePlayerUI extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
       onPressed: () {
-        context.read<PlayerBlocType>().add(
+        context.read<MobilePlayerBloc>().add(
           const MobilePlayerShowSubtitleListEvent(),
         );
       },
@@ -755,7 +681,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<PlayerBlocType>().add(const MobilePlayerDecSpeedEvent());
+          context.read<MobilePlayerBloc>().add(const MobilePlayerDecSpeedEvent());
         },
         icon: const Icon(Icons.remove_circle_outline_rounded),
         color: Theme.of(context).colorScheme.outline,
@@ -770,7 +696,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<PlayerBlocType>().add(const MobilePlayerIncSpeedEvent());
+          context.read<MobilePlayerBloc>().add(const MobilePlayerIncSpeedEvent());
         },
         icon: const Icon(Icons.add_circle_outline_rounded),
         color: Theme.of(context).colorScheme.outline,
@@ -785,11 +711,11 @@ class MobilePlayerUI extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return Builder(
       builder: (context) {
-        final speed = context.select<PlayerBlocType, double>(
+        final speed = context.select<MobilePlayerBloc, double>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.speed ?? 1,
         );
         return GestureDetector(
-          onTap: () => context.read<PlayerBlocType>().add(
+          onTap: () => context.read<MobilePlayerBloc>().add(
             const MobilePlayerResetSpeedEvent(),
           ),
           child: Container(
