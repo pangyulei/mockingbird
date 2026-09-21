@@ -168,7 +168,10 @@ extension DurationHelper on Duration {
 typedef SpotType = ({int index, SentenceEntity sentence});
 
 extension SpotTypeHelper on SpotType {
-  double get alignment => index == 0 ? 0 : 0.3;
+  double get alignment {
+    if (index == 0) return 0;
+    return kPlatformType == .desktop ? 0.4 : 0.3;
+  }
 }
 
 extension SentenceListHelper on List<SentenceEntity> {
