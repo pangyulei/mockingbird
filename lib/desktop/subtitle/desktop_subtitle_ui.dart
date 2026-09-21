@@ -24,7 +24,7 @@ class DesktopSubtitleUI extends StatelessWidget {
               );
           switch (subtitleState) {
             case null || SubtitleEmptyState():
-              return _noSubtitle(context);
+              return _noSubtitle();
             case SubtitleDataState data:
               return ScrollablePositionedList.builder(
                 key: ValueKey(data),
@@ -45,31 +45,36 @@ class DesktopSubtitleUI extends StatelessWidget {
     );
   }
 
-  Widget _noSubtitle(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return InkWell(
-      onTap: () {
-        // => _onAddSubtitle(ref)
-      },
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.subtitles_off_rounded,
-              size: 48,
-              color: colorScheme.outline.withValues(alpha: 0.4),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No Subtitles Found',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.outline,
-                fontWeight: FontWeight.bold,
+  Widget _noSubtitle() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(1, 8, 8, 8),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {},
+          child: glassContainer(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.subtitles_off_rounded,
+                    size: 48,
+                    color: kSecondaryWhite,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Subtitles Found',
+                    style: mbTextStyle(
+                      color: kSecondaryWhite,
+                      size: 16,
+                      weight: .bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

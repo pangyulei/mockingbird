@@ -246,36 +246,44 @@ Widget imageContainer(ImageProvider image, {required Widget child}) =>
       child: child,
     );
 
-Widget glassBlurContainer({required Widget child, double radius = 16}) =>
-    ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: Image.asset('assets/glass_blur_noise.png').image,
-              fit: BoxFit.cover,
-              opacity: 0.08,
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.white.withValues(alpha: 0.6),
-                Colors.white.withValues(alpha: 0.1),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.3),
-              width: 1,
-            ),
+Widget glassContainer({required Widget child, double radius = 16}) => ClipRRect(
+  borderRadius: BorderRadius.circular(radius),
+  child: BackdropFilter(
+    filter: kGlassFilter,
+    child: Container(
+      decoration: BoxDecoration(
+        image: kGlassDecorationImage,
+        gradient: kGlassGradient,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: kGlassBorderColor, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0),
+            blurRadius: 5,
+            spreadRadius: -5,
           ),
-          child: child,
-        ),
+        ],
       ),
-    );
+      child: child,
+    ),
+  ),
+);
+
+final kGlassDecorationImage = DecorationImage(
+  image: Image.asset('assets/glass_blur_noise.png').image,
+  fit: BoxFit.cover,
+  opacity: 0.08,
+);
+final kGlassFilter = ImageFilter.blur(sigmaX: 15, sigmaY: 15);
+final kGlassGradient = LinearGradient(
+  begin: Alignment.topLeft,
+  end: Alignment.bottomCenter,
+  colors: [
+    Colors.white.withValues(alpha: 0.6),
+    Colors.white.withValues(alpha: 0.1),
+  ],
+);
+final kGlassBorderColor = Colors.white.withValues(alpha: 0.3);
 
 const kPrimaryGreen = Color(0xFF7fff00);
 const kPrimaryWhite = Colors.white;

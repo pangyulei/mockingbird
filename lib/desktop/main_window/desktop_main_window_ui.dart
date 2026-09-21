@@ -35,7 +35,11 @@ class _DesktopMainWindowUIState extends State<DesktopMainWindowUI> {
       body: MultiSplitViewTheme(
         data: MultiSplitViewThemeData(
           dividerThickness: kDesktopMainWindowDividerThickness,
-          dividerPainter: DividerPainters.grooved1(),
+          dividerPainter: DividerPainters.grooved1(
+            color: kPrimaryGreen,
+            highlightedColor: kPrimaryGreen,
+            thickness: 4,
+          ),
         ),
         child: imageContainer(
           Image.asset('assets/desktop/main_window_background.jpg').image,

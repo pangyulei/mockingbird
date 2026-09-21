@@ -21,26 +21,21 @@ class DesktopPlayerUI extends StatelessWidget {
     i('desktop player ui building');
     return BlocProvider.value(
       value: DesktopPlayerBloc.shared,
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: glassBlurContainer(
-          child: Builder(
-            builder: (context) {
-              final stateType = context.select<DesktopPlayerBloc, Type>(
-                (bloc) => bloc.state.runtimeType,
-              );
-              switch (stateType) {
-                case DesktopPlayerEmptyState:
-                  return _pageForEmpty(context);
-                case DesktopPlayerDataState:
-                  return _pageForData(context);
-                default:
-                  assert(false, 'stateType $stateType missed');
-                  return const SizedBox.shrink();
-              }
-            },
-          ),
-        ),
+      child: Builder(
+        builder: (context) {
+          final stateType = context.select<DesktopPlayerBloc, Type>(
+            (bloc) => bloc.state.runtimeType,
+          );
+          switch (stateType) {
+            case DesktopPlayerEmptyState:
+              return _pageForEmpty(context);
+            case DesktopPlayerDataState:
+              return _pageForData(context);
+            default:
+              assert(false, 'stateType $stateType missed');
+              return const SizedBox.shrink();
+          }
+        },
       ),
     );
   }
@@ -496,49 +491,54 @@ class DesktopPlayerUI extends StatelessWidget {
   Widget _pageForEmpty(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 1, 8),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: () => context.read<DesktopPlayerBloc>().add(
             const DesktopPlayerSelectMediaFromFileExplorerEvent(),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: kPrimaryGreen,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.cloud_upload_outlined,
-                  size: 48,
-                  color: kPrimaryWhite,
-                ),
+          child: glassContainer(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      color: kPrimaryGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.cloud_upload_outlined,
+                      size: 48,
+                      color: kPrimaryWhite,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Drag & Drop Media File Here',
+                    style: mbTextStyle(
+                      size: 24,
+                      color: kPrimaryWhite,
+                      weight: .bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'or click anywhere in this area to browse your video/audio files',
+                    style: mbTextStyle(
+                      size: 16,
+                      color: kSecondaryWhite,
+                      weight: .normal,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              Text(
-                'Drag & Drop Media File Here',
-                style: mbTextStyle(
-                  size: 24,
-                  color: kPrimaryWhite,
-                  weight: .bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'or click anywhere in this area to browse your video/audio files',
-                style: mbTextStyle(
-                  size: 16,
-                  color: kSecondaryWhite,
-                  weight: .normal,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       ),
