@@ -1,8 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:path/path.dart' as p;
@@ -85,19 +88,37 @@ extension ScrollHelper on ItemScrollController {
   }
 }
 
-
 const kAudioExtensions = {
   'mp3', 'm4a', 'wav', 'flac', 'aac',
   'ogg', 'oga', 'ape', 'wma', 'amr',
   'opus', 'mid', 'midi', 'aif', 'aiff',
-  'aifc', 'mp4a', 'mpc', 'm4r' // m4r 是 iPhone 铃声
+  'aifc', 'mp4a', 'mpc', 'm4r', // m4r 是 iPhone 铃声
 };
 
-const kVideoExtensions = {'mp4', 'mkv', 'mov', 'avi', 'webm',
-  'flv', 'f4v', 'ts', 'wmv', 'm4v',
-  'mts', 'm2ts', 'rmvb', 'rm', 'mpg',
-  'mpeg', 'mpe', '3gp', '3g2', 'vob',
-  'asf', 'ogv'};
+const kVideoExtensions = {
+  'mp4',
+  'mkv',
+  'mov',
+  'avi',
+  'webm',
+  'flv',
+  'f4v',
+  'ts',
+  'wmv',
+  'm4v',
+  'mts',
+  'm2ts',
+  'rmvb',
+  'rm',
+  'mpg',
+  'mpeg',
+  'mpe',
+  '3gp',
+  '3g2',
+  'vob',
+  'asf',
+  'ogv',
+};
 
 const kSubtitleExtensions = {'srt', 'vtt'};
 
@@ -211,9 +232,62 @@ Future<Store> initDB({Store? store}) async {
   return store;
 }
 
-
 typedef PositionUpdated = ({
   bool mediaCompleted,
   SentenceEntity? completedLoopSentence,
   bool sentenceChanged,
 });
+
+Widget imageContainer(ImageProvider image, {required Widget child}) =>
+    Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(image: image, fit: BoxFit.cover),
+      ),
+      child: child,
+    );
+
+Widget glassBlurContainer({required Widget child, double radius = 16}) =>
+    ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+        child: Container(
+          decoration: BoxDecoration(
+            image: const DecorationImage(
+              image: AssetImage('assets/glass_blur_noise.png'),
+              fit: BoxFit.cover,
+              opacity: 0.08,
+            ),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withValues(alpha: 0.6),
+                Colors.white.withValues(alpha: 0.1),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(radius),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: 1,
+            ),
+          ),
+          child: child,
+        ),
+      ),
+    );
+
+const kPrimaryGreen = Color(0xFF7fff00);
+const kPrimaryWhite = Colors.white;
+final kSecondaryWhite = kPrimaryWhite.withValues(alpha: 0.8);
+const kFontFamily = 'Inter';
+TextStyle mbTextStyle({
+  required double size,
+  required Color color,
+  required FontWeight weight,
+}) => GoogleFonts.getFont(
+  kFontFamily,
+  fontSize: size,
+  fontWeight: weight,
+  color: color,
+);

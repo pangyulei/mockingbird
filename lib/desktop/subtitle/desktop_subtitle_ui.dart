@@ -26,21 +26,18 @@ class DesktopSubtitleUI extends StatelessWidget {
             case null || SubtitleEmptyState():
               return _noSubtitle(context);
             case SubtitleDataState data:
-              return ColoredBox(
-                color: Colors.redAccent,
-                child: ScrollablePositionedList.builder(
-                  key: ValueKey(data),
-                  itemCount: data.sentenceList.length,
-                  itemScrollController: data.scroller,
-                  initialAlignment: data.initialAlignment,
-                  initialScrollIndex: data.initialIndex,
-                  itemBuilder: (context, i) {
-                    final sentenceCardBloc = context
-                        .read<DesktopPlayerBloc>()
-                        .sentenceCardBlocAtIndex(i);
-                    return SentenceCardUI(sentenceCardBloc);
-                  },
-                ),
+              return ScrollablePositionedList.builder(
+                key: ValueKey(data),
+                itemCount: data.sentenceList.length,
+                itemScrollController: data.scroller,
+                initialAlignment: data.initialAlignment,
+                initialScrollIndex: data.initialIndex,
+                itemBuilder: (context, i) {
+                  final sentenceCardBloc = context
+                      .read<DesktopPlayerBloc>()
+                      .sentenceCardBlocAtIndex(i);
+                  return SentenceCardUI(sentenceCardBloc);
+                },
               );
           }
         },
@@ -55,27 +52,24 @@ class DesktopSubtitleUI extends StatelessWidget {
       onTap: () {
         // => _onAddSubtitle(ref)
       },
-      child: ColoredBox(
-        color: Colors.redAccent,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.subtitles_off_rounded,
-                size: 48,
-                color: colorScheme.outline.withValues(alpha: 0.4),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.subtitles_off_rounded,
+              size: 48,
+              color: colorScheme.outline.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No Subtitles Found',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.outline,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 16),
-              Text(
-                'No Subtitles Found',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.outline,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
