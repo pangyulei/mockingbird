@@ -253,8 +253,8 @@ Widget glassBlurContainer({required Widget child, double radius = 16}) =>
         filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
         child: Container(
           decoration: BoxDecoration(
-            image: const DecorationImage(
-              image: AssetImage('assets/glass_blur_noise.png'),
+            image: DecorationImage(
+              image: Image.asset('assets/glass_blur_noise.png').image,
               fit: BoxFit.cover,
               opacity: 0.08,
             ),

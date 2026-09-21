@@ -38,7 +38,7 @@ class _DesktopMainWindowUIState extends State<DesktopMainWindowUI> {
           dividerPainter: DividerPainters.grooved1(),
         ),
         child: imageContainer(
-          const AssetImage('assets/desktop/main_window_bg_2.jpg'),
+          Image.asset('assets/desktop/main_window_background.jpg').image,
           child: Builder(
             builder: (context) {
               final splitter = context
