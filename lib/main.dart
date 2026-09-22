@@ -10,7 +10,6 @@ import 'package:window_manager/window_manager.dart';
 
 import 'db/desktop_db.dart';
 import 'db/mobile_db.dart';
-import 'desktop/main_window/desktop_main_window_bloc.dart';
 import 'desktop/main_window/desktop_main_window_ui.dart';
 
 void main(List<String> argList) async {
@@ -29,22 +28,23 @@ Future<void> _runDesktopApp(List<String> argList) async {
   // Only the main window isolate initializes window_manager.
   await windowManager.ensureInitialized();
   WindowsVideoPlayer.registerWith();
-  const minimumSize = Size(
-    kDesktopPlayerMinWidth +
-        kDesktopSubtitleMinWidth +
-        kDesktopMainWindowDividerThickness,
-    kDesktopMainWindowMinHeight,
-  );
-  const options = WindowOptions(
-    size: minimumSize,
-    minimumSize: minimumSize, // 保持最小尺寸限制
-    center: true,
-    title: 'Mockingbird',
-  );
-  await windowManager.waitUntilReadyToShow(options, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  // const minimumSize = Size(
+  //   kDesktopPlayerMinWidth +
+  //       kDesktopSubtitleMinWidth +
+  //       kDesktopMainWindowDividerThickness,
+  //   kDesktopMainWindowMinHeight,
+  // );
+  // const options = WindowOptions(
+  //   size: minimumSize,
+  //   minimumSize: minimumSize, // 保持最小尺寸限制
+  //   center: true,
+  //   title: 'Mockingbird',
+  // );
+  // await windowManager.waitUntilReadyToShow(options, () async {
+  //   await windowManager.show();
+  //   await windowManager.focus();
+  // });
+  //TODO move to bloc
   // await window.setTitle('Mockingbird');
   // await window.setFrame(Offset.zero & const Size(600, 400));
   // await window.setMinimumSize(const Size(600, 400));

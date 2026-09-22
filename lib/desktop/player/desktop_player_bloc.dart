@@ -1,4 +1,3 @@
-
 import 'dart:async';
 import 'dart:io';
 
@@ -11,9 +10,10 @@ import 'package:mockingbird/db/entities/desktop_media_history.dart';
 import 'package:mockingbird/db/entities/sentence.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
+import 'package:path/path.dart' as p;
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
-import 'package:path/path.dart' as p;
+
 import '../../db/desktop_db.dart';
 import '../../db/entities/subtitle.dart';
 import '../../mobile/tab_player/player/mobile_player_state.dart';
@@ -24,7 +24,7 @@ import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../../tool/event_hub.dart';
 import '../../tool/extensions.dart';
 
-
+//TODO use same bloc to handle player logic
 class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   static final shared = DesktopPlayerBloc._();
   File? _media;
@@ -36,10 +36,13 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     final position = state.position;
     return sentenceList?.spot(position);
   }
+
   SpotType? _prevSpot;
 
   DesktopPlayerBloc._() : super(const DesktopPlayerEmptyState()) {
-    on<DesktopPlayerSelectMediaFromFileExplorerEvent>(_selectMediaFromFileExplorer);
+    on<DesktopPlayerSelectMediaFromFileExplorerEvent>(
+      _selectMediaFromFileExplorer,
+    );
     on<DesktopPlayerPositionChangeByPlayingEvent>(_onPositionChangeByPlaying);
     on<DesktopPlayerShowSubtitleListEvent>(_onShowSubtitleList);
     on<DesktopPlayerHideSubtitleListEvent>(_onHideSubtitleList);
@@ -47,50 +50,56 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   }
 
   void _onSelectSubtitle(
-      DesktopPlayerSelectSubtitleEvent event,
-      Emitter<DesktopPlayerState> emit,
-      ) async {
+    DesktopPlayerSelectSubtitleEvent event,
+    Emitter<DesktopPlayerState> emit,
+  ) async {
     var state = this.state;
     if (state is! DesktopPlayerDataState || _media == null) return;
-    final (:subtitleList, :subtitleState, :subtitleListButtonVisible) = await _reloadSubtitle(_media!, event.name, state.position);
-    emit(state.copyWith(
-      subtitleList: subtitleList,
-      subtitleState: subtitleState,
-      subtitleListButtonVisible: subtitleListButtonVisible
-    ));
+    final (:subtitleList, :subtitleState, :subtitleListButtonVisible) =
+        await _reloadSubtitle(_media!, event.name, state.position);
+    emit(
+      state.copyWith(
+        subtitleList: subtitleList,
+        subtitleState: subtitleState,
+        subtitleListButtonVisible: subtitleListButtonVisible,
+      ),
+    );
     EventHub.emit(HubPlayingSentenceChangeEvent(_spot?.sentence.id));
 
     var metadata = await DesktopDB.loadMetadata();
-    final index = metadata.historyList.indexWhere((h) => h.mediaPath == _media!.path);
+    final index = metadata.historyList.indexWhere(
+      (h) => h.mediaPath == _media!.path,
+    );
     if (index != -1) {
-      metadata.historyList[index] = metadata.historyList[index].copyWith(subtitleName: () => event.name);
+      metadata.historyList[index] = metadata.historyList[index].copyWith(
+        subtitleName: () => event.name,
+      );
       await DesktopDB.updateMetadata(metadata);
     }
   }
 
   void _onHideSubtitleList(
-      DesktopPlayerHideSubtitleListEvent event,
-      Emitter<DesktopPlayerState> emit,
-      ) {
+    DesktopPlayerHideSubtitleListEvent event,
+    Emitter<DesktopPlayerState> emit,
+  ) {
     final state = this.state;
     if (state is! DesktopPlayerDataState) return;
     emit(state.copyWith(subtitleListVisible: false));
   }
 
   void _onShowSubtitleList(
-      DesktopPlayerShowSubtitleListEvent event,
-      Emitter<DesktopPlayerState> emit,
-      ) {
+    DesktopPlayerShowSubtitleListEvent event,
+    Emitter<DesktopPlayerState> emit,
+  ) {
     final state = this.state;
     if (state is! DesktopPlayerDataState) return;
     emit(state.copyWith(subtitleListVisible: true));
   }
 
-
   void _onPositionChangeByPlaying(
-      DesktopPlayerPositionChangeByPlayingEvent event,
-      Emitter<DesktopPlayerState> emit,
-      ) async {
+    DesktopPlayerPositionChangeByPlayingEvent event,
+    Emitter<DesktopPlayerState> emit,
+  ) async {
     //Fix switch media, old listener still execute bug
     if (_media == null) return;
     //Seperate dragging and playing position change listener
@@ -118,23 +127,19 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
       //handle scroll
       if (state.loopIndex == null) {
         //playing auto scroll to next sentence, not for loop mode
-        _scroller.safeScrollTo(
-          _spot?.index,
-          alignment: _spot?.alignment ?? 0,
-        );
+        _scroller.safeScrollTo(_spot?.index, alignment: _spot?.alignment ?? 0);
       }
     }
   }
-
 
   PositionUpdated _updatePropertiesWithPosition({
     required Duration position,
     required Emitter<DesktopPlayerState> emit,
   }) {
     var result = (
-    mediaCompleted: false,
-    completedLoopSentence: null,
-    sentenceChanged: false,
+      mediaCompleted: false,
+      completedLoopSentence: null,
+      sentenceChanged: false,
     );
     var state = this.state;
     if (state is! DesktopPlayerDataState) return result;
@@ -163,19 +168,19 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     }
     _prevSpot = _spot;
     return (
-    mediaCompleted: mediaCompleted,
-    completedLoopSentence: completedLoopSentence,
-    sentenceChanged: sentenceChanged,
+      mediaCompleted: mediaCompleted,
+      completedLoopSentence: completedLoopSentence,
+      sentenceChanged: sentenceChanged,
     );
   }
 
-  void _selectMediaFromFileExplorer(DesktopPlayerSelectMediaFromFileExplorerEvent event, Emitter<DesktopPlayerState> emit) async {
+  void _selectMediaFromFileExplorer(
+    DesktopPlayerSelectMediaFromFileExplorerEvent event,
+    Emitter<DesktopPlayerState> emit,
+  ) async {
     final xfile = await FilePicker.pickFile(
       type: FileType.custom,
-      allowedExtensions: [
-        ...kVideoExtensions,
-        ...kAudioExtensions
-      ],
+      allowedExtensions: [...kVideoExtensions, ...kAudioExtensions],
     );
     final filePath = xfile?.path;
     if (filePath == null) return;
@@ -190,13 +195,13 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   Future<DesktopPlayerState> _reload(File? media) async {
     var metadata = await DesktopDB.loadMetadata();
     final newState = await defer<DesktopPlayerState>(
-          () async {
+      () async {
         await DesktopDB.updateMetadata(
           metadata.copyWith(playingMediaPath: () => media?.path),
         );
         _media = media;
       },
-          () async {
+      () async {
         //Fix switch media, old listener still execute bug
         _media = null;
         //Fix media deleted but still can here voice
@@ -207,35 +212,29 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
         final player = VideoPlayerController.file(media);
         await player.initialize();
         player.addListener(
-              () => add(
+          () => add(
             DesktopPlayerPositionChangeByPlayingEvent(player.value.position),
           ),
         );
         final title = p.basenameWithoutExtension(media.path);
         var history = metadata.historyList.firstWhereOrNull(
-              (h) => h.mediaPath == media.path,
+          (h) => h.mediaPath == media.path,
         );
         final position = history?.position ?? Duration.zero;
-        final (
-            :subtitleList,
-            :subtitleState,
-            :subtitleListButtonVisible,
-        ) = await _reloadSubtitle(
-          media,
-          history?.subtitleName,
-          position,
-        );
+        final (:subtitleList, :subtitleState, :subtitleListButtonVisible) =
+            await _reloadSubtitle(media, history?.subtitleName, position);
         history =
             history?.copyWith(
               mediaPath: media.path,
               positionMs: position.inMilliseconds,
-              subtitleName: () => subtitleState.as<SubtitleDataState>()?.subtitleName,
+              subtitleName: () =>
+                  subtitleState.as<SubtitleDataState>()?.subtitleName,
             ) ??
-                DesktopMediaHistory(
-                    mediaPath: media.path,
-                    positionMs: position.inMilliseconds,
-                    subtitleName: subtitleState.as<SubtitleDataState>()?.subtitleName,
-                );
+            DesktopMediaHistory(
+              mediaPath: media.path,
+              positionMs: position.inMilliseconds,
+              subtitleName: subtitleState.as<SubtitleDataState>()?.subtitleName,
+            );
         if (history.id == 0) {
           metadata.historyList.add(history);
         }
@@ -246,7 +245,11 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
           loopIndex = null;
         } else {
           final sentenceList = subtitleList
-              .firstWhereOrNull((s) => s.name == subtitleState.as<SubtitleDataState>()?.subtitleName)
+              .firstWhereOrNull(
+                (s) =>
+                    s.name ==
+                    subtitleState.as<SubtitleDataState>()?.subtitleName,
+              )
               ?.sentenceList;
           loopIndex = sentenceList?.spot(position)?.index;
         }
@@ -263,7 +266,9 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
           duration: player.value.duration,
           volume: 1,
           speed: 1,
-          mediaType: kAudioExtensions.contains(mediaExtension) ? .audio : .video,
+          mediaType: kAudioExtensions.contains(mediaExtension)
+              ? .audio
+              : .video,
           title: title,
           player: player,
         );
@@ -273,23 +278,23 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   }
 
   Future<
-      ({
+    ({
       List<Subtitle> subtitleList,
       SubtitleState subtitleState,
       bool subtitleListButtonVisible,
-      })
+    })
   >
   _reloadSubtitle(
-      File media,
-      String? selectedSubtitleName,
-      Duration position,
-      ) async {
+    File media,
+    String? selectedSubtitleName,
+    Duration position,
+  ) async {
     final subtitleList = await media.subtitleList;
     if (!subtitleList.any((s) => s.name == selectedSubtitleName)) {
       selectedSubtitleName = subtitleList.firstOrNull?.name;
     }
     final subtitle = subtitleList.firstWhereOrNull(
-          (s) => s.name == selectedSubtitleName,
+      (s) => s.name == selectedSubtitleName,
     );
     final spot = subtitle?.sentenceList.spot(position);
     EventHub.emit(HubPlayingSentenceChangeEvent(spot?.sentence.id));
@@ -306,14 +311,17 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
       );
     }
     return (
-    subtitleList: subtitleList,
-    subtitleState: subtitleState,
-    subtitleListButtonVisible: subtitleList.length > 1,
+      subtitleList: subtitleList,
+      subtitleState: subtitleState,
+      subtitleListButtonVisible: subtitleList.length > 1,
     );
   }
 
   SentenceCardBlocType sentenceCardBlocAtIndex(int index) {
-    final sentence = state.as<DesktopPlayerDataState>()?.selectedSubtitle?.sentenceList[index];
+    final sentence = state
+        .as<DesktopPlayerDataState>()
+        ?.selectedSubtitle
+        ?.sentenceList[index];
     final playing = _spot?.index == index;
     return SentenceCardBloc(sentence)..add(SentenceCardInitEvent(playing));
   }
