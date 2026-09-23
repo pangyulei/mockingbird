@@ -1,9 +1,9 @@
-import 'package:collection/collection.dart';
-import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 
+import '../../../db/entities/subtitle.dart';
 import '../subtitle/subtitle_state.dart';
+import 'player_data_state.dart';
 
 sealed class MobilePlayerState {
   const MobilePlayerState();
@@ -17,22 +17,41 @@ class MobilePlayerEmptyState extends MobilePlayerState {
   const MobilePlayerEmptyState();
 }
 
-//TODO use mixin refactor mobile and desktop
-class MobilePlayerDataState extends MobilePlayerState {
-  final int? loopIndex;
-  final bool playing;
-  final String title;
-  final Duration position;
-  final Duration duration;
-  final double volume;
-  final double speed;
-  final double aspectRatio;
+abstract class MobilePlayerDataStateBase extends MobilePlayerState
+    implements PlayerDataStateITF {
+  const MobilePlayerDataStateBase();
+}
+
+class MobilePlayerDataState extends MobilePlayerDataStateBase
+    with PlayerDataStateImpl<MobilePlayerDataState> {
   final bool volumeSliderVisible;
+  @override
+  final int? loopIndex;
+  @override
+  final bool playing;
+  @override
+  final String title;
+  @override
+  final Duration position;
+  @override
+  final Duration duration;
+  @override
+  final double volume;
+  @override
+  final double speed;
+  @override
+  final double aspectRatio;
+  @override
   final AssetType mediaType;
+  @override
   final bool subtitleListVisible;
+  @override
   final List<Subtitle> subtitleList;
+  @override
   final SubtitleState subtitleState;
+  @override
   final VideoPlayerController player;
+  @override
   final bool subtitleListButtonVisible;
 
   const MobilePlayerDataState({
@@ -64,36 +83,78 @@ class MobilePlayerDataState extends MobilePlayerState {
     bool? volumeSliderVisible,
     bool? subtitleListVisible,
     bool? subtitleListButtonVisible,
-    String? Function()? selectedSubtitleName,
     Duration? position,
     Duration? duration,
     String? title,
     List<Subtitle>? subtitleList,
   }) {
+    final partObj = duplicate(
+      loopIndex: loopIndex,
+      playing: playing,
+      aspectRatio: aspectRatio,
+      volume: volume,
+      speed: speed,
+      subtitleState: subtitleState,
+      mediaType: mediaType,
+      subtitleListVisible: subtitleListVisible,
+      subtitleListButtonVisible: subtitleListButtonVisible,
+      position: position,
+      duration: duration,
+      title: title,
+      subtitleList: subtitleList,
+    );
     return MobilePlayerDataState(
-      aspectRatio: aspectRatio ?? this.aspectRatio,
-      subtitleListButtonVisible:
-          subtitleListButtonVisible ?? this.subtitleListButtonVisible,
-      subtitleList: subtitleList ?? this.subtitleList,
-      subtitleListVisible: subtitleListVisible ?? this.subtitleListVisible,
-      loopIndex: loopIndex == null ? this.loopIndex : loopIndex(),
-      playing: playing ?? this.playing,
-      title: title ?? this.title,
-      mediaType: mediaType ?? this.mediaType,
-      subtitleState: subtitleState ?? this.subtitleState,
       volumeSliderVisible: volumeSliderVisible ?? this.volumeSliderVisible,
-      volume: volume ?? this.volume,
-      speed: speed ?? this.speed,
-      position: position ?? this.position,
-      duration: duration ?? this.duration,
-      player: player,
+      aspectRatio: partObj.aspectRatio,
+      subtitleListButtonVisible: partObj.subtitleListButtonVisible,
+      subtitleList: partObj.subtitleList,
+      subtitleListVisible: partObj.subtitleListVisible,
+      player: partObj.player,
+      loopIndex: partObj.loopIndex,
+      playing: partObj.playing,
+      subtitleState: partObj.subtitleState,
+      position: partObj.position,
+      duration: partObj.duration,
+      volume: partObj.volume,
+      speed: partObj.speed,
+      mediaType: partObj.mediaType,
+      title: partObj.title,
     );
   }
 
-  Subtitle? get selectedSubtitle {
-    final subtitleState = this.subtitleState;
-    if (subtitleState is! SubtitleDataState) return null;
-    return subtitleList.firstWhereOrNull((s) => s.name == subtitleState.subtitleName);
+  @override
+  MobilePlayerDataState create({
+    required int? loopIndex,
+    required bool playing,
+    required String title,
+    required Duration position,
+    required Duration duration,
+    required double volume,
+    required double speed,
+    required double aspectRatio,
+    required AssetType mediaType,
+    required bool subtitleListVisible,
+    required List<Subtitle> subtitleList,
+    required SubtitleState subtitleState,
+    required VideoPlayerController player,
+    required bool subtitleListButtonVisible,
+  }) {
+    return MobilePlayerDataState(
+      volumeSliderVisible: false,
+      aspectRatio: aspectRatio,
+      subtitleListButtonVisible: subtitleListButtonVisible,
+      subtitleList: subtitleList,
+      subtitleListVisible: subtitleListVisible,
+      player: player,
+      loopIndex: loopIndex,
+      playing: playing,
+      subtitleState: subtitleState,
+      position: position,
+      duration: duration,
+      volume: volume,
+      speed: speed,
+      mediaType: mediaType,
+      title: title,
+    );
   }
 }
-
