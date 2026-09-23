@@ -2,8 +2,8 @@ import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../db/entities/subtitle.dart';
+import '../../../tool/comm_player/comm_player_state.dart';
 import '../subtitle/subtitle_state.dart';
-import 'player_data_state.dart';
 
 sealed class MobilePlayerState {
   const MobilePlayerState();
@@ -18,12 +18,12 @@ class MobilePlayerEmptyState extends MobilePlayerState {
 }
 
 abstract class MobilePlayerDataStateBase extends MobilePlayerState
-    implements PlayerDataStateITF {
+    implements CommPlayerDataStateITF {
   const MobilePlayerDataStateBase();
 }
 
 class MobilePlayerDataState extends MobilePlayerDataStateBase
-    with PlayerDataStateImpl<MobilePlayerDataState> {
+    with CommPlayerDataStateImpl<MobilePlayerDataState> {
   final bool volumeSliderVisible;
   @override
   final int? loopIndex;
@@ -88,7 +88,7 @@ class MobilePlayerDataState extends MobilePlayerDataStateBase
     String? title,
     List<Subtitle>? subtitleList,
   }) {
-    final partObj = duplicate(
+    final partObj = commCopyWith(
       loopIndex: loopIndex,
       playing: playing,
       aspectRatio: aspectRatio,
@@ -123,7 +123,7 @@ class MobilePlayerDataState extends MobilePlayerDataStateBase
   }
 
   @override
-  MobilePlayerDataState create({
+  MobilePlayerDataState commCreate({
     required int? loopIndex,
     required bool playing,
     required String title,

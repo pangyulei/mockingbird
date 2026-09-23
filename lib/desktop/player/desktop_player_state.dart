@@ -1,8 +1,8 @@
+import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../db/entities/subtitle.dart';
-import '../../mobile/tab_player/player/player_data_state.dart';
 import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 
 sealed class DesktopPlayerState {
@@ -14,12 +14,12 @@ class DesktopPlayerEmptyState extends DesktopPlayerState {
 }
 
 abstract class DesktopPlayerDataStateBase extends DesktopPlayerState
-    implements PlayerDataStateITF {
+    implements CommPlayerDataStateITF {
   const DesktopPlayerDataStateBase();
 }
 
 class DesktopPlayerDataState extends DesktopPlayerDataStateBase
-    with PlayerDataStateImpl<DesktopPlayerDataState> {
+    with CommPlayerDataStateImpl<DesktopPlayerDataState> {
   @override
   final int? loopIndex;
   @override
@@ -67,7 +67,7 @@ class DesktopPlayerDataState extends DesktopPlayerDataStateBase
   });
 
   @override
-  DesktopPlayerDataState create({
+  DesktopPlayerDataState commCreate({
     required int? loopIndex,
     required bool playing,
     required String title,
@@ -116,7 +116,7 @@ class DesktopPlayerDataState extends DesktopPlayerDataStateBase
     String? title,
     List<Subtitle>? subtitleList,
   }) {
-    return duplicate(
+    return commCopyWith(
       loopIndex: loopIndex,
       playing: playing,
       aspectRatio: aspectRatio,

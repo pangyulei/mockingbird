@@ -2,10 +2,10 @@ import 'package:collection/collection.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../db/entities/subtitle.dart';
-import '../subtitle/subtitle_state.dart';
+import '../../db/entities/subtitle.dart';
+import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 
-abstract interface class PlayerDataStateITF {
+abstract interface class CommPlayerDataStateITF {
   int? get loopIndex;
   bool get playing;
   String get title;
@@ -22,8 +22,9 @@ abstract interface class PlayerDataStateITF {
   bool get subtitleListButtonVisible;
 }
 
-mixin PlayerDataStateImpl<T extends PlayerDataStateITF> on PlayerDataStateITF {
-  T create({
+mixin CommPlayerDataStateImpl<T extends CommPlayerDataStateITF>
+    on CommPlayerDataStateITF {
+  T commCreate({
     required int? loopIndex,
     required bool playing,
     required String title,
@@ -40,7 +41,7 @@ mixin PlayerDataStateImpl<T extends PlayerDataStateITF> on PlayerDataStateITF {
     required bool subtitleListButtonVisible,
   });
 
-  T duplicate({
+  T commCopyWith({
     int? Function()? loopIndex,
     bool? playing,
     double? aspectRatio,
@@ -55,7 +56,7 @@ mixin PlayerDataStateImpl<T extends PlayerDataStateITF> on PlayerDataStateITF {
     String? title,
     List<Subtitle>? subtitleList,
   }) {
-    return create(
+    return commCreate(
       aspectRatio: aspectRatio ?? this.aspectRatio,
       subtitleListButtonVisible:
           subtitleListButtonVisible ?? this.subtitleListButtonVisible,
