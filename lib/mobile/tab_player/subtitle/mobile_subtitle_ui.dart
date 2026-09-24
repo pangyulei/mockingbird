@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_bloc.dart';
@@ -16,31 +15,34 @@ class MobileSubtitleUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: MobilePlayerBloc.shared,
-      child: Builder(builder: (context) {
-        final subtitleState = context
-            .select<MobilePlayerBloc, SubtitleState?>((bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState);
-        switch (subtitleState) {
-          case null || SubtitleEmptyState():
-            return _noSubtitle(context);
-          case SubtitleDataState data:
-            return ScrollablePositionedList.builder(
-              key: ValueKey(data),
-              itemCount: data.sentenceList.length,
-              itemScrollController: data.scroller,
-              initialAlignment: data.initialAlignment,
-              initialScrollIndex: data.initialIndex,
-              itemBuilder: (context, i) {
-                final sentenceCardBloc = context
-                    .read<MobilePlayerBloc>()
-                    .sentenceCardBlocAtIndex(i);
-                return SentenceCardUI(sentenceCardBloc);
-              },
-            );
-        }
-      }),
+      child: Builder(
+        builder: (context) {
+          final subtitleState = context
+              .select<MobilePlayerBloc, SubtitleState?>(
+                (bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState,
+              );
+          switch (subtitleState) {
+            case null || SubtitleEmptyState():
+              return _noSubtitle(context);
+            case SubtitleDataState data:
+              return ScrollablePositionedList.builder(
+                key: ValueKey(data),
+                itemCount: data.subtitle.sentenceList.length,
+                itemScrollController: data.scroller,
+                initialAlignment: data.initialAlignment,
+                initialScrollIndex: data.initialIndex,
+                itemBuilder: (context, i) {
+                  final sentenceCardBloc = context
+                      .read<MobilePlayerBloc>()
+                      .sentenceCardBlocAtIndex(i);
+                  return SentenceCardUI(sentenceCardBloc);
+                },
+              );
+          }
+        },
+      ),
     );
   }
-
 
   Widget _noSubtitle(BuildContext context) {
     final theme = Theme.of(context);
@@ -71,5 +73,4 @@ class MobileSubtitleUI extends StatelessWidget {
       ),
     );
   }
-
 }

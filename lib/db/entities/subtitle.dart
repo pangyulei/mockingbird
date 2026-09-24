@@ -3,7 +3,7 @@ import 'package:path/path.dart' as p;
 
 class Subtitle {
   final String path;
-  final List<SentenceEntity> sentenceList;
+  final List<Sentence> sentenceList;
 
   String get name => p.basename(path);
 

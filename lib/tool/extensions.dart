@@ -165,7 +165,7 @@ extension DurationHelper on Duration {
   }
 }
 
-typedef SpotType = ({int index, SentenceEntity sentence});
+typedef SpotType = ({int index, Sentence sentence});
 
 extension SpotTypeHelper on SpotType {
   double get alignment {
@@ -174,12 +174,12 @@ extension SpotTypeHelper on SpotType {
   }
 }
 
-extension SentenceListHelper on List<SentenceEntity> {
+extension SentenceListHelper on List<Sentence> {
   SpotType? spot(Duration position) {
     for (int i = 0; i < length; i++) {
-      SentenceEntity? prev = i == 0 ? null : this[i - 1];
-      SentenceEntity? next = elementAtOrNull(i + 1);
-      SentenceEntity sentence = this[i];
+      Sentence? prev = i == 0 ? null : this[i - 1];
+      Sentence? next = elementAtOrNull(i + 1);
+      Sentence sentence = this[i];
       if (sentence.playing(prev, next, position)) {
         return (index: i, sentence: sentence);
       }
@@ -188,8 +188,8 @@ extension SentenceListHelper on List<SentenceEntity> {
   }
 }
 
-extension on SentenceEntity {
-  bool playing(SentenceEntity? prev, SentenceEntity? next, Duration position) {
+extension on Sentence {
+  bool playing(Sentence? prev, Sentence? next, Duration position) {
     final start = prev == null ? Duration.zero : this.start;
     if (next == null) {
       return start <= position;
@@ -237,7 +237,7 @@ Future<Store> initDB({Store? store}) async {
 
 typedef PositionUpdated = ({
   bool mediaCompleted,
-  SentenceEntity? completedLoopSentence,
+  Sentence? completedLoopSentence,
   bool sentenceChanged,
 });
 

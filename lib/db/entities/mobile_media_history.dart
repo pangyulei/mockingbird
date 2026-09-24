@@ -6,24 +6,24 @@ class MobileMediaHistory {
   @Id()
   int id;
   final String mediaId;
-  final String? subtitleName;
+  final String? subtitlePath;
   final int positionMs;
 
   MobileMediaHistory({
     required this.mediaId,
     this.id = 0,
-    this.subtitleName,
+    this.subtitlePath,
     this.positionMs = 0,
   });
 
   MobileMediaHistory copyWith({
-    String? Function()? subtitleName,
+    String? Function()? subtitlePath,
     int? positionMs,
     String? mediaId,
   }) {
     return MobileMediaHistory(
       id: id,
-      subtitleName: subtitleName == null ? this.subtitleName : subtitleName(),
+      subtitlePath: subtitlePath == null ? this.subtitlePath : subtitlePath(),
       positionMs: positionMs ?? this.positionMs,
       mediaId: mediaId ?? this.mediaId,
     );
@@ -33,6 +33,6 @@ class MobileMediaHistory {
 
   @override
   String toString() {
-    return 'MediaProgressEntity(id: $id, mediaId: $mediaId, subtitleName: $subtitleName, positionMs: $positionMs)';
+    return 'MediaProgressEntity(id: $id, mediaId: $mediaId, subtitleName: $subtitlePath, positionMs: $positionMs)';
   }
 }

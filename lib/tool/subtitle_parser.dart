@@ -29,7 +29,7 @@ class SubtitleParser {
   }
 
   static Subtitle? _parseSrt(String path, String content) {
-    final sentenceList = <SentenceEntity>[];
+    final sentenceList = <Sentence>[];
     // Split by double newline (supporting both \n and \r\n)
     final blocks = content.trim().split(RegExp(r'(\r?\n){2,}'));
 
@@ -62,7 +62,7 @@ class SubtitleParser {
 
         if (text.isNotEmpty) {
           sentenceList.add(
-            SentenceEntity(
+            Sentence(
               id: const Uuid().v4(),
               text: text,
               start: start,
@@ -102,7 +102,7 @@ class SubtitleParser {
   }
 
   static Subtitle? _parseVtt(String path, String content) {
-    final sentenceList = <SentenceEntity>[];
+    final sentenceList = <Sentence>[];
     final blocks = content.trim().split(RegExp(r'(\r?\n){2,}'));
 
     for (var block in blocks) {
@@ -134,7 +134,7 @@ class SubtitleParser {
 
         if (text.isNotEmpty) {
           sentenceList.add(
-            SentenceEntity(
+            Sentence(
               id: const Uuid().v4(),
               start: start,
               end: end,

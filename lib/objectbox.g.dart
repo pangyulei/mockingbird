@@ -48,7 +48,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(7, 2714835044046722673),
     name: 'MobileMediaHistory',
-    lastPropertyId: const obx_int.IdUid(4, 8761472094172892443),
+    lastPropertyId: const obx_int.IdUid(5, 1572698302414338038),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -64,15 +64,15 @@ final _entities = <obx_int.ModelEntity>[
         flags: 0,
       ),
       obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 5654180501971968190),
-        name: 'subtitleName',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
         id: const obx_int.IdUid(4, 8761472094172892443),
         name: 'positionMs',
         type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 1572698302414338038),
+        name: 'subtitlePath',
+        type: 9,
         flags: 0,
       ),
     ],
@@ -268,6 +268,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
       2698077894751143262,
       1978754741528573916,
       1288073627125696056,
+      5654180501971968190,
     ],
     retiredRelationUids: const [7188549749246275438],
     modelVersion: 5,
@@ -321,14 +322,14 @@ obx_int.ModelDefinition getObjectBoxModel() {
       },
       objectToFB: (MobileMediaHistory object, fb.Builder fbb) {
         final mediaIdOffset = fbb.writeString(object.mediaId);
-        final subtitleNameOffset = object.subtitleName == null
+        final subtitlePathOffset = object.subtitlePath == null
             ? null
-            : fbb.writeString(object.subtitleName!);
-        fbb.startTable(5);
+            : fbb.writeString(object.subtitlePath!);
+        fbb.startTable(6);
         fbb.addInt64(0, object.id);
         fbb.addOffset(1, mediaIdOffset);
-        fbb.addOffset(2, subtitleNameOffset);
         fbb.addInt64(3, object.positionMs);
+        fbb.addOffset(4, subtitlePathOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -344,9 +345,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
           4,
           0,
         );
-        final subtitleNameParam = const fb.StringReader(
+        final subtitlePathParam = const fb.StringReader(
           asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 8);
+        ).vTableGetNullable(buffer, rootOffset, 12);
         final positionMsParam = const fb.Int64Reader().vTableGet(
           buffer,
           rootOffset,
@@ -356,7 +357,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final object = MobileMediaHistory(
           mediaId: mediaIdParam,
           id: idParam,
-          subtitleName: subtitleNameParam,
+          subtitlePath: subtitlePathParam,
           positionMs: positionMsParam,
         );
 
@@ -559,13 +560,13 @@ class MobileMediaHistory_ {
     _entities[1].properties[1],
   );
 
-  /// See [MobileMediaHistory.subtitleName].
-  static final subtitleName = obx.QueryStringProperty<MobileMediaHistory>(
+  /// See [MobileMediaHistory.positionMs].
+  static final positionMs = obx.QueryIntegerProperty<MobileMediaHistory>(
     _entities[1].properties[2],
   );
 
-  /// See [MobileMediaHistory.positionMs].
-  static final positionMs = obx.QueryIntegerProperty<MobileMediaHistory>(
+  /// See [MobileMediaHistory.subtitlePath].
+  static final subtitlePath = obx.QueryStringProperty<MobileMediaHistory>(
     _entities[1].properties[3],
   );
 }

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_state.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
@@ -10,10 +9,11 @@ import 'package:mockingbird/tool/event_hub.dart';
 import 'package:mockingbird/tool/extensions.dart';
 
 import '../../../db/entities/sentence.dart';
+import '../../../tool/comm_player/comm_player_event.dart';
 
 class SentenceCardBloc extends SentenceCardBlocType {
   final _subList = <StreamSubscription>[];
-  final SentenceEntity? _sentence;
+  final Sentence? _sentence;
 
   SentenceCardBloc(this._sentence) : super(const SentenceCardState.empty()) {
     on<SentenceCardInitEvent>(_onInit);
@@ -32,7 +32,7 @@ class SentenceCardBloc extends SentenceCardBlocType {
     final sentenceId = _sentence?.id;
     if (sentenceId == null) return;
     event.context.read<MobilePlayerBloc>().add(
-      MobilePlayerClickSentenceEvent(sentenceId),
+      CommPlayerClickSentenceEvent(sentenceId),
     );
   }
 

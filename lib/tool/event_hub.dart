@@ -35,7 +35,7 @@ class PlayerInfo {
   final double speed;
   final double volume;
   final int? loopIndex;
-  final List<SentenceEntity> sentenceList;
+  final List<Sentence> sentenceList;
 
   const PlayerInfo({
     required this.media,

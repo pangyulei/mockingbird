@@ -5,25 +5,8 @@ import '../../../db/entities/subtitle.dart';
 import '../../../tool/comm_player/comm_player_state.dart';
 import '../subtitle/subtitle_state.dart';
 
-sealed class MobilePlayerState {
-  const MobilePlayerState();
-}
-
-class MobilePlayerInitState extends MobilePlayerState {
-  const MobilePlayerInitState();
-}
-
-class MobilePlayerEmptyState extends MobilePlayerState {
-  const MobilePlayerEmptyState();
-}
-
-abstract class MobilePlayerDataStateBase extends MobilePlayerState
-    implements CommPlayerDataStateITF {
-  const MobilePlayerDataStateBase();
-}
-
-class MobilePlayerDataState extends MobilePlayerDataStateBase
-    with CommPlayerDataStateImpl<MobilePlayerDataState> {
+class MobilePlayerDataState extends CommPlayerState
+    with CommPlayerDataState {
   final bool volumeSliderVisible;
   @override
   final int? loopIndex;
@@ -72,6 +55,7 @@ class MobilePlayerDataState extends MobilePlayerDataStateBase
     required this.title,
   });
 
+  @override
   MobilePlayerDataState copyWith({
     int? Function()? loopIndex,
     bool? playing,
@@ -88,7 +72,7 @@ class MobilePlayerDataState extends MobilePlayerDataStateBase
     String? title,
     List<Subtitle>? subtitleList,
   }) {
-    final partObj = commCopyWith(
+    final partObj = super.copyWith(
       loopIndex: loopIndex,
       playing: playing,
       aspectRatio: aspectRatio,
@@ -123,7 +107,7 @@ class MobilePlayerDataState extends MobilePlayerDataStateBase
   }
 
   @override
-  MobilePlayerDataState commCreate({
+  MobilePlayerDataState create({
     required int? loopIndex,
     required bool playing,
     required String title,
