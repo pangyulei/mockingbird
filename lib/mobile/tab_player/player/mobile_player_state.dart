@@ -1,62 +1,33 @@
 import 'package:photo_manager/photo_manager.dart';
-import 'package:video_player/video_player.dart';
 
 import '../../../db/entities/subtitle.dart';
 import '../../../tool/comm_player/comm_player_state.dart';
 import '../subtitle/subtitle_state.dart';
 
-class MobilePlayerDataState extends CommPlayerState
-    with CommPlayerDataState {
+class MobilePlayerDataState extends CommPlayerDataState {
   final bool volumeSliderVisible;
-  @override
-  final int? loopIndex;
-  @override
-  final bool playing;
-  @override
-  final String title;
-  @override
-  final Duration position;
-  @override
-  final Duration duration;
-  @override
-  final double volume;
-  @override
-  final double speed;
-  @override
-  final double aspectRatio;
-  @override
-  final AssetType mediaType;
-  @override
-  final bool subtitleListVisible;
-  @override
-  final List<Subtitle> subtitleList;
-  @override
-  final SubtitleState subtitleState;
-  @override
-  final VideoPlayerController player;
-  @override
-  final bool subtitleListButtonVisible;
 
-  const MobilePlayerDataState({
-    required this.aspectRatio,
-    required this.subtitleListButtonVisible,
-    required this.subtitleList,
-    required this.subtitleListVisible,
-    required this.player,
-    required this.volumeSliderVisible,
-    required this.loopIndex,
-    required this.playing,
-    required this.subtitleState,
-    required this.position,
-    required this.duration,
-    required this.volume,
-    required this.speed,
-    required this.mediaType,
-    required this.title,
-  });
+  MobilePlayerDataState.commData({required this.volumeSliderVisible, required CommPlayerDataState commData})
+    : super(
+        aspectRatio: commData.aspectRatio,
+        duration: commData.duration,
+        loopIndex: commData.loopIndex,
+        mediaType: commData.mediaType,
+        player: commData.player,
+        playing: commData.playing,
+        position: commData.position,
+        speed: commData.speed,
+        subtitleList: commData.subtitleList,
+        subtitleListButtonVisible: commData.subtitleListButtonVisible,
+        subtitleListVisible: commData.subtitleListVisible,
+        subtitleState: commData.subtitleState,
+        title: commData.title,
+        volume: commData.volume,
+      );
 
   @override
   MobilePlayerDataState copyWith({
+    bool? volumeSliderVisible,
     int? Function()? loopIndex,
     bool? playing,
     double? aspectRatio,
@@ -64,7 +35,6 @@ class MobilePlayerDataState extends CommPlayerState
     double? speed,
     SubtitleState? subtitleState,
     AssetType? mediaType,
-    bool? volumeSliderVisible,
     bool? subtitleListVisible,
     bool? subtitleListButtonVisible,
     Duration? position,
@@ -72,7 +42,7 @@ class MobilePlayerDataState extends CommPlayerState
     String? title,
     List<Subtitle>? subtitleList,
   }) {
-    final partObj = super.copyWith(
+    final commData = super.copyWith(
       loopIndex: loopIndex,
       playing: playing,
       aspectRatio: aspectRatio,
@@ -87,58 +57,9 @@ class MobilePlayerDataState extends CommPlayerState
       title: title,
       subtitleList: subtitleList,
     );
-    return MobilePlayerDataState(
+    return MobilePlayerDataState.commData(
       volumeSliderVisible: volumeSliderVisible ?? this.volumeSliderVisible,
-      aspectRatio: partObj.aspectRatio,
-      subtitleListButtonVisible: partObj.subtitleListButtonVisible,
-      subtitleList: partObj.subtitleList,
-      subtitleListVisible: partObj.subtitleListVisible,
-      player: partObj.player,
-      loopIndex: partObj.loopIndex,
-      playing: partObj.playing,
-      subtitleState: partObj.subtitleState,
-      position: partObj.position,
-      duration: partObj.duration,
-      volume: partObj.volume,
-      speed: partObj.speed,
-      mediaType: partObj.mediaType,
-      title: partObj.title,
-    );
-  }
-
-  @override
-  MobilePlayerDataState create({
-    required int? loopIndex,
-    required bool playing,
-    required String title,
-    required Duration position,
-    required Duration duration,
-    required double volume,
-    required double speed,
-    required double aspectRatio,
-    required AssetType mediaType,
-    required bool subtitleListVisible,
-    required List<Subtitle> subtitleList,
-    required SubtitleState subtitleState,
-    required VideoPlayerController player,
-    required bool subtitleListButtonVisible,
-  }) {
-    return MobilePlayerDataState(
-      volumeSliderVisible: false,
-      aspectRatio: aspectRatio,
-      subtitleListButtonVisible: subtitleListButtonVisible,
-      subtitleList: subtitleList,
-      subtitleListVisible: subtitleListVisible,
-      player: player,
-      loopIndex: loopIndex,
-      playing: playing,
-      subtitleState: subtitleState,
-      position: position,
-      duration: duration,
-      volume: volume,
-      speed: speed,
-      mediaType: mediaType,
-      title: title,
+      commData: commData,
     );
   }
 }

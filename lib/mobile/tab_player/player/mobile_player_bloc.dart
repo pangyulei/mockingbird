@@ -53,44 +53,39 @@ class MobilePlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> with CommP
   ) async {
     super.onSelectAnotherSubtitleFromList(event, emit);
 
-      //TODO use mobile event to handle
-      var metadata = await MobileDB.loadMetadata();
-      var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
-      if (history != null) {
-        history = history.copyWith(subtitlePath: () => event.path);
-        await MobileDB.updateHistory(history);
-      }
+    var metadata = await MobileDB.loadMetadata();
+    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
+    if (history != null) {
+      history = history.copyWith(subtitlePath: () => event.path);
+      await MobileDB.updateHistory(history);
     }
   }
 
   void _onAppPause(HubAppPauseEvent event) async {
-    final state = this.state;
-    if (state is! MobilePlayerDataState) return;
-    final media = _media;
+    if (state is! CommPlayerDataStateMx) return;
     if (media == null) return;
 
     //save position
-    await _updateHistoryPosition(state.position);
+    final data = state as CommPlayerDataStateMx;
+    await _updateHistoryPosition(data.position);
 
     //sync to background audio player
     final playerInfo = PlayerInfo(
-      media: media,
-      duration: state.duration,
-      playing: state.playing,
-      position: state.position,
-      speed: state.speed,
-      volume: state.volume,
-      loopIndex: state.loopIndex,
-      sentenceList: state.selectedSubtitle?.sentenceList ?? const [],
+      media: media!,
+      duration: data.duration,
+      playing: data.playing,
+      position: data.position,
+      speed: data.speed,
+      volume: data.volume,
+      loopIndex: data.loopIndex,
+      sentenceList: data.selectedSubtitle?.sentenceList ?? const [],
     );
     EventHub.emit(HubSyncPlayerToBackgroundAudioEvent(playerInfo));
   }
 
   Future<void> _updateHistoryPosition(Duration position) async {
-    final state = this.state;
-    if (state is! MobilePlayerDataState) return;
     final metadata = await MobileDB.loadMetadata();
-    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == _media?.id);
+    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
     if (history != null) {
       history = history.copyWith(positionMs: position.inMilliseconds);
       await MobileDB.updateHistory(history);
@@ -128,198 +123,80 @@ class MobilePlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> with CommP
   //   );
   // }
 
-  void _onGoToAlbumList(MobilePlayerGoToAlbumListEvent event, Emitter<MobilePlayerState> emit) {
+  void _onGoToAlbumList(MobilePlayerGoToAlbumListEvent event, Emitter<CommPlayerState> emit) {
     event.context.go(MobileAppRoute.albumList);
   }
 
-  void _onToggleVolumeSlider(MobilePlayerToggleVolumeSliderEvent event, Emitter<MobilePlayerState> emit) async {
-    final state = this.state;
+  void _onToggleVolumeSlider(MobilePlayerToggleVolumeSliderEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! MobilePlayerDataState) return;
-    emit(state.copyWith(volumeSliderVisible: !state.volumeSliderVisible));
+    var data = state as MobilePlayerDataState;
+    data = (data).copyWith(volumeSliderVisible: !data.volumeSliderVisible);
+    emit(data);
   }
 
-  void _onInit(MobilePlayerInitEvent event, Emitter<MobilePlayerState> emit) async {
+  void _onInit(MobilePlayerInitEvent event, Emitter<CommPlayerState> emit) async {
     EasyLoading.show(maskType: .clear);
     //before switch media, update old media's history position
-    var state = this.state;
-    if (state is MobilePlayerDataState) {
-      await _updateHistoryPosition(state.position);
+    if (state is CommPlayerDataStateMx) {
+      await _updateHistoryPosition((state as CommPlayerDataStateMx).position);
     }
 
     final metadata = await MobileDB.loadMetadata();
     final mediaId = event.mediaId ?? metadata.playingMediaId;
     final media = mediaId == null ? null : await AssetEntity.fromId(mediaId);
+    CommPlayerState commState;
     if (media == null) {
-      state = await _reload(null);
+      commState = await reload(null);
     } else {
       var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == mediaId);
       final position = history?.position ?? Duration.zero;
-      state = await _reload((
+      commState = await reload((
         media: media,
         playing: true,
         position: position,
         loopIndex: null,
-        selectedSubtitleName: history?.subtitlePath,
+        subtitlePath: history?.subtitlePath,
         speed: 1,
         volume: 1,
       ));
     }
-    emit(state);
+    if (commState is CommPlayerDataState) {
+      commState = MobilePlayerDataState.commData(volumeSliderVisible: false, commData: commState);
+    }
+    emit(commState);
     EasyLoading.dismiss();
   }
 
-  void _onSyncFromBackgroundAudio(
-    MobilePlayerSyncFromBackgroundAudioEvent event,
-    Emitter<MobilePlayerState> emit,
-  ) async {
+  void _onSyncFromBackgroundAudio(MobilePlayerSyncFromBackgroundAudioEvent event, Emitter<CommPlayerState> emit) async {
     await defer(
       () async {
         EasyLoading.dismiss();
       },
       () async {
         EasyLoading.show(maskType: .clear);
-        var state = this.state;
-        if (state is! MobilePlayerDataState) return;
-        final mediaId = _media?.id;
+        if (state is! CommPlayerDataStateMx) return;
+        final mediaId = media?.id;
         if (mediaId == null) return;
 
-        final media = await AssetEntity.fromId(mediaId);
+        //refetch media because user might deleted media while leaving the app
+        media = await AssetEntity.fromId(mediaId);
+        final CommPlayerState newState;
         if (media == null) {
-          state = await _reload(null);
+          newState = await reload(null);
         } else {
-          state = await _reload((
-            media: media,
-            selectedSubtitleName: state.subtitleState.as<SubtitleDataState>()?.subtitleName,
-            loopIndex: state.loopIndex,
+          final data = state as CommPlayerDataStateMx;
+          newState = await reload((
+            media: media!,
+            selectedSubtitleName: data.selectedSubtitle?.name,
+            loopIndex: data.loopIndex,
             position: event.position,
             playing: event.playing,
-            volume: state.volume,
-            speed: state.speed,
+            volume: data.volume,
+            speed: data.speed,
           ));
         }
         emit(state);
       },
-    );
-  }
-
-  Future<MobilePlayerState> _reload(
-    ({
-      AssetEntity media,
-      bool playing,
-      int? loopIndex,
-      Duration position,
-      String? selectedSubtitleName,
-      double volume,
-      double speed,
-    })?
-    info,
-  ) async {
-    var metadata = await MobileDB.loadMetadata();
-    final newState = await defer<MobilePlayerState>(
-      () async {
-        await MobileDB.updateMetadata(metadata.copyWith(playingMediaId: () => info?.media.id));
-        _media = info?.media;
-      },
-      () async {
-        //Fix switch media, old listener still execute bug
-        _media = null;
-        //Fix media deleted but still can here voice
-        state.as<MobilePlayerDataState>()?.player.dispose();
-        if (info == null) {
-          return const MobilePlayerEmptyState();
-        }
-        //because of this is read and have to await, this has to be a AsyncNotifier
-        final mediaFile = await info.media.file;
-        if (mediaFile == null) {
-          return const MobilePlayerEmptyState();
-        }
-        final player = VideoPlayerController.file(mediaFile);
-        await player.initialize();
-        player.addListener(() => add(MobilePlayerPositionChangeByPlayingEvent(player.value.position)));
-        final title = await info.media.titleAsync;
-        var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == info.media.id);
-        final (:subtitleList, :subtitleState, :subtitleListButtonVisible) = await _reloadSubtitle(
-          info.media,
-          info.selectedSubtitleName,
-          info.position,
-        );
-        history =
-            history?.copyWith(
-              mediaId: info.media.id,
-              positionMs: info.position.inMilliseconds,
-              subtitlePath: () => subtitleState.as<SubtitleDataState>()?.subtitleName,
-            ) ??
-            MobileMediaHistory(
-              positionMs: info.position.inMilliseconds,
-              mediaId: info.media.id,
-              subtitlePath: subtitleState.as<SubtitleDataState>()?.subtitleName,
-            );
-        if (history.id == 0) {
-          metadata.historyList.add(history);
-        }
-        await player.seekTo(info.position);
-        if (info.playing) {
-          await player.play();
-        }
-        final int? loopIndex;
-        if (state.as<MobilePlayerDataState>()?.loopIndex == null) {
-          loopIndex = null;
-        } else {
-          final sentenceList = subtitleList
-              .firstWhereOrNull((s) => s.name == subtitleState.as<SubtitleDataState>()?.subtitleName)
-              ?.sentenceList;
-          loopIndex = sentenceList?.spot(info.position)?.index;
-        }
-        return MobilePlayerDataState(
-          aspectRatio: player.value.aspectRatio,
-          subtitleList: subtitleList,
-          subtitleListVisible: false,
-          subtitleListButtonVisible: subtitleListButtonVisible,
-          volumeSliderVisible: false,
-          loopIndex: loopIndex,
-          playing: info.playing,
-          subtitleState: subtitleState,
-          position: info.position,
-          duration: player.value.duration,
-          volume: info.volume,
-          speed: info.speed,
-          mediaType: info.media.type,
-          title: title,
-          player: player,
-        );
-      },
-    );
-    return newState;
-  }
-
-  Future<({List<Subtitle> subtitleList, SubtitleState subtitleState, bool subtitleListButtonVisible})> _reloadSubtitle(
-    AssetEntity media,
-    String? selectedSubtitleName,
-    Duration position,
-  ) async {
-    final subtitleList = await media.subtitleList;
-    if (!subtitleList.any((s) => s.name == selectedSubtitleName)) {
-      selectedSubtitleName = subtitleList.firstOrNull?.name;
-    }
-    final subtitle = subtitleList.firstWhereOrNull((s) => s.name == selectedSubtitleName);
-    final spot = subtitle?.sentenceList.spot(position);
-    EventHub.emit(HubPlayingSentenceChangeEvent(spot?.sentence.id));
-    final SubtitleState subtitleState;
-    if (spot == null || subtitle == null) {
-      subtitleState = const SubtitleEmptyState();
-    } else {
-      subtitleState = SubtitleDataState(
-        subtitleName: subtitle.name,
-        sentenceList: subtitle.sentenceList,
-        initialAlignment: spot.alignment,
-        initialIndex: spot.index,
-        scroller: _scroller,
-      );
-    }
-    return (
-      subtitleList: subtitleList,
-      subtitleState: subtitleState,
-      subtitleListButtonVisible: subtitleList.length > 1,
     );
   }
 
