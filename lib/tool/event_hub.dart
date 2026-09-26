@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -22,9 +23,9 @@ class HubPlayingSentenceChangeEvent extends HubEvent {
 }
 
 class HubSubtitleChangeEvent extends HubEvent {
-  final String name;
+  final Subtitle subtitle;
 
-  const HubSubtitleChangeEvent(this.name);
+  const HubSubtitleChangeEvent(this.subtitle);
 }
 
 class PlayerInfo {

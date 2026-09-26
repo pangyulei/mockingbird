@@ -1,14 +1,19 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:defer/defer.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mixin_logger/mixin_logger.dart';
 import 'package:mockingbird/db/entities/sentence.dart';
 import 'package:mockingbird/db/entities/subtitle.dart';
+import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/subtitle_list_bloc.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../event_hub.dart';
@@ -18,13 +23,13 @@ const double _kMaxPlaySpeed = 3.0;
 const double _kMinPlaySpeed = 0.2;
 const double _kStepPlaySpeed = 0.1;
 
-mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
+abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   bool _mediaPlayingBeforeDrag = false;
   AssetEntity? media;
   final _scroller = ItemScrollController();
   SpotType? get _spot {
-    if (state case CommPlayerDataStateMx data) {
-      final sentenceList = data.selectedSubtitle?.sentenceList;
+    if (state case CommPlayerDataState data) {
+      final sentenceList = data.subtitle?.sentenceList;
       final position = data.position;
       return sentenceList?.spot(position);
     } else {
@@ -34,6 +39,30 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
 
   SpotType? _prevSpot;
   List<StreamSubscription> subscriptionList = [];
+
+  CommPlayerBloc() : super(const CommPlayerInitState()) {
+    on<CommPlayerSelectAnotherSubtitleFromListEvent>(onSelectAnotherSubtitleFromList);
+    on<CommPlayerShowSubtitleListEvent>(_onShowSubtitleList);
+    on<CommPlayerHideSubtitleListEvent>(_onHideSubtitleList);
+    on<CommPlayerClickSentenceEvent>(_onClickSentence);
+    on<CommPlayerScrollToTopEvent>(_onScrollToTop);
+    on<CommPlayerScrollToBottomEvent>(_onScrollToBottom);
+    on<CommPlayerScrollToPlayingSentenceEvent>(_onScrollToPlayingSentence);
+    on<CommPlayerPositionChangeByPlayingEvent>(_onPositionChangeByPlaying);
+    on<CommPlayerPauseEvent>(_onPause);
+    on<CommPlayerPlayEvent>(_onPlay);
+    on<CommPlayerToggleLoopEvent>(_onToggleLoop);
+    on<CommPlayerResetSpeedEvent>(_onResetSpeed);
+    on<CommPlayerIncSpeedEvent>(_onIncSpeed);
+    on<CommPlayerDecSpeedEvent>(_onDecSpeed);
+    on<CommPlayerMediaSliderStartChangeEvent>(_onMediaSliderStartChange);
+    on<CommPlayerMediaSliderChangingEvent>(_onMediaSliderChanging);
+    on<CommPlayerMediaSliderEndChangeEvent>(_onMediaSliderEndChange);
+    on<CommPlayerVolumeChangeEvent>(_onVolumeChange);
+    subscriptionList.addAll([
+      EventHub.on<HubSubtitleChangeEvent>((event) => add(CommPlayerSelectAnotherSubtitleFromListEvent(event.subtitle))),
+    ]);
+  }
 
   Future<CommPlayerState> reload(
     ({
@@ -45,63 +74,46 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
       double volume,
       double speed,
     })?
-    info,
+    args,
   ) async {
-    var metadata = await MobileDB.loadMetadata();
-    final newState = await defer<MobilePlayerState>(
+    final newState = await defer<CommPlayerState>(
       () async {
-        await MobileDB.updateMetadata(metadata.copyWith(playingMediaId: () => info?.media.id));
-        _media = info?.media;
+        media = args?.media;
       },
       () async {
         //Fix switch media, old listener still execute bug
-        _media = null;
+        media = null;
         //Fix media deleted but still can here voice
-        state.as<MobilePlayerDataState>()?.player.dispose();
-        if (info == null) {
-          return const MobilePlayerEmptyState();
+        state.as<CommPlayerDataState>()?.player.dispose();
+        if (args == null) {
+          return const CommPlayerEmptyState();
         }
         //because of this is read and have to await, this has to be a AsyncNotifier
-        final mediaFile = await info.media.file;
+        final mediaFile = await args.media.file;
         if (mediaFile == null) {
-          return const MobilePlayerEmptyState();
+          return const CommPlayerEmptyState();
         }
         final player = VideoPlayerController.file(mediaFile);
         await player.initialize();
-        player.addListener(() => add(MobilePlayerPositionChangeByPlayingEvent(player.value.position)));
-        final title = await info.media.titleAsync;
-        var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == info.media.id);
+        player.addListener(() => add(CommPlayerPositionChangeByPlayingEvent(player.value.position)));
+        final title = await args.media.titleAsync;
         final (:subtitleList, :subtitleState, :subtitleListButtonVisible) = await _reloadSubtitle(
-          info.media,
-          info.selectedSubtitleName,
-          info.position,
+          args.media,
+          args.subtitlePath,
+          args.position,
         );
-        history =
-            history?.copyWith(
-              mediaId: info.media.id,
-              positionMs: info.position.inMilliseconds,
-              subtitlePath: () => subtitleState.as<SubtitleDataState>()?.subtitleName,
-            ) ??
-            MobileMediaHistory(
-              positionMs: info.position.inMilliseconds,
-              mediaId: info.media.id,
-              subtitlePath: subtitleState.as<SubtitleDataState>()?.subtitleName,
-            );
-        if (history.id == 0) {
-          metadata.historyList.add(history);
-        }
-        await player.seekTo(info.position);
-        if (info.playing) {
+        await player.seekTo(args.position);
+        if (args.playing) {
           await player.play();
         }
         final int? loopIndex;
-        if (state.as<CommPlayerDataStateMx>()?.loopIndex == null) {
+        if (state.as<CommPlayerDataState>()?.loopIndex == null) {
           loopIndex = null;
         } else {
           final sentenceList = subtitleList
-              .firstWhereOrNull((s) => s.name == subtitleState.as<SubtitleDataState>()?.subtitleName)
+              .firstWhereOrNull((s) => s.path == subtitleState.as<SubtitleDataState>()?.subtitle.path)
               ?.sentenceList;
-          loopIndex = sentenceList?.spot(info.position)?.index;
+          loopIndex = sentenceList?.spot(args.position)?.index;
         }
         return CommPlayerDataState(
           aspectRatio: player.value.aspectRatio,
@@ -109,13 +121,13 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
           subtitleListVisible: false,
           subtitleListButtonVisible: subtitleListButtonVisible,
           loopIndex: loopIndex,
-          playing: info.playing,
+          playing: args.playing,
           subtitleState: subtitleState,
-          position: info.position,
+          position: args.position,
           duration: player.value.duration,
-          volume: info.volume,
-          speed: info.speed,
-          mediaType: info.media.type,
+          volume: args.volume,
+          speed: args.speed,
+          mediaType: args.media.type,
           title: title,
           player: player,
         );
@@ -143,7 +155,7 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
       subtitleState = SubtitleDataState(
         initialAlignment: spot.alignment,
         initialIndex: spot.index,
-        scroller: _scroller, 
+        scroller: _scroller,
         subtitle: subtitle,
       );
     }
@@ -154,33 +166,9 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
     );
   }
 
-  void registerEvents() {
-    on<CommPlayerSelectAnotherSubtitleFromListEvent>(onSelectAnotherSubtitleFromList);
-    on<CommPlayerShowSubtitleListEvent>(_onShowSubtitleList);
-    on<CommPlayerHideSubtitleListEvent>(_onHideSubtitleList);
-    on<CommPlayerClickSentenceEvent>(_onClickSentence);
-    on<CommPlayerScrollToTopEvent>(_onScrollToTop);
-    on<CommPlayerScrollToBottomEvent>(_onScrollToBottom);
-    on<CommPlayerScrollToPlayingSentenceEvent>(_onScrollToPlayingSentence);
-    on<CommPlayerPositionChangeByPlayingEvent>(_onPositionChangeByPlaying);
-    on<CommPlayerPauseEvent>(_onPause);
-    on<CommPlayerPlayEvent>(_onPlay);
-    on<CommPlayerToggleLoopEvent>(_onToggleLoop);
-    on<CommPlayerResetSpeedEvent>(_onResetSpeed);
-    on<CommPlayerIncSpeedEvent>(_onIncSpeed);
-    on<CommPlayerDecSpeedEvent>(_onDecSpeed);
-    on<CommPlayerMediaSliderStartChangeEvent>(_onMediaSliderStartChange);
-    on<CommPlayerMediaSliderChangingEvent>(_onMediaSliderChanging);
-    on<CommPlayerMediaSliderEndChangeEvent>(_onMediaSliderEndChange);
-    on<CommPlayerVolumeChangeEvent>(_onVolumeChange);
-    subscriptionList.addAll([
-      EventHub.on<HubSubtitleChangeEvent>((event) => add(CommPlayerSelectAnotherSubtitleFromListEvent(event.name))),
-    ]);
-  }
-
   Future<void> _onPositionChangeByDragging(Duration position, Emitter<CommPlayerState> emit) async {
-    if (state is! CommPlayerDataStateMx) return;
-    var data = state as CommPlayerDataStateMx;
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
     if (data.playing) {
       data = data.copyWith(playing: false);
       emit(data);
@@ -206,7 +194,7 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
     // if (state is! CommPlayerDataState) return result;
 
     //Fix while tap video slider, it bounce at first
-    var data = state as CommPlayerDataStateMx;
+    var data = state as CommPlayerDataState;
     data = data.copyWith(position: position);
     emit(data);
 
@@ -214,7 +202,7 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
 
     //handle loop reseek
     final loopIndex = data.loopIndex;
-    final loopSentence = loopIndex == null ? null : data.selectedSubtitle?.sentenceList.elementAtOrNull(loopIndex);
+    final loopSentence = loopIndex == null ? null : data.subtitle?.sentenceList.elementAtOrNull(loopIndex);
     Sentence? completedLoopSentence;
     if (loopSentence != null && position > loopSentence.end) {
       //if repeat one is turn on, while sentence finished, seek to beginning
@@ -235,8 +223,8 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
   }
 
   void _onVolumeChange(CommPlayerVolumeChangeEvent event, Emitter<CommPlayerState> emit) async {
-    if (state is! CommPlayerDataStateMx) return;
-    final data = state as CommPlayerDataStateMx;
+    if (state is! CommPlayerDataState) return;
+    final data = state as CommPlayerDataState;
     emit(data.copyWith(volume: event.volume));
     await data.player.setVolume(event.volume);
   }
@@ -247,7 +235,7 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
     //Seperate dragging and playing position change listener
 
     var state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
+    if (state is! CommPlayerDataState) return;
     if (!state.playing) return;
     final positionUpdated = _updatePropertiesWithPosition(position: event.position, emit: emit);
     if (positionUpdated.mediaCompleted) {
@@ -272,8 +260,8 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
   }
 
   void _onPlay(CommPlayerPlayEvent event, Emitter<CommPlayerState> emit) async {
-    if (state is! CommPlayerDataStateMx) return;
-    var data = state as CommPlayerDataStateMx;
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
     if (data.position >= data.duration) {
       const position = Duration.zero;
       data = data.copyWith(position: position);
@@ -284,22 +272,22 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
   }
 
   void _onPause(CommPlayerPauseEvent event, Emitter<CommPlayerState> emit) async {
-    if (state is! CommPlayerDataStateMx) return;
-    final data = state as CommPlayerDataStateMx;
+    if (state is! CommPlayerDataState) return;
+    final data = state as CommPlayerDataState;
     emit(data.copyWith(playing: false));
     await data.player.pause();
   }
 
   void _onToggleLoop(_, Emitter<CommPlayerState> emit) {
-    if (state is! CommPlayerDataStateMx) return;
-    final data = state as CommPlayerDataStateMx;
+    if (state is! CommPlayerDataState) return;
+    final data = state as CommPlayerDataState;
     final loopIndex = data.loopIndex == null ? _spot?.index : null;
     emit(data.copyWith(loopIndex: () => loopIndex));
   }
 
   void _onMediaSliderStartChange(CommPlayerMediaSliderStartChangeEvent event, Emitter<CommPlayerState> emit) async {
     final state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
+    if (state is! CommPlayerDataState) return;
     _mediaPlayingBeforeDrag = state.playing;
     await _onPositionChangeByDragging(event.position, emit);
   }
@@ -309,37 +297,41 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
   }
 
   void _onMediaSliderEndChange(CommPlayerMediaSliderEndChangeEvent event, Emitter<CommPlayerState> emit) async {
-    var state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
     await _onPositionChangeByDragging(event.position, emit);
     if (event.position < event.duration && _mediaPlayingBeforeDrag) {
-      emit(state.copyWith(playing: true));
-      await state.player.play();
+      data = data.copyWith(playing: true);
+      emit(data);
+      await data.player.play();
     }
   }
 
   void _onResetSpeed(CommPlayerResetSpeedEvent event, Emitter<CommPlayerState> emit) async {
-    final state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
     final nextSpeed = (1.0).clamp(_kMinPlaySpeed, _kMaxPlaySpeed);
-    emit(state.copyWith(speed: nextSpeed));
-    await state.player.setPlaybackSpeed(nextSpeed);
+    data = data.copyWith(speed: nextSpeed);
+    emit(data);
+    await data.player.setPlaybackSpeed(nextSpeed);
   }
 
   void _onIncSpeed(CommPlayerIncSpeedEvent event, Emitter<CommPlayerState> emit) async {
-    final state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
-    final double nextSpeed = (state.speed + _kStepPlaySpeed).clamp(_kMinPlaySpeed, _kMaxPlaySpeed).digits(1);
-    emit(state.copyWith(speed: nextSpeed));
-    await state.player.setPlaybackSpeed(nextSpeed);
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
+    final double nextSpeed = (data.speed + _kStepPlaySpeed).clamp(_kMinPlaySpeed, _kMaxPlaySpeed).digits(1);
+    data = data.copyWith(speed: nextSpeed);
+    emit(data);
+    await data.player.setPlaybackSpeed(nextSpeed);
   }
 
   void _onDecSpeed(CommPlayerDecSpeedEvent event, Emitter<CommPlayerState> emit) async {
-    final state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
-    final double nextSpeed = (state.speed - _kStepPlaySpeed).clamp(_kMinPlaySpeed, _kMaxPlaySpeed).digits(1);
-    emit(state.copyWith(speed: nextSpeed));
-    await state.player.setPlaybackSpeed(nextSpeed);
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
+    final double nextSpeed = (data.speed - _kStepPlaySpeed).clamp(_kMinPlaySpeed, _kMaxPlaySpeed).digits(1);
+    data = data.copyWith(speed: nextSpeed);
+    emit(data);
+    await data.player.setPlaybackSpeed(nextSpeed);
   }
 
   void _onScrollToTop(CommPlayerScrollToTopEvent event, Emitter<CommPlayerState> emit) {
@@ -347,9 +339,9 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
   }
 
   void _onScrollToBottom(CommPlayerScrollToBottomEvent event, Emitter<CommPlayerState> emit) {
-    final dataState = state;
-    if (dataState is! CommPlayerDataStateMx) return;
-    final subtitle = dataState.selectedSubtitle;
+    if (state is! CommPlayerDataState) return;
+    final data = state as CommPlayerDataState;
+    final subtitle = data.subtitle;
     if (subtitle == null || subtitle.sentenceList.isEmpty) return;
     _scroller.safeScrollTo(subtitle.sentenceList.length - 1);
   }
@@ -368,34 +360,32 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
     so in loop mode, which sentence is loop wee need to manually maintain,
     can't rely on position listening
      */
-    var dataState = state;
-    if (dataState is! CommPlayerDataStateMx) return;
-    final sentenceIndex = dataState.selectedSubtitle?.sentenceList.firstIndexWhereOrNull(
-      (sen) => sen.id == event.sentenceId,
-    );
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
+    final sentenceIndex = data.subtitle?.sentenceList.firstIndexWhereOrNull((sen) => sen.id == event.sentenceId);
     if (sentenceIndex == null) return;
-    final sentence = dataState.selectedSubtitle?.sentenceList[sentenceIndex];
+    final sentence = data.subtitle?.sentenceList[sentenceIndex];
     if (sentence == null) return;
-    if (dataState.loopIndex != null) {
-      dataState = dataState.copyWith(loopIndex: () => sentenceIndex);
+    if (data.loopIndex != null) {
+      data = data.copyWith(loopIndex: () => sentenceIndex);
     }
     EventHub.emit(HubPlayingSentenceChangeEvent(sentence.id));
     final double alignment = sentenceIndex == 0 ? 0 : 0.3;
     _scroller.safeScrollTo(sentenceIndex, alignment: alignment);
-    emit(dataState.copyWith(playing: true));
-    await dataState.player.seekTo(sentence.start);
-    await dataState.player.play();
+    emit(data.copyWith(playing: true));
+    await data.player.seekTo(sentence.start);
+    await data.player.play();
   }
 
   void _onShowSubtitleList(CommPlayerShowSubtitleListEvent event, Emitter<CommPlayerState> emit) {
     final state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
+    if (state is! CommPlayerDataState) return;
     emit(state.copyWith(subtitleListVisible: true));
   }
 
   void _onHideSubtitleList(CommPlayerHideSubtitleListEvent event, Emitter<CommPlayerState> emit) {
     final state = this.state;
-    if (state is! CommPlayerDataStateMx) return;
+    if (state is! CommPlayerDataState) return;
     emit(state.copyWith(subtitleListVisible: false));
   }
 
@@ -403,22 +393,34 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
     CommPlayerSelectAnotherSubtitleFromListEvent event,
     Emitter<CommPlayerState> emit,
   ) async {
-    if (state case CommPlayerDataStateMx dataState) {
-      final subtitle = dataState.subtitleList.firstWhereOrNull((s) => s.path == event.path);
-      dataState = dataState.copyWith(
-        subtitleListVisible: false,
-        subtitleState: subtitle == null
-            ? const SubtitleEmptyState()
-            : SubtitleDataState(
-                subtitle: subtitle,
-                initialAlignment: _spot?.alignment ?? 0,
-                initialIndex: _spot?.index ?? 0,
-                scroller: _scroller,
-              ),
-      );
-      emit(dataState);
-      EventHub.emit(HubPlayingSentenceChangeEvent(_spot?.sentence.id));
-    }
+    if (state is! CommPlayerDataState) return;
+    var data = state as CommPlayerDataState;
+    final subtitle = data.subtitleList.firstWhereOrNull((s) => s == event.subtitle);
+    data = data.copyWith(
+      subtitleListVisible: false,
+      subtitleState: subtitle == null
+          ? const SubtitleEmptyState()
+          : SubtitleDataState(
+              subtitle: subtitle,
+              initialAlignment: _spot?.alignment ?? 0,
+              initialIndex: _spot?.index ?? 0,
+              scroller: _scroller,
+            ),
+    );
+    emit(data);
+    EventHub.emit(HubPlayingSentenceChangeEvent(_spot?.sentence.id));
+  }
+
+  SentenceCardBloc sentenceCardBlocAtIndex(int index) {
+    final sentence = (state as CommPlayerDataState).subtitle!.sentenceList[index];
+    final playing = _spot?.index == index;
+    //TODO maybe no need to init playing, card bloc can read the latest playing value to emit right state
+    return SentenceCardBloc(sentence)..add(SentenceCardInitEvent(playing));
+  }
+
+  SubtitleListBloc get subtitleListBloc {
+    final data = state.as<CommPlayerDataState>();
+    return SubtitleListBloc(subtitleList: data?.subtitleList ?? [], subtitle: data?.subtitle);
   }
 
   @override
@@ -427,7 +429,7 @@ mixin CommPlayerBloc on Bloc<CommPlayerEvent, CommPlayerState> {
     for (final sub in subscriptionList) {
       sub.cancel();
     }
-    state.as<CommPlayerDataStateMx>()?.player.dispose();
+    state.as<CommPlayerDataState>()?.player.dispose();
     return super.close();
   }
 }

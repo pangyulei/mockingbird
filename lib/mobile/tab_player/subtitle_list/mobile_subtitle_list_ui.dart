@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_event.dart';
-import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_state.dart';
-
-abstract class MobileSubtitleListBlocType
-    extends Bloc<MobileSubtitleListEvent, MobileSubtitleListState> {
-  MobileSubtitleListBlocType(super.initialState);
-}
+import 'package:mockingbird/mobile/tab_player/subtitle_list/subtitle_list_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle_list/subtitle_list_event.dart';
 
 class MobileSubtitleListUI extends StatelessWidget {
-  final MobileSubtitleListBlocType _bloc;
+  final SubtitleListBloc _bloc;
 
   const MobileSubtitleListUI(this._bloc, {super.key});
 
@@ -40,16 +35,15 @@ class MobileSubtitleListUI extends StatelessWidget {
             Flexible(
               child: Builder(
                 builder: (context) {
-                  final state = context.watch<MobileSubtitleListBlocType>().state;
+                  final state = context.watch<SubtitleListBloc>().state;
                   final subtitleList = state.subtitleList;
-                  final selectedName = state.selectedSubtitleName;
+                  final selectedSubtitle = state.subtitle;
                   return ListView.builder(
                     shrinkWrap: true,
                     itemCount: subtitleList.length,
                     itemBuilder: (context, index) {
                       final subtitle = subtitleList[index];
-                      final isSelected = subtitle.name == selectedName;
-
+                      final isSelected = subtitle == selectedSubtitle;
                       return Material(
                         color: Colors.transparent,
                         child: ListTile(
@@ -68,8 +62,8 @@ class MobileSubtitleListUI extends StatelessWidget {
                               ? Icon(Icons.check_circle_rounded, color: colorScheme.primary)
                               : null,
                           onTap: () {
-                            context.read<MobileSubtitleListBlocType>().add(
-                              MobileSubtitleListSelectNameEvent(subtitle.name, context),
+                            context.read<SubtitleListBloc>().add(
+                              SubtitleListSelectSubtitleEvent(subtitle, context),
                             );
                           },
                         ),

@@ -1,3 +1,5 @@
+import 'package:mockingbird/db/entities/subtitle.dart';
+
 abstract class CommPlayerEvent {
   const CommPlayerEvent();
 }
@@ -20,8 +22,8 @@ class CommPlayerHideSubtitleListEvent extends CommPlayerEvent {
 }
 
 class CommPlayerSelectAnotherSubtitleFromListEvent extends CommPlayerEvent {
-  final String path;
-  const CommPlayerSelectAnotherSubtitleFromListEvent(this.path);
+  final Subtitle subtitle;
+  const CommPlayerSelectAnotherSubtitleFromListEvent(this.subtitle);
 }
 
 class CommPlayerScrollToTopEvent extends CommPlayerEvent {

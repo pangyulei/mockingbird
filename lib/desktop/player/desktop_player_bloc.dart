@@ -31,8 +31,8 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
   File? _media;
   final _scroller = ItemScrollController();
   SpotType? get _spot {
-    if (state case CommPlayerDataStateMx data) {
-      final sentenceList = data.selectedSubtitle?.sentenceList;
+    if (state case CommPlayerDataState data) {
+      final sentenceList = data.subtitle?.sentenceList;
       final position = data.position;
       return sentenceList?.spot(position);
     } else {
@@ -127,7 +127,7 @@ class DesktopPlayerBloc extends Bloc<DesktopPlayerEvent, DesktopPlayerState> {
     // var result = (mediaCompleted: false, completedLoopSentence: null, sentenceChanged: false);
     // var state = this.state;
     // if (state is! DesktopPlayerDataState) return result;
-    var data = state as CommPlayerDataStateMx;
+    var data = state as CommPlayerDataState;
 
     //Fix while tap video slider, it bounce at first
     data = data.copyWith(position: position);

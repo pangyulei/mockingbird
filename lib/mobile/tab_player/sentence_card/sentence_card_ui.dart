@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
-import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
 
-abstract class SentenceCardBlocType
-    extends Bloc<SentenceCardEvent, SentenceCardState> {
-  SentenceCardBlocType(super.initialState);
-}
-
 class SentenceCardUI extends StatelessWidget {
-  final SentenceCardBlocType _bloc;
-
+  final SentenceCardBloc _bloc;
   const SentenceCardUI(this._bloc, {super.key});
 
   @override
   Widget build(BuildContext context) {
     const double radius = 16;
-    return BlocProvider(
-      key: ValueKey(_bloc),
-      create: (context) => _bloc,
+    return BlocProvider.value(
+      value: _bloc,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(1, 4, 8, 4),
         child: Builder(
           builder: (context) {
-            final playing = context.select<SentenceCardBlocType, bool>(
+            final playing = context.select<SentenceCardBloc, bool>(
               (bloc) => bloc.state.playing,
             );
             final borderRadius = BorderRadius.only(
@@ -34,7 +27,7 @@ class SentenceCardUI extends StatelessWidget {
               bottomLeft: Radius.circular(playing ? 4 : radius),
             );
             return GestureDetector(
-              onTap: () => context.read<SentenceCardBlocType>().add(
+              onTap: () => context.read<SentenceCardBloc>().add(
                 SentenceCardClickEvent(context),
               ),
               child: ClipRRect(
@@ -70,7 +63,7 @@ class SentenceCardUI extends StatelessWidget {
                           Builder(
                             builder: (context) {
                               final content = context
-                                  .select<SentenceCardBlocType, String>(
+                                  .select<SentenceCardBloc, String>(
                                     (bloc) => bloc.state.text,
                                   );
                               return Text(
@@ -91,7 +84,7 @@ class SentenceCardUI extends StatelessWidget {
                                 builder: (context) {
                                   final (period, playing) = context
                                       .select<
-                                        SentenceCardBlocType,
+                                        SentenceCardBloc,
                                         (String, bool)
                                       >(
                                         (bloc) => (

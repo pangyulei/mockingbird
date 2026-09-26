@@ -6,13 +6,15 @@ import 'package:mockingbird/mobile/tab_player/player/mobile_player_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/mobile_subtitle_list_ui.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
 
 import '../subtitle/mobile_subtitle_ui.dart';
 import '../subtitle/subtitle_state.dart';
-
 
 class MobilePlayerUI extends StatelessWidget {
   final MobilePlayerBloc _bloc;
@@ -23,26 +25,24 @@ class MobilePlayerUI extends StatelessWidget {
     i('player ui building');
     return BlocProvider.value(
       value: _bloc,
-      child: BlocListener<MobilePlayerBloc, MobilePlayerState>(
+      child: BlocListener<MobilePlayerBloc, CommPlayerState>(
         listenWhen: (previous, current) {
-          return (previous is! MobilePlayerDataState || previous.subtitleListVisible == false) && current is MobilePlayerDataState && current.subtitleListVisible;
+          return (previous is! MobilePlayerDataState || previous.subtitleListVisible == false) &&
+              current is MobilePlayerDataState &&
+              current.subtitleListVisible;
         },
         listener: (context, state) => _showSubtitleList(context),
         child: Builder(
           builder: (context) {
-            final stateType = context.select<MobilePlayerBloc, Type>(
-              (bloc) => bloc.state.runtimeType,
-            );
+            final stateType = context.select<MobilePlayerBloc, Type>((bloc) => bloc.state.runtimeType);
             switch (stateType) {
-              case MobilePlayerInitState:
+              case CommPlayerInitState:
                 return _pageForInit();
-              case MobilePlayerEmptyState:
+              case CommPlayerEmptyState:
                 return _pageForEmpty(context);
-              case MobilePlayerDataState:
-                return _pageForData(context);
               default:
-                assert(false, 'stateType $stateType missed');
-                return const SizedBox.shrink();
+                //CommPlayerDataState or MobilePlayerDataState
+                return _pageForData(context);
             }
           },
         ),
@@ -51,9 +51,7 @@ class MobilePlayerUI extends StatelessWidget {
   }
 
   void _showSubtitleList(BuildContext context) {
-    final subtitleListBloc = context
-        .read<MobilePlayerBloc>()
-        .subtitleListBlocType;
+    final subtitleListBloc = context.read<MobilePlayerBloc>().subtitleListBloc;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -63,9 +61,7 @@ class MobilePlayerUI extends StatelessWidget {
       },
     ).whenComplete(() {
       if (context.mounted) {
-        context.read<MobilePlayerBloc>().add(
-          const MobilePlayerHideSubtitleListEvent(),
-        );
+        context.read<MobilePlayerBloc>().add(const CommPlayerHideSubtitleListEvent());
       }
     });
   }
@@ -92,13 +88,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.black,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20, offset: const Offset(0, 4))],
       ),
       child: Column(children: [_displayer(), _controlBar(context)]),
     );
@@ -128,9 +118,7 @@ class MobilePlayerUI extends StatelessWidget {
           Builder(
             builder: (context) {
               final aspectRatio = context.select<MobilePlayerBloc, double>(
-                (bloc) =>
-                    bloc.state.as<MobilePlayerDataState>()?.aspectRatio ??
-                    16 / 9,
+                (bloc) => bloc.state.as<MobilePlayerDataState>()?.aspectRatio ?? 16 / 9,
               );
               return AspectRatio(aspectRatio: aspectRatio, child: _player());
             },
@@ -144,17 +132,11 @@ class MobilePlayerUI extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: .end,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 16, bottom: 8),
-                      child: _progressSlider(context),
-                    ),
+                    Padding(padding: const EdgeInsets.only(left: 16, bottom: 8), child: _progressSlider(context)),
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(right: 16, bottom: 8),
-                child: _verticalVolumeWidgets(),
-              ),
+              Padding(padding: const EdgeInsets.only(right: 16, bottom: 8), child: _verticalVolumeWidgets()),
             ],
           ),
         ],
@@ -185,15 +167,9 @@ class MobilePlayerUI extends StatelessWidget {
             mainAxisSize: .max,
             mainAxisAlignment: .start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                child: _horizontalVolumeWidgets(),
-              ),
+              Padding(padding: const EdgeInsets.only(left: 16, right: 16, top: 16), child: _horizontalVolumeWidgets()),
               const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                child: _progressSlider(context),
-              ),
+              Padding(padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16), child: _progressSlider(context)),
             ],
           ),
         ],
@@ -222,11 +198,9 @@ class MobilePlayerUI extends StatelessWidget {
   }
 
   Widget _subtitleWidget(BuildContext context) {
-    return Expanded( //TODO do we need expanded here?
-      child: ColoredBox(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: const MobileSubtitleUI(),
-      ),
+    return Expanded(
+      //TODO do we need expanded here?
+      child: ColoredBox(color: Theme.of(context).scaffoldBackgroundColor, child: const MobileSubtitleUI()),
     );
   }
 
@@ -234,9 +208,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) {
         final hasSubtitle = context.select<MobilePlayerBloc, bool>(
-          (bloc) =>
-              bloc.state.as<MobilePlayerDataState>()?.subtitleState
-                  is SubtitleDataState,
+          (bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final colorScheme = Theme.of(context).colorScheme;
@@ -246,9 +218,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_top',
               onPressed: () {
-                context.read<MobilePlayerBloc>().add(
-                  const MobilePlayerScrollToTopEvent(),
-                );
+                context.read<MobilePlayerBloc>().add(const MobilePlayerScrollToTopEvent());
               },
               backgroundColor: colorScheme.surfaceContainerHighest,
               foregroundColor: colorScheme.primary,
@@ -258,9 +228,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_focus',
               onPressed: () {
-                context.read<MobilePlayerBloc>().add(
-                  const MobilePlayerScrollToPlayingSentenceEvent(),
-                );
+                context.read<MobilePlayerBloc>().add(const MobilePlayerScrollToPlayingSentenceEvent());
               },
               child: const Icon(Icons.center_focus_strong_rounded),
             ),
@@ -268,9 +236,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_bottom',
               onPressed: () {
-                context.read<MobilePlayerBloc>().add(
-                  const MobilePlayerScrollToBottomEvent(),
-                );
+                context.read<MobilePlayerBloc>().add(const MobilePlayerScrollToBottomEvent());
               },
               backgroundColor: colorScheme.surfaceContainerHighest,
               foregroundColor: colorScheme.primary,
@@ -289,9 +255,7 @@ class MobilePlayerUI extends StatelessWidget {
         Builder(
           builder: (context) {
             final bool showVolumeSlider = context.select<MobilePlayerBloc, bool>(
-              (bloc) =>
-                  bloc.state.as<MobilePlayerDataState>()?.volumeSliderVisible ??
-                  false,
+              (bloc) => bloc.state.as<MobilePlayerDataState>()?.volumeSliderVisible ?? false,
             );
             if (showVolumeSlider) {
               return Expanded(child: _verticalVolumeSlider(context));
@@ -313,9 +277,7 @@ class MobilePlayerUI extends StatelessWidget {
         Builder(
           builder: (context) {
             final bool showVolumeSlider = context.select<MobilePlayerBloc, bool>(
-              (bloc) =>
-                  bloc.state.as<MobilePlayerDataState>()?.volumeSliderVisible ??
-                  false,
+              (bloc) => bloc.state.as<MobilePlayerDataState>()?.volumeSliderVisible ?? false,
             );
             if (showVolumeSlider) {
               return Expanded(child: _horizontalVolumeSlider(context));
@@ -334,14 +296,10 @@ class MobilePlayerUI extends StatelessWidget {
         final volume = context.select<MobilePlayerBloc, double>(
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.volume ?? 1,
         );
-        final icon = volume == 0
-            ? Icons.volume_off_rounded
-            : Icons.volume_up_rounded;
+        final icon = volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded;
         return IconButton(
           onPressed: () {
-            context.read<MobilePlayerBloc>().add(
-              const MobilePlayerToggleVolumeEvent(),
-            );
+            context.read<MobilePlayerBloc>().add(const MobilePlayerToggleVolumeEvent());
           },
           icon: Icon(icon),
           color: Colors.white,
@@ -372,16 +330,13 @@ class MobilePlayerUI extends StatelessWidget {
         builder: (context) {
           const double maxVolume = 1;
           final volume = context.select<MobilePlayerBloc, double>(
-            (bloc) =>
-                bloc.state.as<MobilePlayerDataState>()?.volume ?? maxVolume,
+            (bloc) => bloc.state.as<MobilePlayerDataState>()?.volume ?? maxVolume,
           );
           return Slider(
             value: volume,
             max: maxVolume,
             onChanged: (volume) {
-              context.read<MobilePlayerBloc>().add(
-                MobilePlayerVolumeChangeEvent(volume),
-              );
+              context.read<MobilePlayerBloc>().add(MobilePlayerVolumeChangeEvent(volume));
             },
           );
         },
@@ -404,10 +359,7 @@ class MobilePlayerUI extends StatelessWidget {
       ),
       child: Builder(
         builder: (context) {
-          final (
-            position,
-            duration,
-          ) = context.select<MobilePlayerBloc, (Duration, Duration)>(
+          final (position, duration) = context.select<MobilePlayerBloc, (Duration, Duration)>(
             (bloc) => (
               bloc.state.as<MobilePlayerDataState>()?.position ?? Duration.zero,
               bloc.state.as<MobilePlayerDataState>()?.duration ?? Duration.zero,
@@ -421,26 +373,17 @@ class MobilePlayerUI extends StatelessWidget {
             max: max,
             onChangeStart: (val) {
               context.read<MobilePlayerBloc>().add(
-                MobilePlayerMediaSliderStartChangeEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
+                MobilePlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
             onChanged: (val) {
               context.read<MobilePlayerBloc>().add(
-                MobilePlayerMediaSliderChangingEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
+                MobilePlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
             onChangeEnd: (val) {
               context.read<MobilePlayerBloc>().add(
-                MobilePlayerMediaSliderEndChangeEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
+                MobilePlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
           );
@@ -454,11 +397,7 @@ class MobilePlayerUI extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(automaticallyImplyLeading: false, backgroundColor: Colors.transparent, elevation: 0),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -471,28 +410,18 @@ class MobilePlayerUI extends StatelessWidget {
                   color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.auto_stories_rounded,
-                  size: 80,
-                  color: colorScheme.primary,
-                ),
+                child: Icon(Icons.auto_stories_rounded, size: 80, color: colorScheme.primary),
               ),
               const SizedBox(height: 40),
               Text(
                 'Ready to Shadow?',
-                style: textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
+                style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: colorScheme.onSurface),
               ),
               const SizedBox(height: 16),
               Text(
                 'Shadowing is the key to mastering a new language. Select a media from your albums to begin your practice session.',
                 textAlign: TextAlign.center,
-                style: textTheme.bodyLarge?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
+                style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant, height: 1.5),
               ),
               const SizedBox(height: 48),
               Text(
@@ -506,9 +435,7 @@ class MobilePlayerUI extends StatelessWidget {
               const SizedBox(height: 32),
               FilledButton.icon(
                 onPressed: () {
-                  context.read<MobilePlayerBloc>().add(
-                    MobilePlayerGoToAlbumListEvent(context),
-                  );
+                  context.read<MobilePlayerBloc>().add(MobilePlayerGoToAlbumListEvent(context));
                 },
                 icon: const Icon(Icons.library_music_rounded),
                 label: const Text('Go to Albums'),
@@ -521,11 +448,7 @@ class MobilePlayerUI extends StatelessWidget {
   }
 
   AppBar _appBar() {
-    return AppBar(
-      backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      title: _title(),
-    );
+    return AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white, title: _title());
   }
 
   Widget _title() {
@@ -541,11 +464,7 @@ class MobilePlayerUI extends StatelessWidget {
           } else {
             return Marquee(
               text: title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               scrollAxis: Axis.horizontal,
               blankSpace: 50,
               velocity: 30,
@@ -561,30 +480,20 @@ class MobilePlayerUI extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
-        ),
+        border: Border(bottom: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3))),
       ),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Builder(
         builder: (context) {
-          final subtitleListButtonVisible = context
-              .select<MobilePlayerBloc, bool>(
-                (bloc) =>
-                    bloc.state
-                        .as<MobilePlayerDataState>()
-                        ?.subtitleListButtonVisible ??
-                    false,
-              );
+          final subtitleListButtonVisible = context.select<MobilePlayerBloc, bool>(
+            (bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleListButtonVisible ?? false,
+          );
           return Row(
             children: [
               _playOrPauseButton(context),
               const SizedBox(width: 16),
               _loopButton(context),
-              if (subtitleListButtonVisible) ...[
-                const SizedBox(width: 16),
-                _subtitleListButton(context),
-              ],
+              if (subtitleListButtonVisible) ...[const SizedBox(width: 16), _subtitleListButton(context)],
               const Spacer(),
               _speedDownButton(),
               const SizedBox(width: 8),
@@ -608,17 +517,12 @@ class MobilePlayerUI extends StatelessWidget {
         return IconButton.filled(
           onPressed: () {
             if (playing) {
-              context.read<MobilePlayerBloc>().add(
-                const MobilePlayerPauseEvent(),
-              );
+              context.read<MobilePlayerBloc>().add(const MobilePlayerPauseEvent());
             } else {
               context.read<MobilePlayerBloc>().add(const MobilePlayerPlayEvent());
             }
           },
-          icon: Icon(
-            playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
-            size: 24,
-          ),
+          icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 24),
           style: IconButton.styleFrom(
             backgroundColor: colorScheme.primary,
             foregroundColor: Colors.white,
@@ -636,9 +540,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) {
         final hasSubtitle = context.select<MobilePlayerBloc, bool>(
-          (bloc) =>
-              bloc.state.as<MobilePlayerDataState>()?.subtitleState
-                  is SubtitleDataState,
+          (bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final loop = context.select<MobilePlayerBloc, bool>(
@@ -646,9 +548,7 @@ class MobilePlayerUI extends StatelessWidget {
         );
         return IconButton(
           onPressed: () {
-            context.read<MobilePlayerBloc>().add(
-              const MobilePlayerToggleLoopEvent(),
-            );
+            context.read<MobilePlayerBloc>().add(const MobilePlayerToggleLoopEvent());
           },
           icon: Icon(
             loop ? Icons.repeat_one_rounded : Icons.repeat_rounded,
@@ -666,9 +566,7 @@ class MobilePlayerUI extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
       onPressed: () {
-        context.read<MobilePlayerBloc>().add(
-          const MobilePlayerShowSubtitleListEvent(),
-        );
+        context.read<MobilePlayerBloc>().add(const MobilePlayerShowSubtitleListEvent());
       },
       icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline),
       style: IconButton.styleFrom(tapTargetSize: .shrinkWrap),
@@ -715,9 +613,7 @@ class MobilePlayerUI extends StatelessWidget {
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.speed ?? 1,
         );
         return GestureDetector(
-          onTap: () => context.read<MobilePlayerBloc>().add(
-            const MobilePlayerResetSpeedEvent(),
-          ),
+          onTap: () => context.read<MobilePlayerBloc>().add(const MobilePlayerResetSpeedEvent()),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -726,11 +622,7 @@ class MobilePlayerUI extends StatelessWidget {
             ),
             child: Text(
               '${speed}x',
-              style: TextStyle(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 13),
             ),
           ),
         );
