@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../../tool/extensions.dart';
-import '../player/desktop_player_state.dart';
 
 class DesktopSubtitleUI extends StatelessWidget {
   const DesktopSubtitleUI({super.key});
@@ -20,7 +20,7 @@ class DesktopSubtitleUI extends StatelessWidget {
           final subtitleState = context
               .select<DesktopPlayerBloc, SubtitleState?>(
                 (bloc) =>
-                    bloc.state.as<DesktopPlayerDataState>()?.subtitleState,
+                    bloc.state.as<CommPlayerDataState>()?.subtitleState,
               );
           switch (subtitleState) {
             case null || SubtitleEmptyState():
@@ -28,7 +28,7 @@ class DesktopSubtitleUI extends StatelessWidget {
             case SubtitleDataState data:
               return ScrollablePositionedList.builder(
                 key: ValueKey(data),
-                itemCount: data.sentenceList.length,
+                itemCount: data.subtitle.sentenceList.length,
                 itemScrollController: data.scroller,
                 initialAlignment: data.initialAlignment,
                 initialScrollIndex: data.initialIndex,

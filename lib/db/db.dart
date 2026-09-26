@@ -35,4 +35,6 @@ class DB {
     return await _store.box<Preference>().putAndGetAsync(preference);
   }
 
+  static Future<Object?> loadMetadata() async {}
+
 }

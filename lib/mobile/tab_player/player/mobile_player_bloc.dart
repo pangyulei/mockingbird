@@ -197,6 +197,8 @@ class MobilePlayerBloc extends CommPlayerBloc {
         final CommPlayerState newState;
         if (media == null || mediaFile == null) {
           newState = await reload(null);
+          final metadata = await DB.loadMobileMetadata();
+          await DB.updateMobileMetadata(metadata.copyWith(playingMediaId: () => null));
         } else {
           final data = state as CommPlayerDataState;
           newState = await reload((

@@ -70,11 +70,7 @@ extension ScrollHelper on ItemScrollController {
     }
   }
 
-  void safeScrollTo(
-    int? index, {
-    double alignment = 0,
-    Duration duration = const Duration(milliseconds: 250),
-  }) {
+  void safeScrollTo(int? index, {double alignment = 0, Duration duration = const Duration(milliseconds: 250)}) {
     if (isAttached && index != null) {
       // i(
       //   '${identityHashCode(this)} will scroll to index $index align $alignment',
@@ -131,6 +127,7 @@ extension AssetEntityHelper on AssetEntity {
 }
 
 extension FileHelper on File {
+  AssetType get type => kAudioExtensions.contains(p.extension(path).substring(1)) ? AssetType.audio : AssetType.video;
   Future<List<Subtitle>> get subtitleList async {
     final subtitleList = <Subtitle>[];
     await for (final anyFile in parent.list()) {
@@ -139,9 +136,7 @@ extension FileHelper on File {
       if (!kSubtitleExtensions.contains(extension)) continue;
       final subtitleName = p.basenameWithoutExtension(anyFile.path);
       final mediaName = p.basenameWithoutExtension(path);
-      final matched = subtitleName.toLowerCase().contains(
-        mediaName.toLowerCase(),
-      );
+      final matched = subtitleName.toLowerCase().contains(mediaName.toLowerCase());
       if (matched) {
         final Subtitle = await SubtitleParser.parseFile(anyFile);
         if (Subtitle != null) {
@@ -210,10 +205,7 @@ extension DoubleHelper on double {
 enum PlatformType { desktop, mobile, tablet }
 
 PlatformType get kPlatformType {
-  if (Platform.isFuchsia ||
-      Platform.isLinux ||
-      Platform.isWindows ||
-      Platform.isMacOS) {
+  if (Platform.isFuchsia || Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
     return .desktop;
   }
   return .mobile; //TODO here should differ tablet version
@@ -235,19 +227,14 @@ Future<Store> initDB({Store? store}) async {
   return store;
 }
 
-typedef PositionUpdated = ({
-  bool mediaCompleted,
-  Sentence? completedLoopSentence,
-  bool sentenceChanged,
-});
+typedef PositionUpdated = ({bool mediaCompleted, Sentence? completedLoopSentence, bool sentenceChanged});
 
-Widget imageContainer(ImageProvider image, {required Widget child}) =>
-    Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(image: image, fit: BoxFit.cover),
-      ),
-      child: child,
-    );
+Widget imageContainer(ImageProvider image, {required Widget child}) => Container(
+  decoration: BoxDecoration(
+    image: DecorationImage(image: image, fit: BoxFit.cover),
+  ),
+  child: child,
+);
 
 Widget glassContainer({required Widget child, double radius = 16}) => ClipRRect(
   borderRadius: BorderRadius.circular(radius),
@@ -259,13 +246,7 @@ Widget glassContainer({required Widget child, double radius = 16}) => ClipRRect(
         gradient: kGlassGradient,
         borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: kGlassBorderColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0),
-            blurRadius: 5,
-            spreadRadius: -5,
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0), blurRadius: 5, spreadRadius: -5)],
       ),
       child: child,
     ),
@@ -281,10 +262,7 @@ final kGlassFilter = ImageFilter.blur(sigmaX: 15, sigmaY: 15);
 final kGlassGradient = LinearGradient(
   begin: Alignment.topLeft,
   end: Alignment.bottomCenter,
-  colors: [
-    Colors.white.withValues(alpha: 0.6),
-    Colors.white.withValues(alpha: 0.1),
-  ],
+  colors: [Colors.white.withValues(alpha: 0.6), Colors.white.withValues(alpha: 0.1)],
 );
 final kGlassBorderColor = Colors.white.withValues(alpha: 0.3);
 
@@ -292,13 +270,5 @@ const kPrimaryGreen = Color(0xFF7fff00);
 const kPrimaryWhite = Colors.white;
 final kSecondaryWhite = kPrimaryWhite.withValues(alpha: 0.8);
 const kFontFamily = 'Inter';
-TextStyle mbTextStyle({
-  required double size,
-  required Color color,
-  required FontWeight weight,
-}) => GoogleFonts.getFont(
-  kFontFamily,
-  fontSize: size,
-  fontWeight: weight,
-  color: color,
-);
+TextStyle mbTextStyle({required double size, required Color color, required FontWeight weight}) =>
+    GoogleFonts.getFont(kFontFamily, fontSize: size, fontWeight: weight, color: color);

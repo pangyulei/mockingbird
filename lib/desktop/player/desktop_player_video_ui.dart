@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marquee/marquee.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
-import 'package:mockingbird/desktop/player/desktop_player_state.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:video_player/video_player.dart';
 
@@ -76,7 +77,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
               builder: (context) {
                 final title = context.select<DesktopPlayerBloc, String>(
                   (bloc) =>
-                      bloc.state.as<DesktopPlayerDataState>()?.title ?? '',
+                      bloc.state.as<CommPlayerDataState>()?.title ?? '',
                 );
                 return SizedBox(
                   height: 24,
@@ -110,7 +111,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
           builder: (context) {
             final aspectRatio = context.select<DesktopPlayerBloc, double>(
               (bloc) =>
-                  bloc.state.as<DesktopPlayerDataState>()?.aspectRatio ??
+                  bloc.state.as<CommPlayerDataState>()?.aspectRatio ??
                   16 / 9,
             );
             return AspectRatio(aspectRatio: aspectRatio, child: _player());
@@ -132,7 +133,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       builder: (context) {
         final player = context
             .select<DesktopPlayerBloc, VideoPlayerController?>(
-              (bloc) => bloc.state.as<DesktopPlayerDataState>()?.player,
+              (bloc) => bloc.state.as<CommPlayerDataState>()?.player,
             );
         if (player == null) return const SizedBox.shrink();
         return VideoPlayer(player);
@@ -155,9 +156,9 @@ class DesktopPlayerVideoUI extends StatelessWidget {
           final (position, duration) = context
               .select<DesktopPlayerBloc, (Duration, Duration)>(
                 (bloc) => (
-                  bloc.state.as<DesktopPlayerDataState>()?.position ??
+                  bloc.state.as<CommPlayerDataState>()?.position ??
                       Duration.zero,
-                  bloc.state.as<DesktopPlayerDataState>()?.duration ??
+                  bloc.state.as<CommPlayerDataState>()?.duration ??
                       Duration.zero,
                 ),
               );
@@ -169,7 +170,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
             max: max,
             onChangeStart: (val) {
               context.read<DesktopPlayerBloc>().add(
-                DesktopPlayerMediaSliderStartChangeEvent(
+                CommPlayerMediaSliderStartChangeEvent(
                   Duration(milliseconds: val.toInt()),
                   duration,
                 ),
@@ -177,7 +178,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
             },
             onChanged: (val) {
               context.read<DesktopPlayerBloc>().add(
-                DesktopPlayerMediaSliderChangingEvent(
+                CommPlayerMediaSliderChangingEvent(
                   Duration(milliseconds: val.toInt()),
                   duration,
                 ),
@@ -185,7 +186,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
             },
             onChangeEnd: (val) {
               context.read<DesktopPlayerBloc>().add(
-                DesktopPlayerMediaSliderEndChangeEvent(
+                CommPlayerMediaSliderEndChangeEvent(
                   Duration(milliseconds: val.toInt()),
                   duration,
                 ),
@@ -213,7 +214,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
               .select<DesktopPlayerBloc, bool>(
                 (bloc) =>
                     bloc.state
-                        .as<DesktopPlayerDataState>()
+                        .as<CommPlayerDataState>()
                         ?.subtitleListButtonVisible ??
                     false,
               );
@@ -244,17 +245,17 @@ class DesktopPlayerVideoUI extends StatelessWidget {
     return Builder(
       builder: (context) {
         final playing = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<DesktopPlayerDataState>()?.playing ?? false,
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.playing ?? false,
         );
         return IconButton.filled(
           onPressed: () {
             if (playing) {
               context.read<DesktopPlayerBloc>().add(
-                const DesktopPlayerPauseEvent(),
+                const CommPlayerPauseEvent(),
               );
             } else {
               context.read<DesktopPlayerBloc>().add(
-                const DesktopPlayerPlayEvent(),
+                const CommPlayerPlayEvent(),
               );
             }
           },
@@ -280,17 +281,17 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       builder: (context) {
         final hasSubtitle = context.select<DesktopPlayerBloc, bool>(
           (bloc) =>
-              bloc.state.as<DesktopPlayerDataState>()?.subtitleState
+              bloc.state.as<CommPlayerDataState>()?.subtitleState
                   is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final loop = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<DesktopPlayerDataState>()?.loopIndex != null,
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.loopIndex != null,
         );
         return IconButton(
           onPressed: () {
             context.read<DesktopPlayerBloc>().add(
-              const DesktopPlayerToggleLoopEvent(),
+              const CommPlayerToggleLoopEvent(),
             );
           },
           icon: Icon(
@@ -313,7 +314,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
     return IconButton(
       onPressed: () {
         context.read<DesktopPlayerBloc>().add(
-          const DesktopPlayerShowSubtitleListEvent(),
+          const CommPlayerShowSubtitleListEvent(),
         );
       },
       icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline, size: 20),
@@ -330,7 +331,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       builder: (context) => IconButton(
         onPressed: () {
           context.read<DesktopPlayerBloc>().add(
-            const DesktopPlayerDecSpeedEvent(),
+            const CommPlayerDecSpeedEvent(),
           );
         },
         icon: const Icon(Icons.remove_circle_outline_rounded, size: 20),
@@ -349,7 +350,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       builder: (context) => IconButton(
         onPressed: () {
           context.read<DesktopPlayerBloc>().add(
-            const DesktopPlayerIncSpeedEvent(),
+            const CommPlayerIncSpeedEvent(),
           );
         },
         icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
@@ -368,11 +369,11 @@ class DesktopPlayerVideoUI extends StatelessWidget {
     return Builder(
       builder: (context) {
         final speed = context.select<DesktopPlayerBloc, double>(
-          (bloc) => bloc.state.as<DesktopPlayerDataState>()?.speed ?? 1,
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.speed ?? 1,
         );
         return GestureDetector(
           onTap: () => context.read<DesktopPlayerBloc>().add(
-            const DesktopPlayerResetSpeedEvent(),
+            const CommPlayerResetSpeedEvent(),
           ),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

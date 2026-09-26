@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:mockingbird/db/db.dart';
 import 'package:mockingbird/mobile/tab_albums/album_list/album_list_event.dart';
 import 'package:mockingbird/mobile/tab_albums/album_list/album_list_state.dart';
 import 'package:mockingbird/tool/event_hub.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../../../db/mobile_db.dart';
 
 
 class AlbumListBloc extends Bloc<AlbumListEvent, AlbumListState> {
@@ -43,7 +43,7 @@ class AlbumListBloc extends Bloc<AlbumListEvent, AlbumListState> {
   }
 
   Future<AlbumListState> _reload() async {
-    final metadata = await MobileDB.loadMetadata();
+    final metadata = await DB.loadMobileMetadata();
     if (!metadata.permissionRequested) {
       return const AlbumListNotYetRequestedState();
     }
@@ -73,9 +73,9 @@ class AlbumListBloc extends Bloc<AlbumListEvent, AlbumListState> {
     Emitter<AlbumListState> emit,
   ) async {
     await PhotoManager.requestPermissionExtend();
-    var metadata = await MobileDB.loadMetadata();
+    var metadata = await DB.loadMobileMetadata();
     metadata = metadata.copyWith(permissionRequested: true);
-    await MobileDB.updateMetadata(metadata);
+    await DB.updateMobileMetadata(metadata);
     emit(await _reload());
   }
 }

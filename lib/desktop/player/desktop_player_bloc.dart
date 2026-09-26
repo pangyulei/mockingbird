@@ -6,6 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
+import 'package:path/path.dart' as p;
 
 import '../../tool/extensions.dart';
 
@@ -30,7 +31,17 @@ class DesktopPlayerBloc extends CommPlayerBloc {
 
     EasyLoading.show(maskType: .clear);
     final mediaFile = File(filePath);
-    final state = await reload(mediaFile);
+    final state = await reload((
+      loopIndex: null,
+      mediaFile: mediaFile,
+      mediaType: mediaFile.type,
+      playing: true,
+      position: Duration.zero,
+      speed: 1,
+      volume: 1,
+      title: p.basename(mediaFile.path),
+      subtitle: null,
+    ));
     emit(state);
     EasyLoading.dismiss();
   }

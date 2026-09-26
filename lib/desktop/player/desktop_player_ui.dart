@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_empty_ui.dart';
-import 'package:mockingbird/desktop/player/desktop_player_state.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -22,10 +22,10 @@ class DesktopPlayerUI extends StatelessWidget {
               .select<DesktopPlayerBloc, (Type, AssetType?)>(
                 (bloc) => (
                   bloc.state.runtimeType,
-                  bloc.state.as<DesktopPlayerDataState>()?.mediaType,
+                  bloc.state.as<CommPlayerDataState>()?.mediaType,
                 ),
               );
-          if (stateType == DesktopPlayerDataState && mediaType != null) {
+          if (stateType == CommPlayerDataState && mediaType != null) {
             return mediaType == .video
                 ? const DesktopPlayerVideoUI()
                 : const DesktopPlayerAudioUI();
