@@ -14,37 +14,13 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
-import 'db/entities/desktop_media_history.dart';
-import 'db/entities/desktop_metadata.dart';
 import 'db/entities/mobile_media_history.dart';
 import 'db/entities/mobile_metadata.dart';
-import 'db/entities/mobile_preference.dart';
+import 'db/entities/preference.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
-  obx_int.ModelEntity(
-    id: const obx_int.IdUid(6, 6202775987213355286),
-    name: 'MobilePreference',
-    lastPropertyId: const obx_int.IdUid(2, 2648320414307703706),
-    flags: 0,
-    properties: <obx_int.ModelProperty>[
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 2731549087838187397),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 2648320414307703706),
-        name: 'loop',
-        type: 1,
-        flags: 0,
-      ),
-    ],
-    relations: <obx_int.ModelRelation>[],
-    backlinks: <obx_int.ModelBacklink>[],
-  ),
   obx_int.ModelEntity(
     id: const obx_int.IdUid(7, 2714835044046722673),
     name: 'MobileMediaHistory',
@@ -77,74 +53,6 @@ final _entities = <obx_int.ModelEntity>[
       ),
     ],
     relations: <obx_int.ModelRelation>[],
-    backlinks: <obx_int.ModelBacklink>[],
-  ),
-  obx_int.ModelEntity(
-    id: const obx_int.IdUid(9, 9208580515780358623),
-    name: 'DesktopMediaHistory',
-    lastPropertyId: const obx_int.IdUid(4, 6557004410571388940),
-    flags: 0,
-    properties: <obx_int.ModelProperty>[
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 9216836816049524193),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 1288440393985498923),
-        name: 'mediaPath',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 2929956396009028133),
-        name: 'subtitleName',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 6557004410571388940),
-        name: 'positionMs',
-        type: 6,
-        flags: 0,
-      ),
-    ],
-    relations: <obx_int.ModelRelation>[],
-    backlinks: <obx_int.ModelBacklink>[],
-  ),
-  obx_int.ModelEntity(
-    id: const obx_int.IdUid(10, 2578396172358526017),
-    name: 'DesktopMetadata',
-    lastPropertyId: const obx_int.IdUid(3, 3878688060143980435),
-    flags: 0,
-    properties: <obx_int.ModelProperty>[
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 2537618684622954215),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 3661545470369014788),
-        name: 'dbVersion',
-        type: 6,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 3878688060143980435),
-        name: 'playingMediaPath',
-        type: 9,
-        flags: 0,
-      ),
-    ],
-    relations: <obx_int.ModelRelation>[
-      obx_int.ModelRelation(
-        id: const obx_int.IdUid(5, 2865608107249620262),
-        name: 'historyList',
-        targetId: const obx_int.IdUid(9, 9208580515780358623),
-      ),
-    ],
     backlinks: <obx_int.ModelBacklink>[],
   ),
   obx_int.ModelEntity(
@@ -185,6 +93,28 @@ final _entities = <obx_int.ModelEntity>[
         targetId: const obx_int.IdUid(7, 2714835044046722673),
       ),
     ],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(12, 4231913060860863966),
+    name: 'Preference',
+    lastPropertyId: const obx_int.IdUid(2, 1416862901781094141),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 7107839463463225518),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 1416862901781094141),
+        name: 'loop',
+        type: 1,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
 ];
@@ -232,7 +162,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
     // Typically, this is done with `dart run build_runner build`.
     generatorVersion: obx_int.GeneratorVersion.v2025_12_16,
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(11, 1354444275416375122),
+    lastEntityId: const obx_int.IdUid(12, 4231913060860863966),
     lastIndexId: const obx_int.IdUid(0, 0),
     lastRelationId: const obx_int.IdUid(6, 1677193273882790991),
     lastSequenceId: const obx_int.IdUid(0, 0),
@@ -243,6 +173,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
       8235315373163725935,
       6043521327364359792,
       6213276034966737467,
+      6202775987213355286,
+      9208580515780358623,
+      2578396172358526017,
     ],
     retiredIndexUids: const [],
     retiredPropertyUids: const [
@@ -269,6 +202,15 @@ obx_int.ModelDefinition getObjectBoxModel() {
       1978754741528573916,
       1288073627125696056,
       5654180501971968190,
+      2731549087838187397,
+      2648320414307703706,
+      9216836816049524193,
+      1288440393985498923,
+      2929956396009028133,
+      6557004410571388940,
+      2537618684622954215,
+      3661545470369014788,
+      3878688060143980435,
     ],
     retiredRelationUids: const [7188549749246275438],
     modelVersion: 5,
@@ -277,43 +219,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
   );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    MobilePreference: obx_int.EntityDefinition<MobilePreference>(
-      model: _entities[0],
-      toOneRelations: (MobilePreference object) => [],
-      toManyRelations: (MobilePreference object) => {},
-      getId: (MobilePreference object) => object.id,
-      setId: (MobilePreference object, int id) {
-        object.id = id;
-      },
-      objectToFB: (MobilePreference object, fb.Builder fbb) {
-        fbb.startTable(3);
-        fbb.addInt64(0, object.id);
-        fbb.addBool(1, object.loop);
-        fbb.finish(fbb.endTable());
-        return object.id;
-      },
-      objectFromFB: (obx.Store store, ByteData fbData) {
-        final buffer = fb.BufferContext(fbData);
-        final rootOffset = buffer.derefObject(0);
-        final idParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          4,
-          0,
-        );
-        final loopParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          6,
-          false,
-        );
-        final object = MobilePreference(id: idParam, loop: loopParam);
-
-        return object;
-      },
-    ),
     MobileMediaHistory: obx_int.EntityDefinition<MobileMediaHistory>(
-      model: _entities[1],
+      model: _entities[0],
       toOneRelations: (MobileMediaHistory object) => [],
       toManyRelations: (MobileMediaHistory object) => {},
       getId: (MobileMediaHistory object) => object.id,
@@ -364,113 +271,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
-    DesktopMediaHistory: obx_int.EntityDefinition<DesktopMediaHistory>(
-      model: _entities[2],
-      toOneRelations: (DesktopMediaHistory object) => [],
-      toManyRelations: (DesktopMediaHistory object) => {},
-      getId: (DesktopMediaHistory object) => object.id,
-      setId: (DesktopMediaHistory object, int id) {
-        object.id = id;
-      },
-      objectToFB: (DesktopMediaHistory object, fb.Builder fbb) {
-        final mediaPathOffset = fbb.writeString(object.mediaPath);
-        final subtitleNameOffset = object.subtitleName == null
-            ? null
-            : fbb.writeString(object.subtitleName!);
-        fbb.startTable(5);
-        fbb.addInt64(0, object.id);
-        fbb.addOffset(1, mediaPathOffset);
-        fbb.addOffset(2, subtitleNameOffset);
-        fbb.addInt64(3, object.positionMs);
-        fbb.finish(fbb.endTable());
-        return object.id;
-      },
-      objectFromFB: (obx.Store store, ByteData fbData) {
-        final buffer = fb.BufferContext(fbData);
-        final rootOffset = buffer.derefObject(0);
-        final mediaPathParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final idParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          4,
-          0,
-        );
-        final subtitleNameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 8);
-        final positionMsParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          10,
-          0,
-        );
-        final object = DesktopMediaHistory(
-          mediaPath: mediaPathParam,
-          id: idParam,
-          subtitleName: subtitleNameParam,
-          positionMs: positionMsParam,
-        );
-
-        return object;
-      },
-    ),
-    DesktopMetadata: obx_int.EntityDefinition<DesktopMetadata>(
-      model: _entities[3],
-      toOneRelations: (DesktopMetadata object) => [],
-      toManyRelations: (DesktopMetadata object) => {
-        obx_int.RelInfo<DesktopMetadata>.toMany(5, object.id):
-            object.historyList,
-      },
-      getId: (DesktopMetadata object) => object.id,
-      setId: (DesktopMetadata object, int id) {
-        object.id = id;
-      },
-      objectToFB: (DesktopMetadata object, fb.Builder fbb) {
-        final playingMediaPathOffset = object.playingMediaPath == null
-            ? null
-            : fbb.writeString(object.playingMediaPath!);
-        fbb.startTable(4);
-        fbb.addInt64(0, object.id);
-        fbb.addInt64(1, object.dbVersion);
-        fbb.addOffset(2, playingMediaPathOffset);
-        fbb.finish(fbb.endTable());
-        return object.id;
-      },
-      objectFromFB: (obx.Store store, ByteData fbData) {
-        final buffer = fb.BufferContext(fbData);
-        final rootOffset = buffer.derefObject(0);
-        final idParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          4,
-          0,
-        );
-        final playingMediaPathParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 8);
-        final dbVersionParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          6,
-          0,
-        );
-        final object = DesktopMetadata(
-          id: idParam,
-          playingMediaPath: playingMediaPathParam,
-          dbVersion: dbVersionParam,
-        );
-        obx_int.InternalToManyAccess.setRelInfo<DesktopMetadata>(
-          object.historyList,
-          store,
-          obx_int.RelInfo<DesktopMetadata>.toMany(5, object.id),
-        );
-        return object;
-      },
-    ),
     MobileMetadata: obx_int.EntityDefinition<MobileMetadata>(
-      model: _entities[4],
+      model: _entities[1],
       toOneRelations: (MobileMetadata object) => [],
       toManyRelations: (MobileMetadata object) => {
         obx_int.RelInfo<MobileMetadata>.toMany(6, object.id):
@@ -530,119 +332,107 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
+    Preference: obx_int.EntityDefinition<Preference>(
+      model: _entities[2],
+      toOneRelations: (Preference object) => [],
+      toManyRelations: (Preference object) => {},
+      getId: (Preference object) => object.id,
+      setId: (Preference object, int id) {
+        object.id = id;
+      },
+      objectToFB: (Preference object, fb.Builder fbb) {
+        fbb.startTable(3);
+        fbb.addInt64(0, object.id);
+        fbb.addBool(1, object.loop);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final loopParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          6,
+          false,
+        );
+        final object = Preference(id: idParam, loop: loopParam);
+
+        return object;
+      },
+    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
-}
-
-/// [MobilePreference] entity fields to define ObjectBox queries.
-class MobilePreference_ {
-  /// See [MobilePreference.id].
-  static final id = obx.QueryIntegerProperty<MobilePreference>(
-    _entities[0].properties[0],
-  );
-
-  /// See [MobilePreference.loop].
-  static final loop = obx.QueryBooleanProperty<MobilePreference>(
-    _entities[0].properties[1],
-  );
 }
 
 /// [MobileMediaHistory] entity fields to define ObjectBox queries.
 class MobileMediaHistory_ {
   /// See [MobileMediaHistory.id].
   static final id = obx.QueryIntegerProperty<MobileMediaHistory>(
-    _entities[1].properties[0],
+    _entities[0].properties[0],
   );
 
   /// See [MobileMediaHistory.mediaId].
   static final mediaId = obx.QueryStringProperty<MobileMediaHistory>(
-    _entities[1].properties[1],
+    _entities[0].properties[1],
   );
 
   /// See [MobileMediaHistory.positionMs].
   static final positionMs = obx.QueryIntegerProperty<MobileMediaHistory>(
-    _entities[1].properties[2],
+    _entities[0].properties[2],
   );
 
   /// See [MobileMediaHistory.subtitlePath].
   static final subtitlePath = obx.QueryStringProperty<MobileMediaHistory>(
-    _entities[1].properties[3],
+    _entities[0].properties[3],
   );
-}
-
-/// [DesktopMediaHistory] entity fields to define ObjectBox queries.
-class DesktopMediaHistory_ {
-  /// See [DesktopMediaHistory.id].
-  static final id = obx.QueryIntegerProperty<DesktopMediaHistory>(
-    _entities[2].properties[0],
-  );
-
-  /// See [DesktopMediaHistory.mediaPath].
-  static final mediaPath = obx.QueryStringProperty<DesktopMediaHistory>(
-    _entities[2].properties[1],
-  );
-
-  /// See [DesktopMediaHistory.subtitleName].
-  static final subtitleName = obx.QueryStringProperty<DesktopMediaHistory>(
-    _entities[2].properties[2],
-  );
-
-  /// See [DesktopMediaHistory.positionMs].
-  static final positionMs = obx.QueryIntegerProperty<DesktopMediaHistory>(
-    _entities[2].properties[3],
-  );
-}
-
-/// [DesktopMetadata] entity fields to define ObjectBox queries.
-class DesktopMetadata_ {
-  /// See [DesktopMetadata.id].
-  static final id = obx.QueryIntegerProperty<DesktopMetadata>(
-    _entities[3].properties[0],
-  );
-
-  /// See [DesktopMetadata.dbVersion].
-  static final dbVersion = obx.QueryIntegerProperty<DesktopMetadata>(
-    _entities[3].properties[1],
-  );
-
-  /// See [DesktopMetadata.playingMediaPath].
-  static final playingMediaPath = obx.QueryStringProperty<DesktopMetadata>(
-    _entities[3].properties[2],
-  );
-
-  /// see [DesktopMetadata.historyList]
-  static final historyList =
-      obx.QueryRelationToMany<DesktopMetadata, DesktopMediaHistory>(
-        _entities[3].relations[0],
-      );
 }
 
 /// [MobileMetadata] entity fields to define ObjectBox queries.
 class MobileMetadata_ {
   /// See [MobileMetadata.id].
   static final id = obx.QueryIntegerProperty<MobileMetadata>(
-    _entities[4].properties[0],
+    _entities[1].properties[0],
   );
 
   /// See [MobileMetadata.dbVersion].
   static final dbVersion = obx.QueryIntegerProperty<MobileMetadata>(
-    _entities[4].properties[1],
+    _entities[1].properties[1],
   );
 
   /// See [MobileMetadata.playingMediaId].
   static final playingMediaId = obx.QueryStringProperty<MobileMetadata>(
-    _entities[4].properties[2],
+    _entities[1].properties[2],
   );
 
   /// See [MobileMetadata.permissionRequested].
   static final permissionRequested = obx.QueryBooleanProperty<MobileMetadata>(
-    _entities[4].properties[3],
+    _entities[1].properties[3],
   );
 
   /// see [MobileMetadata.historyList]
   static final historyList =
       obx.QueryRelationToMany<MobileMetadata, MobileMediaHistory>(
-        _entities[4].relations[0],
+        _entities[1].relations[0],
       );
+}
+
+/// [Preference] entity fields to define ObjectBox queries.
+class Preference_ {
+  /// See [Preference.id].
+  static final id = obx.QueryIntegerProperty<Preference>(
+    _entities[2].properties[0],
+  );
+
+  /// See [Preference.loop].
+  static final loop = obx.QueryBooleanProperty<Preference>(
+    _entities[2].properties[1],
+  );
 }

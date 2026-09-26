@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:defer/defer.dart';
@@ -7,12 +8,14 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockingbird/db/db.dart';
 import 'package:mockingbird/db/entities/mobile_media_history.dart';
+import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:mockingbird/mobile/app/mobile_app_route.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
+import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../tool/comm_player/comm_player_event.dart';
@@ -21,7 +24,7 @@ import '../../../tool/event_hub.dart';
 class MobilePlayerBloc extends CommPlayerBloc {
   static final shared = MobilePlayerBloc._();
 
-
+  AssetEntity? _media;
   MobilePlayerBloc._() : super() {
     on<MobilePlayerInitEvent>(_onInit);
     on<MobilePlayerGoToAlbumListEvent>(_onGoToAlbumList);
@@ -43,7 +46,7 @@ class MobilePlayerBloc extends CommPlayerBloc {
     super.onSelectAnotherSubtitleFromList(event, emit);
 
     var metadata = await DB.loadMobileMetadata();
-    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
+    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == _media?.id);
     if (history != null) {
       history = history.copyWith(subtitlePath: () => event.subtitle.path);
       await DB.updateMobileHistory(history);
@@ -52,7 +55,7 @@ class MobilePlayerBloc extends CommPlayerBloc {
 
   void _onAppPause(HubAppPauseEvent event) async {
     if (state is! CommPlayerDataState) return;
-    if (mediaFile == null) return;
+    if (_media == null) return;
 
     //save position
     final data = state as CommPlayerDataState;
@@ -74,7 +77,7 @@ class MobilePlayerBloc extends CommPlayerBloc {
 
   Future<void> _updateHistoryPosition(Duration position) async {
     final metadata = await DB.loadMobileMetadata();
-    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
+    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == _media?.id);
     if (history != null) {
       history = history.copyWith(positionMs: position.inMilliseconds);
       await DB.updateMobileHistory(history);
@@ -133,19 +136,25 @@ class MobilePlayerBloc extends CommPlayerBloc {
     var metadata = await DB.loadMobileMetadata();
     final mediaId = event.mediaId ?? metadata.playingMediaId;
     final media = mediaId == null ? null : await AssetEntity.fromId(mediaId);
+    final mediaFile = await media?.file;
+    _media = media;
     CommPlayerState commState;
-    if (media == null) {
+    if (media == null || mediaFile == null) {
       commState = await reload(null);
       metadata = metadata.copyWith(playingMediaId: () => null);
     } else {
       var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media.id);
       final position = history?.position ?? Duration.zero;
+      final subtitlePath = history?.subtitlePath;
+      final subtitle = subtitlePath == null ? null : await SubtitleParser.parsePath(subtitlePath);
       commState = await reload((
-        media: media,
+        mediaFile: mediaFile,
+        mediaType: media.type,
+        title: await media.titleAsync,
         playing: true,
         position: position,
         loopIndex: null,
-        subtitlePath: history?.subtitlePath,
+        subtitle: subtitle,
         speed: 1,
         volume: 1,
       ));
@@ -178,19 +187,23 @@ class MobilePlayerBloc extends CommPlayerBloc {
       () async {
         EasyLoading.show(maskType: .clear);
         if (state is! CommPlayerDataState) return;
-        final mediaId = media?.id;
+        final mediaId = _media?.id;
         if (mediaId == null) return;
 
         //refetch media because user might deleted media while leaving the app
-        media = await AssetEntity.fromId(mediaId);
+        final media = await AssetEntity.fromId(mediaId);
+        final mediaFile = await media?.file;
+        _media = media;
         final CommPlayerState newState;
-        if (media == null) {
+        if (media == null || mediaFile == null) {
           newState = await reload(null);
         } else {
           final data = state as CommPlayerDataState;
           newState = await reload((
-            media: media!,
-            subtitlePath: data.subtitle?.path,
+            mediaFile: mediaFile,
+            title: await media.titleAsync,
+            mediaType: media.type,
+            subtitle: data.subtitle,
             loopIndex: data.loopIndex,
             position: event.position,
             playing: event.playing,
