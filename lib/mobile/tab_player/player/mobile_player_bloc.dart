@@ -5,21 +5,22 @@ import 'package:defer/defer.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
+import 'package:mockingbird/db/db.dart';
+import 'package:mockingbird/db/entities/mobile_media_history.dart';
 import 'package:mockingbird/mobile/app/mobile_app_route.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
+import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-import '../../../db/entities/mobile_media_history.dart';
-import '../../../db/mobile_db.dart';
 import '../../../tool/comm_player/comm_player_event.dart';
 import '../../../tool/event_hub.dart';
-import '../../../tool/extensions.dart';
 
 class MobilePlayerBloc extends CommPlayerBloc {
   static final shared = MobilePlayerBloc._();
+
 
   MobilePlayerBloc._() : super() {
     on<MobilePlayerInitEvent>(_onInit);
@@ -41,17 +42,17 @@ class MobilePlayerBloc extends CommPlayerBloc {
   ) async {
     super.onSelectAnotherSubtitleFromList(event, emit);
 
-    var metadata = await MobileDB.loadMetadata();
+    var metadata = await DB.loadMobileMetadata();
     var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
     if (history != null) {
       history = history.copyWith(subtitlePath: () => event.subtitle.path);
-      await MobileDB.updateHistory(history);
+      await DB.updateMobileHistory(history);
     }
   }
 
   void _onAppPause(HubAppPauseEvent event) async {
     if (state is! CommPlayerDataState) return;
-    if (media == null) return;
+    if (mediaFile == null) return;
 
     //save position
     final data = state as CommPlayerDataState;
@@ -59,7 +60,7 @@ class MobilePlayerBloc extends CommPlayerBloc {
 
     //sync to background audio player
     final playerInfo = PlayerInfo(
-      media: media!,
+      media: _media!,
       duration: data.duration,
       playing: data.playing,
       position: data.position,
@@ -72,11 +73,11 @@ class MobilePlayerBloc extends CommPlayerBloc {
   }
 
   Future<void> _updateHistoryPosition(Duration position) async {
-    final metadata = await MobileDB.loadMetadata();
+    final metadata = await DB.loadMobileMetadata();
     var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media?.id);
     if (history != null) {
       history = history.copyWith(positionMs: position.inMilliseconds);
-      await MobileDB.updateHistory(history);
+      await DB.updateMobileHistory(history);
     }
   }
 
@@ -98,9 +99,9 @@ class MobilePlayerBloc extends CommPlayerBloc {
   //   final subtitleState = PlayerSubtitleDataState(subtitle.sentenceList);
 
   //   // Save selection to metadata
-  //   var metadata = await MobileDB.loadMetadata();
+  //   var metadata = await DB.loadMetadata();
   //   metadata = metadata.copyWith(playingSubtitleName: () => subtitle.name);
-  //   await MobileDB.updateMetadata(metadata);
+  //   await DB.updateMetadata(metadata);
 
   //   emit(
   //     state.copyWith(
@@ -129,12 +130,13 @@ class MobilePlayerBloc extends CommPlayerBloc {
       await _updateHistoryPosition((state as CommPlayerDataState).position);
     }
 
-    var metadata = await MobileDB.loadMetadata();
+    var metadata = await DB.loadMobileMetadata();
     final mediaId = event.mediaId ?? metadata.playingMediaId;
     final media = mediaId == null ? null : await AssetEntity.fromId(mediaId);
     CommPlayerState commState;
     if (media == null) {
       commState = await reload(null);
+      metadata = metadata.copyWith(playingMediaId: () => null);
     } else {
       var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media.id);
       final position = history?.position ?? Duration.zero;
@@ -156,11 +158,11 @@ class MobilePlayerBloc extends CommPlayerBloc {
         metadata.historyList.add(history);
       } else {
         history = history.copyWith(subtitlePath: () => commState.as<CommPlayerDataState>()?.subtitle?.path);
-        await MobileDB.updateHistory(history);
+        await DB.updateMobileHistory(history);
       }
       metadata = metadata.copyWith(playingMediaId: () => media.id);
-      await MobileDB.updateMetadata(metadata);
     }
+    await DB.updateMobileMetadata(metadata);
     if (commState is CommPlayerDataState) {
       commState = MobilePlayerDataState.commData(volumeSliderVisible: false, commData: commState);
     }
@@ -200,7 +202,6 @@ class MobilePlayerBloc extends CommPlayerBloc {
       },
     );
   }
-
 
   //   Future<String?> _pickOneSubtitle() async {
   //     try {

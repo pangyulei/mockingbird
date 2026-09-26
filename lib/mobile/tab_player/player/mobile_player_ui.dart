@@ -218,7 +218,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_top',
               onPressed: () {
-                context.read<MobilePlayerBloc>().add(const MobilePlayerScrollToTopEvent());
+                context.read<MobilePlayerBloc>().add(const CommPlayerScrollToTopEvent());
               },
               backgroundColor: colorScheme.surfaceContainerHighest,
               foregroundColor: colorScheme.primary,
@@ -228,7 +228,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_focus',
               onPressed: () {
-                context.read<MobilePlayerBloc>().add(const MobilePlayerScrollToPlayingSentenceEvent());
+                context.read<MobilePlayerBloc>().add(const CommPlayerScrollToPlayingSentenceEvent());
               },
               child: const Icon(Icons.center_focus_strong_rounded),
             ),
@@ -236,7 +236,7 @@ class MobilePlayerUI extends StatelessWidget {
             FloatingActionButton.small(
               heroTag: 'scroll_bottom',
               onPressed: () {
-                context.read<MobilePlayerBloc>().add(const MobilePlayerScrollToBottomEvent());
+                context.read<MobilePlayerBloc>().add(const CommPlayerScrollToBottomEvent());
               },
               backgroundColor: colorScheme.surfaceContainerHighest,
               foregroundColor: colorScheme.primary,
@@ -299,7 +299,7 @@ class MobilePlayerUI extends StatelessWidget {
         final icon = volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded;
         return IconButton(
           onPressed: () {
-            context.read<MobilePlayerBloc>().add(const MobilePlayerToggleVolumeEvent());
+            context.read<MobilePlayerBloc>().add(const MobilePlayerToggleVolumeSliderEvent());
           },
           icon: Icon(icon),
           color: Colors.white,
@@ -336,7 +336,7 @@ class MobilePlayerUI extends StatelessWidget {
             value: volume,
             max: maxVolume,
             onChanged: (volume) {
-              context.read<MobilePlayerBloc>().add(MobilePlayerVolumeChangeEvent(volume));
+              context.read<MobilePlayerBloc>().add(CommPlayerVolumeChangeEvent(volume));
             },
           );
         },
@@ -373,17 +373,17 @@ class MobilePlayerUI extends StatelessWidget {
             max: max,
             onChangeStart: (val) {
               context.read<MobilePlayerBloc>().add(
-                MobilePlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
+                CommPlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
             onChanged: (val) {
               context.read<MobilePlayerBloc>().add(
-                MobilePlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
+                CommPlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
             onChangeEnd: (val) {
               context.read<MobilePlayerBloc>().add(
-                MobilePlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
+                CommPlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
           );
@@ -517,9 +517,9 @@ class MobilePlayerUI extends StatelessWidget {
         return IconButton.filled(
           onPressed: () {
             if (playing) {
-              context.read<MobilePlayerBloc>().add(const MobilePlayerPauseEvent());
+              context.read<MobilePlayerBloc>().add(const CommPlayerPauseEvent());
             } else {
-              context.read<MobilePlayerBloc>().add(const MobilePlayerPlayEvent());
+              context.read<MobilePlayerBloc>().add(const CommPlayerPlayEvent());
             }
           },
           icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 24),
@@ -548,7 +548,7 @@ class MobilePlayerUI extends StatelessWidget {
         );
         return IconButton(
           onPressed: () {
-            context.read<MobilePlayerBloc>().add(const MobilePlayerToggleLoopEvent());
+            context.read<MobilePlayerBloc>().add(const CommPlayerToggleLoopEvent());
           },
           icon: Icon(
             loop ? Icons.repeat_one_rounded : Icons.repeat_rounded,
@@ -566,7 +566,7 @@ class MobilePlayerUI extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return IconButton(
       onPressed: () {
-        context.read<MobilePlayerBloc>().add(const MobilePlayerShowSubtitleListEvent());
+        context.read<MobilePlayerBloc>().add(const CommPlayerShowSubtitleListEvent());
       },
       icon: Icon(Icons.subtitles_rounded, color: colorScheme.outline),
       style: IconButton.styleFrom(tapTargetSize: .shrinkWrap),
@@ -579,7 +579,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<MobilePlayerBloc>().add(const MobilePlayerDecSpeedEvent());
+          context.read<MobilePlayerBloc>().add(const CommPlayerDecSpeedEvent());
         },
         icon: const Icon(Icons.remove_circle_outline_rounded),
         color: Theme.of(context).colorScheme.outline,
@@ -594,7 +594,7 @@ class MobilePlayerUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<MobilePlayerBloc>().add(const MobilePlayerIncSpeedEvent());
+          context.read<MobilePlayerBloc>().add(const CommPlayerIncSpeedEvent());
         },
         icon: const Icon(Icons.add_circle_outline_rounded),
         color: Theme.of(context).colorScheme.outline,
@@ -613,7 +613,7 @@ class MobilePlayerUI extends StatelessWidget {
           (bloc) => bloc.state.as<MobilePlayerDataState>()?.speed ?? 1,
         );
         return GestureDetector(
-          onTap: () => context.read<MobilePlayerBloc>().add(const MobilePlayerResetSpeedEvent()),
+          onTap: () => context.read<MobilePlayerBloc>().add(const CommPlayerResetSpeedEvent()),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
