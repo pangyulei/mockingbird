@@ -12,10 +12,11 @@ import '../../../mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import '../../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../desktop_player_state.dart';
 
-const double kDesktopPlayerMinWidth = 600;
-const double kDesktopSubtitleMinWidth = 300;
-const double kDesktopMainWindowMinHeight = 500;
-const double kDesktopMainWindowDividerThickness = 6; // 稍微加粗一点，方便鼠标抓取
+const double kDesktopPlayerLeftWidth = 600;
+const double kDesktopPlayerRightWidth = 300;
+const double kDesktopPlayerDividerThickness = 6; // 稍微加粗一点，方便鼠标抓取
+const double kDesktopPlayerEmptyHeight = 400;
+const double kDesktopPlayerDataHeight = 450;
 
 class DesktopPlayerVideoUI extends StatelessWidget {
   const DesktopPlayerVideoUI({super.key});
@@ -29,7 +30,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
           Image.asset('assets/desktop/main_window_background.jpg').image,
           child: MultiSplitViewTheme(
             data: MultiSplitViewThemeData(
-              dividerThickness: kDesktopMainWindowDividerThickness,
+              dividerThickness: kDesktopPlayerDividerThickness,
               dividerPainter: DividerPainters.grooved1(
                 color: kPrimaryGreen,
                 highlightedColor: kPrimaryGreen,

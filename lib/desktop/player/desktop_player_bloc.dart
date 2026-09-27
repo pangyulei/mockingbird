@@ -13,7 +13,6 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
 
-import '../../tool/comm_player/comm_player_event.dart';
 import '../../tool/extensions.dart';
 
 class DesktopPlayerBloc extends CommPlayerBloc {
@@ -30,11 +29,19 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     DesktopPlayerInitEvent event,
     Emitter<CommPlayerState> emit,
   ) async {
-    await windowManager.setTitle('Mockingbird');
-    await windowManager.setSize(const Size(600, 400));
-    await windowManager.setMinimumSize(const Size(600, 400));
-    await windowManager.center();
+    await _setWindowForEmpty();
     emit(const CommPlayerEmptyState());
+  }
+
+  Future<void> _setWindowForEmpty() async {
+    const minimumSize = Size(
+      kDesktopPlayerLeftWidth,
+      kDesktopPlayerEmptyHeight,
+    );
+    await windowManager.setTitle('Mockingbird');
+    await windowManager.setSize(minimumSize);
+    await windowManager.setMinimumSize(minimumSize);
+    await windowManager.center();
   }
 
   void _onSelectMediaFromFileExplorer(
@@ -47,11 +54,11 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     );
     final filePath = xfile?.path;
     if (filePath == null) {
-      emit(const CommPlayerEmptyState());
       return;
     }
     EasyLoading.show(maskType: .clear);
     final mediaFile = File(filePath);
+    final prevState = state;
     final commState = await reload((
       loopIndex: null,
       mediaFile: mediaFile,
@@ -69,23 +76,36 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       splitter.addArea(
         Area(
           // flex: 2,
-          size: kDesktopPlayerMinWidth,
-          min: kDesktopPlayerMinWidth,
+          size: kDesktopPlayerLeftWidth,
+          min: kDesktopPlayerLeftWidth,
           builder: (context, area) => const DesktopPlayerVideoLeftUI(),
         ),
       );
       splitter.addArea(
         Area(
           // flex: 1,
-          size: kDesktopSubtitleMinWidth,
-          min: kDesktopSubtitleMinWidth,
+          size: kDesktopPlayerRightWidth,
+          min: kDesktopPlayerRightWidth,
           builder: (context, area) => const DesktopPlayerVideoRightUI(),
         ),
       );
+      if (prevState is CommPlayerEmptyState) {
+        //transform from empty to data, should setup window size
+        const minimumSize = Size(
+          kDesktopPlayerLeftWidth +
+              kDesktopPlayerRightWidth +
+              kDesktopPlayerDividerThickness,
+          kDesktopPlayerDataHeight,
+        );
+        await windowManager.setSize(minimumSize);
+        await windowManager.setMinimumSize(minimumSize);
+      }
+      await windowManager.setTitle('Mockingbird - ${commData.title}');
       emit(
         DesktopPlayerDataState.commData(splitter: splitter, commData: commData),
       );
     } else {
+      await _setWindowForEmpty();
       emit(commState);
     }
     EasyLoading.dismiss();
