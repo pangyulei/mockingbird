@@ -13,8 +13,10 @@ import '../../../tool/comm_player/comm_player_event.dart';
 class SentenceCardBloc extends Bloc<SentenceCardEvent, SentenceCardState> {
   final _subList = <StreamSubscription>[];
   final Sentence _sentence;
+  final CommPlayerBloc _playerBloc;
 
-  SentenceCardBloc(this._sentence) : super(const SentenceCardState.empty()) {
+  SentenceCardBloc(this._sentence, this._playerBloc)
+    : super(const SentenceCardState.empty()) {
     on<SentenceCardInitEvent>(_onInit);
     on<SentenceCardPlayingSentenceChangeEvent>(_onPlayingSentenceChange);
     on<SentenceCardClickEvent>(_onClick);
@@ -28,9 +30,10 @@ class SentenceCardBloc extends Bloc<SentenceCardEvent, SentenceCardState> {
   }
 
   void _onClick(SentenceCardClickEvent event, Emitter<SentenceCardState> emit) {
-    event.context.read<CommPlayerBloc>().add(
-      CommPlayerClickSentenceEvent(_sentence.id),
-    );
+    // event.context.read<CommPlayerBloc>().add(
+    //   CommPlayerClickSentenceEvent(_sentence.id),
+    // );
+    _playerBloc.add(CommPlayerClickSentenceEvent(_sentence.id));
   }
 
   @override
