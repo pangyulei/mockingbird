@@ -1,5 +1,9 @@
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:multi_split_view/multi_split_view.dart';
+import 'package:photo_manager/photo_manager.dart';
+
+import '../../db/entities/subtitle.dart';
+import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 
 class DesktopPlayerDataState extends CommPlayerDataState {
   final MultiSplitViewController splitter;
@@ -22,4 +26,41 @@ class DesktopPlayerDataState extends CommPlayerDataState {
          title: commData.title,
          volume: commData.volume,
        );
+
+  @override
+  DesktopPlayerDataState copyWith({
+    int? Function()? loopIndex,
+    bool? playing,
+    double? aspectRatio,
+    double? volume,
+    double? speed,
+    SubtitleState? subtitleState,
+    AssetType? mediaType,
+    bool? subtitleListVisible,
+    bool? subtitleListButtonVisible,
+    Duration? position,
+    Duration? duration,
+    String? title,
+    List<Subtitle>? subtitleList,
+  }) {
+    final commData = super.copyWith(
+      loopIndex: loopIndex,
+      playing: playing,
+      aspectRatio: aspectRatio,
+      volume: volume,
+      speed: speed,
+      subtitleState: subtitleState,
+      mediaType: mediaType,
+      subtitleListVisible: subtitleListVisible,
+      subtitleListButtonVisible: subtitleListButtonVisible,
+      position: position,
+      duration: duration,
+      title: title,
+      subtitleList: subtitleList,
+    );
+    return DesktopPlayerDataState.commData(
+      splitter: splitter,
+      commData: commData,
+    );
+  }
 }

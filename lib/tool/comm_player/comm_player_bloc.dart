@@ -97,7 +97,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     final subtitle = data.subtitleList.firstWhereOrNull(
       (s) => s == event.subtitle,
     );
-    data = data.copyWith(
+    data = data.rCopyWith(
       subtitleListVisible: false,
       subtitleState: subtitle == null
           ? const SubtitleEmptyState()
@@ -257,12 +257,12 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     final sentence = data.subtitle?.sentenceList[sentenceIndex];
     if (sentence == null) return;
     if (data.loopIndex != null) {
-      data = data.copyWith(loopIndex: () => sentenceIndex);
+      data = data.rCopyWith(loopIndex: () => sentenceIndex);
     }
     EventHub.emit(HubPlayingSentenceChangeEvent(sentence.id));
     final double alignment = sentenceIndex == 0 ? 0 : 0.3;
     _scroller.safeScrollTo(sentenceIndex, alignment: alignment);
-    emit(data.copyWith(playing: true));
+    emit(data.rCopyWith(playing: true));
     await data.player.seekTo(sentence.start);
     await data.player.play();
   }
@@ -276,7 +276,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     final double nextSpeed = (data.speed - _kStepPlaySpeed)
         .clamp(_kMinPlaySpeed, _kMaxPlaySpeed)
         .digits(1);
-    data = data.copyWith(speed: nextSpeed);
+    data = data.rCopyWith(speed: nextSpeed);
     emit(data);
     await data.player.setPlaybackSpeed(nextSpeed);
   }
@@ -287,7 +287,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   ) {
     final state = this.state;
     if (state is! CommPlayerDataState) return;
-    emit(state.copyWith(subtitleListVisible: false));
+    emit(state.rCopyWith(subtitleListVisible: false));
   }
 
   void _onIncSpeed(
@@ -299,7 +299,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     final double nextSpeed = (data.speed + _kStepPlaySpeed)
         .clamp(_kMinPlaySpeed, _kMaxPlaySpeed)
         .digits(1);
-    data = data.copyWith(speed: nextSpeed);
+    data = data.rCopyWith(speed: nextSpeed);
     emit(data);
     await data.player.setPlaybackSpeed(nextSpeed);
   }
@@ -319,7 +319,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     var data = state as CommPlayerDataState;
     await _onPositionChangeByDragging(event.position, emit);
     if (event.position < event.duration && _mediaPlayingBeforeDrag) {
-      data = data.copyWith(playing: true);
+      data = data.rCopyWith(playing: true);
       emit(data);
       await data.player.play();
     }
@@ -341,7 +341,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   ) async {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
-    emit(data.copyWith(playing: false));
+    emit(data.rCopyWith(playing: false));
     await data.player.pause();
   }
 
@@ -350,10 +350,10 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     var data = state as CommPlayerDataState;
     if (data.position >= data.duration) {
       const position = Duration.zero;
-      data = data.copyWith(position: position);
+      data = data.rCopyWith(position: position);
       await data.player.seekTo(position);
     }
-    emit(data.copyWith(playing: true));
+    emit(data.rCopyWith(playing: true));
     await data.player.play();
   }
 
@@ -364,7 +364,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
     if (data.playing) {
-      data = data.copyWith(playing: false);
+      data = data.rCopyWith(playing: false);
       emit(data);
       await data.player.pause();
     }
@@ -374,7 +374,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       emit: emit,
     );
     if (data.loopIndex != null) {
-      data = data.copyWith(loopIndex: () => _spot?.index);
+      data = data.rCopyWith(loopIndex: () => _spot?.index);
       emit(state);
     }
     if (playerProperties.sentenceChanged) {
@@ -403,7 +403,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     );
     if (playerProperties.mediaCompleted) {
       //audo re-play media
-      state = state.copyWith(playing: true);
+      state = state.rCopyWith(playing: true);
       emit(state);
       await state.player.seekTo(Duration.zero);
       await state.player.play();
@@ -429,7 +429,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
     final nextSpeed = (1.0).clamp(_kMinPlaySpeed, _kMaxPlaySpeed);
-    data = data.copyWith(speed: nextSpeed);
+    data = data.rCopyWith(speed: nextSpeed);
     emit(data);
     await data.player.setPlaybackSpeed(nextSpeed);
   }
@@ -467,14 +467,14 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   ) {
     final state = this.state;
     if (state is! CommPlayerDataState) return;
-    emit(state.copyWith(subtitleListVisible: true));
+    emit(state.rCopyWith(subtitleListVisible: true));
   }
 
   void _onToggleLoop(_, Emitter<CommPlayerState> emit) {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
     final loopIndex = data.loopIndex == null ? _spot?.index : null;
-    emit(data.copyWith(loopIndex: () => loopIndex));
+    emit(data.rCopyWith(loopIndex: () => loopIndex));
   }
 
   void _onVolumeChange(
@@ -483,7 +483,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   ) async {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
-    emit(data.copyWith(volume: event.volume));
+    emit(data.rCopyWith(volume: event.volume));
     await data.player.setVolume(event.volume);
   }
 
@@ -496,7 +496,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
 
     //Fix while tap video slider, it bounce at first
     var data = state as CommPlayerDataState;
-    data = data.copyWith(position: position);
+    data = data.rCopyWith(position: position);
     emit(data);
 
     final mediaCompleted = position >= data.duration;

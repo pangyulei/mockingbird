@@ -80,7 +80,8 @@ class CommPlayerDataState extends CommPlayerState {
   }) {
     return CommPlayerDataState(
       aspectRatio: aspectRatio ?? this.aspectRatio,
-      subtitleListButtonVisible: subtitleListButtonVisible ?? this.subtitleListButtonVisible,
+      subtitleListButtonVisible:
+          subtitleListButtonVisible ?? this.subtitleListButtonVisible,
       subtitleList: subtitleList ?? this.subtitleList,
       subtitleListVisible: subtitleListVisible ?? this.subtitleListVisible,
       loopIndex: loopIndex == null ? this.loopIndex : loopIndex(),
@@ -95,6 +96,41 @@ class CommPlayerDataState extends CommPlayerState {
       player: player,
     );
   }
+
+  /*
+  runetime copyWith, will call subclass's copyWith instead
+  in CommonPlayerBloc all CommonPlayerDataState should only call this rCopyWith
+  to fix the bug normal copyWith generate an CommonPlayerDataState, will elimate subclass's additional properties
+  * */
+  CommPlayerDataState rCopyWith({
+    int? Function()? loopIndex,
+    bool? playing,
+    double? aspectRatio,
+    double? volume,
+    double? speed,
+    SubtitleState? subtitleState,
+    AssetType? mediaType,
+    bool? subtitleListVisible,
+    bool? subtitleListButtonVisible,
+    Duration? position,
+    Duration? duration,
+    String? title,
+    List<Subtitle>? subtitleList,
+  }) => copyWith(
+    loopIndex: loopIndex,
+    playing: playing,
+    aspectRatio: aspectRatio,
+    volume: volume,
+    speed: speed,
+    subtitleState: subtitleState,
+    mediaType: mediaType,
+    subtitleListVisible: subtitleListVisible,
+    subtitleListButtonVisible: subtitleListButtonVisible,
+    position: position,
+    duration: duration,
+    title: title,
+    subtitleList: subtitleList,
+  );
 
   Subtitle? get subtitle => subtitleState.as<SubtitleDataState>()?.subtitle;
 }
