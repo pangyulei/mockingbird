@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marquee/marquee.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
-import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
+import 'package:multi_split_view/multi_split_view.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../mobile/tab_player/subtitle/subtitle_state.dart';
+import '../../../mobile/tab_player/sentence_card/sentence_card_ui.dart';
+import '../../../mobile/tab_player/subtitle/subtitle_state.dart';
+import '../desktop_player_state.dart';
 
 const double kDesktopPlayerMinWidth = 600;
 const double kDesktopSubtitleMinWidth = 300;
@@ -22,86 +24,87 @@ class DesktopPlayerVideoUI extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: DesktopPlayerBloc.shared,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _appBar(context),
-          Expanded(child: Center(child: _videoDisplayer(context))),
-          _controlBar(context),
-        ],
-      ),
-    );
-  }
-
-  // Widget _home() {
-  //   //Theme.of(context).scaffoldBackgroundColor
-  //   return Scaffold(
-  //     body: MultiSplitViewTheme(
-  //       data: MultiSplitViewThemeData(
-  //         dividerThickness: kDesktopMainWindowDividerThickness,
-  //         dividerPainter: DividerPainters.grooved1(
-  //           color: kPrimaryGreen,
-  //           highlightedColor: kPrimaryGreen,
-  //           thickness: 4,
-  //         ),
-  //       ),
-  //       child: imageContainer(
-  //         Image.asset('assets/desktop/main_window_background.jpg').image,
-  //         child: Builder(
-  //           builder: (context) {
-  //             final splitter = context
-  //                 .select<DesktopMainWindowBloc, MultiSplitViewController?>(
-  //                   (bloc) =>
-  //               bloc.state.as<DesktopMainWindowDataState>()?.splitter,
-  //             );
-  //             if (splitter == null) return const SizedBox.shrink();
-  //             return MultiSplitView(
-  //               controller: splitter,
-  //               axis: Axis.horizontal,
-  //             );
-  //           },
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
-  Widget _appBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: Colors.black.withValues(alpha: 0.6),
-      child: Row(
-        children: [
-          Expanded(
+      child: Scaffold(
+        body: imageContainer(
+          Image.asset('assets/desktop/main_window_background.jpg').image,
+          child: MultiSplitViewTheme(
+            data: MultiSplitViewThemeData(
+              dividerThickness: kDesktopMainWindowDividerThickness,
+              dividerPainter: DividerPainters.grooved1(
+                color: kPrimaryGreen,
+                highlightedColor: kPrimaryGreen,
+                thickness: 4,
+              ),
+            ),
             child: Builder(
               builder: (context) {
-                final title = context.select<DesktopPlayerBloc, String>(
-                  (bloc) =>
-                      bloc.state.as<CommPlayerDataState>()?.title ?? '',
-                );
-                return SizedBox(
-                  height: 24,
-                  child: title.isEmpty
-                      ? const Text('')
-                      : Marquee(
-                          text: title,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          scrollAxis: Axis.horizontal,
-                          blankSpace: 50,
-                          velocity: 30,
-                        ),
+                final splitter = context
+                    .select<DesktopPlayerBloc, MultiSplitViewController>(
+                      (bloc) => (bloc.state as DesktopPlayerDataState).splitter,
+                    );
+                return MultiSplitView(
+                  controller: splitter,
+                  axis: Axis.horizontal,
                 );
               },
             ),
           ),
-        ],
+        ),
       ),
     );
   }
+}
+
+class DesktopPlayerVideoLeftUI extends StatelessWidget {
+  const DesktopPlayerVideoLeftUI({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // _appBar(context),
+        Expanded(child: Center(child: _videoDisplayer(context))),
+        _controlBar(context),
+      ],
+    );
+  }
+
+  // Widget _appBar(BuildContext context) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //     color: Colors.black.withValues(alpha: 0.6),
+  //     child: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Builder(
+  //             builder: (context) {
+  //               final title = context.select<DesktopPlayerBloc, String>(
+  //                 (bloc) => bloc.state.as<CommPlayerDataState>()?.title ?? '',
+  //               );
+  //               return SizedBox(
+  //                 height: 24,
+  //                 child: title.isEmpty
+  //                     ? const Text('')
+  //                     : Marquee(
+  //                         text: title,
+  //                         style: const TextStyle(
+  //                           fontSize: 14,
+  //                           fontWeight: FontWeight.bold,
+  //                           color: Colors.white,
+  //                         ),
+  //                         scrollAxis: Axis.horizontal,
+  //                         blankSpace: 50,
+  //                         velocity: 30,
+  //                       ),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _videoDisplayer(BuildContext context) {
     return Stack(
@@ -111,8 +114,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
           builder: (context) {
             final aspectRatio = context.select<DesktopPlayerBloc, double>(
               (bloc) =>
-                  bloc.state.as<CommPlayerDataState>()?.aspectRatio ??
-                  16 / 9,
+                  bloc.state.as<CommPlayerDataState>()?.aspectRatio ?? 16 / 9,
             );
             return AspectRatio(aspectRatio: aspectRatio, child: _player());
           },
@@ -153,15 +155,15 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       ),
       child: Builder(
         builder: (context) {
-          final (position, duration) = context
-              .select<DesktopPlayerBloc, (Duration, Duration)>(
-                (bloc) => (
-                  bloc.state.as<CommPlayerDataState>()?.position ??
-                      Duration.zero,
-                  bloc.state.as<CommPlayerDataState>()?.duration ??
-                      Duration.zero,
-                ),
-              );
+          final (
+            position,
+            duration,
+          ) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
+            (bloc) => (
+              bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
+              bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
+            ),
+          );
           final max = duration.inMilliseconds.toDouble();
           final val = position.inMilliseconds.clamp(0, max).toDouble();
           return Slider(
@@ -392,6 +394,78 @@ class DesktopPlayerVideoUI extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class DesktopPlayerVideoRightUI extends StatelessWidget {
+  const DesktopPlayerVideoRightUI({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider.value(
+      value: DesktopPlayerBloc.shared,
+      child: Builder(
+        builder: (context) {
+          final subtitleState = context
+              .select<DesktopPlayerBloc, SubtitleState?>(
+                (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState,
+              );
+          switch (subtitleState) {
+            case null || SubtitleEmptyState():
+              return _noSubtitle();
+            case SubtitleDataState data:
+              return ScrollablePositionedList.builder(
+                key: ValueKey(data),
+                itemCount: data.subtitle.sentenceList.length,
+                itemScrollController: data.scroller,
+                initialAlignment: data.initialAlignment,
+                initialScrollIndex: data.initialIndex,
+                itemBuilder: (context, i) {
+                  final sentenceCardBloc = context
+                      .read<DesktopPlayerBloc>()
+                      .sentenceCardBlocAtIndex(i);
+                  return SentenceCardUI(sentenceCardBloc);
+                },
+              );
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _noSubtitle() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(1, 8, 8, 8),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {},
+          child: glassContainer(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.subtitles_off_rounded,
+                    size: 48,
+                    color: kSecondaryWhite,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Subtitles Found',
+                    style: mbTextStyle(
+                      color: kSecondaryWhite,
+                      size: 16,
+                      weight: .bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

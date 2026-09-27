@@ -5,11 +5,11 @@ import 'package:mockingbird/mobile/tab_player/subtitle/subtitle_state.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../tool/extensions.dart';
-import '../player/mobile_player_state.dart';
 import '../sentence_card/sentence_card_ui.dart';
+import 'mobile_player_state.dart';
 
-class MobileSubtitleUI extends StatelessWidget {
-  const MobileSubtitleUI({super.key});
+class MobilePlayerSubtitleUI extends StatelessWidget {
+  const MobilePlayerSubtitleUI({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -4,10 +4,6 @@ abstract class CommPlayerEvent {
   const CommPlayerEvent();
 }
 
-class CommPlayerInitEvent extends CommPlayerEvent {
-  const CommPlayerInitEvent();
-}
-
 class CommPlayerClickSentenceEvent extends CommPlayerEvent {
   final String sentenceId;
   const CommPlayerClickSentenceEvent(this.sentenceId);

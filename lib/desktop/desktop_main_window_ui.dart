@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
-import '../player/desktop_player_ui.dart';
+import 'player/ui/desktop_player_ui.dart';
 
-class DesktopMainWindowUI extends StatefulWidget {
+class DesktopMainWindowUI extends StatelessWidget {
   const DesktopMainWindowUI({super.key});
 
-  @override
-  State<StatefulWidget> createState() => _DesktopMainWindowUIState();
-}
-
-class _DesktopMainWindowUIState extends State<DesktopMainWindowUI> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

@@ -1,21 +1,40 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
+import 'package:mockingbird/desktop/player/desktop_player_state.dart';
+import 'package:mockingbird/desktop/player/ui/desktop_player_video_ui.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
+import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart' as p;
+import 'package:window_manager/window_manager.dart';
 
+import '../../tool/comm_player/comm_player_event.dart';
 import '../../tool/extensions.dart';
 
-//TODO use same bloc to handle player logic
 class DesktopPlayerBloc extends CommPlayerBloc {
   static final shared = DesktopPlayerBloc._();
 
   DesktopPlayerBloc._() : super() {
-    on<DesktopPlayerSelectMediaFromFileExplorerEvent>(_onSelectMediaFromFileExplorer);
+    on<DesktopPlayerInitEvent>(_onInit);
+    on<DesktopPlayerSelectMediaFromFileExplorerEvent>(
+      _onSelectMediaFromFileExplorer,
+    );
+  }
+
+  void _onInit(
+    DesktopPlayerInitEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
+    await windowManager.setTitle('Mockingbird');
+    await windowManager.setSize(const Size(600, 400));
+    await windowManager.setMinimumSize(const Size(600, 400));
+    await windowManager.center();
+    emit(const CommPlayerEmptyState());
   }
 
   void _onSelectMediaFromFileExplorer(
@@ -27,11 +46,13 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       allowedExtensions: [...kVideoExtensions, ...kAudioExtensions],
     );
     final filePath = xfile?.path;
-    if (filePath == null) return;
-
+    if (filePath == null) {
+      emit(const CommPlayerEmptyState());
+      return;
+    }
     EasyLoading.show(maskType: .clear);
     final mediaFile = File(filePath);
-    final state = await reload((
+    final commState = await reload((
       loopIndex: null,
       mediaFile: mediaFile,
       mediaType: mediaFile.type,
@@ -42,7 +63,37 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       title: p.basename(mediaFile.path),
       subtitle: null,
     ));
-    emit(state);
+    if (commState case CommPlayerDataState commData) {
+      //TODO read db to get window frame, size
+      final splitter = MultiSplitViewController();
+      splitter.addArea(
+        Area(
+          // flex: 2,
+          size: kDesktopPlayerMinWidth,
+          min: kDesktopPlayerMinWidth,
+          builder: (context, area) => const DesktopPlayerVideoLeftUI(),
+        ),
+      );
+      splitter.addArea(
+        Area(
+          // flex: 1,
+          size: kDesktopSubtitleMinWidth,
+          min: kDesktopSubtitleMinWidth,
+          builder: (context, area) => const DesktopPlayerVideoRightUI(),
+        ),
+      );
+      emit(
+        DesktopPlayerDataState.commData(splitter: splitter, commData: commData),
+      );
+    } else {
+      emit(commState);
+    }
     EasyLoading.dismiss();
+  }
+
+  @override
+  Future<void> close() {
+    state.as<DesktopPlayerDataState>()?.splitter.dispose();
+    return super.close();
   }
 }

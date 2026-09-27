@@ -3,10 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/subtitle_list_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/subtitle_list/subtitle_list_event.dart';
 
-class MobileSubtitleListUI extends StatelessWidget {
+class MobilePlayerSubtitleListUI extends StatelessWidget {
   final SubtitleListBloc _bloc;
 
-  const MobileSubtitleListUI(this._bloc, {super.key});
+  const MobilePlayerSubtitleListUI(this._bloc, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +28,9 @@ class MobileSubtitleListUI extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               child: Text(
                 'Select Subtitle',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const Divider(),
@@ -49,21 +51,33 @@ class MobileSubtitleListUI extends StatelessWidget {
                         child: ListTile(
                           leading: Icon(
                             Icons.subtitles_rounded,
-                            color: isSelected ? colorScheme.primary : colorScheme.outline,
+                            color: isSelected
+                                ? colorScheme.primary
+                                : colorScheme.outline,
                           ),
                           title: Text(
                             subtitle.name,
                             style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.onSurface,
                             ),
                           ),
                           trailing: isSelected
-                              ? Icon(Icons.check_circle_rounded, color: colorScheme.primary)
+                              ? Icon(
+                                  Icons.check_circle_rounded,
+                                  color: colorScheme.primary,
+                                )
                               : null,
                           onTap: () {
                             context.read<SubtitleListBloc>().add(
-                              SubtitleListSelectSubtitleEvent(subtitle, context),
+                              SubtitleListSelectSubtitleEvent(
+                                subtitle,
+                                context,
+                              ),
                             );
                           },
                         ),

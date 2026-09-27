@@ -9,7 +9,7 @@ import 'package:mockingbird/tool/extensions.dart';
 import 'package:video_player_win/video_player_win.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'desktop/main_window/desktop_main_window_ui.dart';
+import 'desktop/desktop_main_window_ui.dart';
 
 void main(List<String> argList) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,16 +43,11 @@ Future<void> _runDesktopApp(List<String> argList) async {
   //   await windowManager.show();
   //   await windowManager.focus();
   // });
-  //TODO move to bloc
-  // await window.setTitle('Mockingbird');
-  // await window.setFrame(Offset.zero & const Size(600, 400));
-  // await window.setMinimumSize(const Size(600, 400));
-  // await window.center();
+
   runApp(const DesktopMainWindowUI());
 }
 
 Future<void> _runMobileApp() async {
-  
   await AudioService.init(
     builder: () => MobileBackgroundAudioPlayer(),
     config: const AudioServiceConfig(
