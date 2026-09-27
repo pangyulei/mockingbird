@@ -50,10 +50,7 @@ class SentenceCardUI extends StatelessWidget {
                       //         ),
                       //       ]
                       //     : null,
-                      border: Border.all(
-                        color: playing ? kPrimaryGreen : kGlassBorderColor,
-                        width: playing ? 2 : 1,
-                      ),
+                      border: Border.all(color: kGlassBorderColor, width: 1),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(12),
@@ -70,7 +67,9 @@ class SentenceCardUI extends StatelessWidget {
                                 content,
                                 style: mbTextStyle(
                                   size: 20,
-                                  color: kPrimaryWhite,
+                                  color: playing
+                                      ? kPrimaryWhite
+                                      : kSecondaryWhite,
                                   weight: playing ? .bold : .normal,
                                 ),
                               );

@@ -47,3 +47,5 @@ app.*.map.json
 
 # Kotlin incremental compilation files
 *.salive
+# Widget Preview related
+.widget_preview/

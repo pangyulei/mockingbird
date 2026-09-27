@@ -33,7 +33,7 @@ class DesktopPlayerEmptyUI extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: const BoxDecoration(
-                                color: kPrimaryGreen,
+                                color: kPrimaryBlue,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(

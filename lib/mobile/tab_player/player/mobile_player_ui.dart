@@ -21,7 +21,6 @@ class MobilePlayerUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    i('player ui building');
     return BlocProvider.value(
       value: _bloc,
       child: BlocListener<MobilePlayerBloc, CommPlayerState>(
