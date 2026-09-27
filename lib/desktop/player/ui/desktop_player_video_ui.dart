@@ -61,14 +61,34 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // _appBar(context),
-        Expanded(child: Center(child: _videoDisplayer(context))),
-        _controlBar(context),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 2, 8),
+      child: Column(
+        mainAxisAlignment: .center,
+        children: [
+          glassContainer(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: _videoDisplayer(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          glassContainer(child: SizedBox(height: 44, child: _controlBar())),
+        ],
+      ),
     );
+    // return Column(
+    //   mainAxisSize: MainAxisSize.min,
+    //   children: [
+    //     // _appBar(context),
+    //     // Expanded(child: Center(child: _videoDisplayer(context))),
+    //     ,
+    //
+    //   ],
+    // );
   }
 
   // Widget _appBar(BuildContext context) {
@@ -107,7 +127,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   //   );
   // }
 
-  Widget _videoDisplayer(BuildContext context) {
+  Widget _videoDisplayer() {
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -125,7 +145,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           right: 16,
           bottom: 8,
           // child: Expanded(child: _progressSlider(context)),
-          child: _progressSlider(context),
+          child: _progressSlider(),
         ),
       ],
     );
@@ -144,14 +164,13 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
     );
   }
 
-  Widget _progressSlider(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _progressSlider() {
     return SliderTheme(
-      data: SliderTheme.of(context).copyWith(
+      data: SliderThemeData(
         trackHeight: 3.0,
-        activeTrackColor: colorScheme.primary,
-        inactiveTrackColor: Colors.white24,
-        thumbColor: Colors.white,
+        activeTrackColor: kPrimaryGreen,
+        inactiveTrackColor: kPrimaryWhite,
+        thumbColor: kPrimaryGreen,
         thumbSize: WidgetStateProperty.all(const Size(14, 14)),
       ),
       child: Builder(
@@ -201,46 +220,45 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
     );
   }
 
-  Widget _controlBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Builder(
-        builder: (context) {
-          final subtitleListButtonVisible = context
-              .select<DesktopPlayerBloc, bool>(
-                (bloc) =>
-                    bloc.state
-                        .as<CommPlayerDataState>()
-                        ?.subtitleListButtonVisible ??
-                    false,
-              );
-          return Row(
-            children: [
-              _playOrPauseButton(context),
+  Widget _controlBar() {
+    return Builder(
+      builder: (context) {
+        final subtitleListButtonVisible = context
+            .select<DesktopPlayerBloc, bool>(
+              (bloc) =>
+                  bloc.state
+                      .as<CommPlayerDataState>()
+                      ?.subtitleListButtonVisible ??
+                  false,
+            );
+        return Row(
+          children: [
+            _playOrPauseButton(context),
+            const SizedBox(width: 16),
+            _loopButton(context),
+            if (subtitleListButtonVisible) ...[
               const SizedBox(width: 16),
-              _loopButton(context),
-              if (subtitleListButtonVisible) ...[
-                const SizedBox(width: 16),
-                _subtitleListButton(context),
-              ],
-              const Spacer(),
-              _speedDownButton(),
-              const SizedBox(width: 8),
-              _speedLabel(context),
-              const SizedBox(width: 8),
-              _speedUpButton(),
+              _subtitleListButton(context),
             ],
-          );
-        },
-      ),
+            const Spacer(),
+            _speedDownButton(),
+            const SizedBox(width: 8),
+            _speedLabel(context),
+            const SizedBox(width: 8),
+            _speedUpButton(),
+          ],
+        );
+      },
     );
+    // return Container(
+    // decoration: BoxDecoration(
+    // color: colorScheme.surface,
+    // border: Border(
+    //   bottom: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
+    // ),
+    // ),
+    // padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+    // );
   }
 
   Widget _playOrPauseButton(BuildContext context) {

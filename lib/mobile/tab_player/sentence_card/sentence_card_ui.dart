@@ -10,7 +10,7 @@ class SentenceCardUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double radius = 16;
+    const double radius = 8;
     return BlocProvider.value(
       value: _bloc,
       child: Padding(
@@ -83,10 +83,7 @@ class SentenceCardUI extends StatelessWidget {
                               Builder(
                                 builder: (context) {
                                   final (period, playing) = context
-                                      .select<
-                                        SentenceCardBloc,
-                                        (String, bool)
-                                      >(
+                                      .select<SentenceCardBloc, (String, bool)>(
                                         (bloc) => (
                                           bloc.state.period,
                                           bloc.state.playing,

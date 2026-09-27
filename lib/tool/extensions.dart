@@ -253,7 +253,7 @@ Widget imageContainer(ImageProvider image, {required Widget child}) =>
       child: child,
     );
 
-Widget glassContainer({required Widget child, double radius = 16}) => ClipRRect(
+Widget glassContainer({required Widget child, double radius = 8}) => ClipRRect(
   borderRadius: BorderRadius.circular(radius),
   child: BackdropFilter(
     filter: kGlassFilter,
