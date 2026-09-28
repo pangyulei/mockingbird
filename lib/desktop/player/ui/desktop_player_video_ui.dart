@@ -73,11 +73,11 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 8, 2, 8),
         child: Column(
           mainAxisAlignment: .center,
+          mainAxisSize: .min,
           children: [
-            glassContainer(
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: ClipRRect(borderRadius: BorderRadius.circular(8), child: _videoDisplayer()),
+            Flexible(
+              child: glassContainer(
+                child: Padding(padding: const EdgeInsets.all(8), child: _videoDisplayer()),
               ),
             ),
             const SizedBox(height: 8),
@@ -91,72 +91,27 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         ),
       ),
     );
-    // return Column(
-    //   mainAxisSize: MainAxisSize.min,
-    //   children: [
-    //     // _appBar(context),
-    //     // Expanded(child: Center(child: _videoDisplayer(context))),
-    //     ,
-    //
-    //   ],
-    // );
   }
 
-  // Widget _appBar(BuildContext context) {
-  //   return Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-  //     color: Colors.black.withValues(alpha: 0.6),
-  //     child: Row(
-  //       children: [
-  //         Expanded(
-  //           child: Builder(
-  //             builder: (context) {
-  //               final title = context.select<DesktopPlayerBloc, String>(
-  //                 (bloc) => bloc.state.as<CommPlayerDataState>()?.title ?? '',
-  //               );
-  //               return SizedBox(
-  //                 height: 24,
-  //                 child: title.isEmpty
-  //                     ? const Text('')
-  //                     : Marquee(
-  //                         text: title,
-  //                         style: const TextStyle(
-  //                           fontSize: 14,
-  //                           fontWeight: FontWeight.bold,
-  //                           color: Colors.white,
-  //                         ),
-  //                         scrollAxis: Axis.horizontal,
-  //                         blankSpace: 50,
-  //                         velocity: 30,
-  //                       ),
-  //               );
-  //             },
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
   Widget _videoDisplayer() {
-    return Stack(
-      alignment: Alignment.center,
+    return Column(
+      mainAxisAlignment: .center,
+      mainAxisSize: .min,
       children: [
-        Builder(
-          builder: (context) {
-            final aspectRatio = context.select<DesktopPlayerBloc, double>(
-              (bloc) => bloc.state.as<CommPlayerDataState>()?.aspectRatio ?? 16 / 9,
-            );
-            return AspectRatio(aspectRatio: aspectRatio, child: _player());
-          },
+        Flexible(
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Builder(
+              builder: (context) {
+                final aspectRatio = context.select<DesktopPlayerBloc, double>(
+                  (bloc) => bloc.state.as<CommPlayerDataState>()?.aspectRatio ?? 16 / 9,
+                );
+                return AspectRatio(aspectRatio: aspectRatio, child: _player());
+              },
+            ),
+          ),
         ),
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: -10,
-          // child: Expanded(child: _progressSlider(context)),
-          child: _progressSlider(),
-        ),
+        _progressSlider(),
       ],
     );
   }
@@ -239,17 +194,44 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         );
       },
     );
-    // return Container(
-    // decoration: BoxDecoration(
-    // color: colorScheme.surface,
-    // border: Border(
-    //   bottom: BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
-    // ),
-    // ),
-    // padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-    // );
   }
 
+  // Widget _appBar(BuildContext context) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //     color: Colors.black.withValues(alpha: 0.6),
+  //     child: Row(
+  //       children: [
+  //         Expanded(
+  //           child: Builder(
+  //             builder: (context) {
+  //               final title = context.select<DesktopPlayerBloc, String>(
+  //                 (bloc) => bloc.state.as<CommPlayerDataState>()?.title ?? '',
+  //               );
+  //               return SizedBox(
+  //                 height: 24,
+  //                 child: title.isEmpty
+  //                     ? const Text('')
+  //                     : Marquee(
+  //                         text: title,
+  //                         style: const TextStyle(
+  //                           fontSize: 14,
+  //                           fontWeight: FontWeight.bold,
+  //                           color: Colors.white,
+  //                         ),
+  //                         scrollAxis: Axis.horizontal,
+  //                         blankSpace: 50,
+  //                         velocity: 30,
+  //                       ),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+  //
   Widget _playOrPauseButton(BuildContext context) {
     return Builder(
       builder: (context) {
