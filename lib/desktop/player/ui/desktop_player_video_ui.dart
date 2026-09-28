@@ -202,14 +202,23 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _controlBar() {
     return Builder(
       builder: (context) {
-        final subtitleListButtonVisible = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleListButtonVisible ?? false,
-        );
+        final (subtitleListButtonVisible, sentenceButtonVisible) = context.select<DesktopPlayerBloc, (bool, bool)>((
+          bloc,
+        ) {
+          final data = bloc.state.as<CommPlayerDataState>();
+          return (data?.subtitleListButtonVisible ?? false, data?.sentenceButtonVisible ?? false);
+        });
         return Row(
           children: [
             _playOrPauseButton(context),
-            const SizedBox(width: 16),
-            _loopButton(context),
+            if (sentenceButtonVisible) ...[
+              const SizedBox(width: 16),
+              _loopButton(context),
+              const SizedBox(width: 8),
+              _prevSentenceButton(context),
+              const SizedBox(width: 8),
+              _nextSentenceButton(context),
+            ],
             if (subtitleListButtonVisible) ...[const SizedBox(width: 16), _subtitleListButton(context)],
             const Spacer(),
             _speedDownButton(),
@@ -218,6 +227,143 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
             const SizedBox(width: 8),
             _speedUpButton(),
           ],
+        );
+      },
+    );
+  }
+
+  Widget _playOrPauseButton(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final playing = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.playing ?? false,
+        );
+        return IconButton.filled(
+          onPressed: () {
+            if (playing) {
+              context.read<DesktopPlayerBloc>().add(const CommPlayerPauseEvent());
+            } else {
+              context.read<DesktopPlayerBloc>().add(const CommPlayerPlayEvent());
+            }
+          },
+          icon: Icon(playing ? Icons.pause : Icons.play_arrow, size: 20),
+          style: IconButton.styleFrom(
+            backgroundColor: kPrimaryColor,
+            foregroundColor: kPrimaryTextColor,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+          padding: EdgeInsets.zero,
+        );
+      },
+    );
+  }
+
+  Widget _loopButton(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final hasSubtitle = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState is SubtitleDataState,
+        );
+        if (!hasSubtitle) return const SizedBox.shrink();
+        final loop = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.loopIndex != null,
+        );
+        return IconButton(
+          onPressed: () {
+            context.read<DesktopPlayerBloc>().add(const CommPlayerToggleLoopEvent());
+          },
+          icon: Icon(loop ? Icons.repeat_one : Icons.repeat, color: loop ? kPrimaryColor : kPrimaryTextColor, size: 32),
+          style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          padding: EdgeInsets.zero,
+        );
+      },
+    );
+  }
+
+  Widget _prevSentenceButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayPreviousSentenceEvent());
+      },
+      icon: const Icon(Icons.skip_previous, color: kPrimaryColor, size: 36),
+      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _nextSentenceButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayNextSentenceEvent());
+      },
+      icon: const Icon(Icons.skip_next, color: kPrimaryColor, size: 36),
+      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _subtitleListButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(const CommPlayerShowSubtitleListEvent());
+      },
+      icon: const Icon(Icons.subtitles, color: kPrimaryColor, size: 32),
+      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _speedUpButton() {
+    return Builder(
+      builder: (context) => IconButton(
+        onPressed: () {
+          context.read<DesktopPlayerBloc>().add(const CommPlayerIncSpeedEvent());
+        },
+        icon: const Icon(Icons.add_circle_outline, size: 32),
+        color: kPrimaryColor,
+        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _speedDownButton() {
+    return Builder(
+      builder: (context) => IconButton(
+        onPressed: () {
+          context.read<DesktopPlayerBloc>().add(const CommPlayerDecSpeedEvent());
+        },
+        icon: const Icon(Icons.remove_circle_outline, size: 32),
+        color: kPrimaryColor,
+        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _speedLabel(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final speed = context.select<DesktopPlayerBloc, double>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.speed ?? 1,
+        );
+        return GestureDetector(
+          onTap: () => context.read<DesktopPlayerBloc>().add(const CommPlayerResetSpeedEvent()),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(color: kPrimaryColor, borderRadius: BorderRadius.circular(6)),
+            child: Text(
+              '${speed}x',
+              style: const TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
         );
       },
     );
@@ -259,122 +405,6 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   //   );
   // }
   //
-  Widget _playOrPauseButton(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final playing = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.playing ?? false,
-        );
-        return IconButton.filled(
-          onPressed: () {
-            if (playing) {
-              context.read<DesktopPlayerBloc>().add(const CommPlayerPauseEvent());
-            } else {
-              context.read<DesktopPlayerBloc>().add(const CommPlayerPlayEvent());
-            }
-          },
-          icon: Icon(playing ? Icons.pause_rounded : Icons.play_arrow_rounded, size: 20),
-          style: IconButton.styleFrom(
-            backgroundColor: kPrimaryColor,
-            foregroundColor: kPrimaryTextColor,
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
-          padding: EdgeInsets.zero,
-        );
-      },
-    );
-  }
-
-  Widget _loopButton(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final hasSubtitle = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState is SubtitleDataState,
-        );
-        if (!hasSubtitle) return const SizedBox.shrink();
-        final loop = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.loopIndex != null,
-        );
-        return IconButton(
-          onPressed: () {
-            context.read<DesktopPlayerBloc>().add(const CommPlayerToggleLoopEvent());
-          },
-          icon: Icon(
-            loop ? Icons.repeat_one_rounded : Icons.repeat_rounded,
-            color: loop ? kPrimaryColor : kPrimaryTextColor,
-            size: 36,
-          ),
-          style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-          padding: EdgeInsets.zero,
-        );
-      },
-    );
-  }
-
-  Widget _subtitleListButton(BuildContext context) {
-    return IconButton(
-      onPressed: () {
-        context.read<DesktopPlayerBloc>().add(const CommPlayerShowSubtitleListEvent());
-      },
-      icon: const Icon(Icons.subtitles_rounded, color: kPrimaryColor, size: 36),
-      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-      padding: EdgeInsets.zero,
-    );
-  }
-
-  Widget _speedUpButton() {
-    return Builder(
-      builder: (context) => IconButton(
-        onPressed: () {
-          context.read<DesktopPlayerBloc>().add(const CommPlayerIncSpeedEvent());
-        },
-        icon: const Icon(Icons.add_circle_outline_rounded, size: 32),
-        color: kPrimaryColor,
-        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        padding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _speedDownButton() {
-    return Builder(
-      builder: (context) => IconButton(
-        onPressed: () {
-          context.read<DesktopPlayerBloc>().add(const CommPlayerDecSpeedEvent());
-        },
-        icon: const Icon(Icons.remove_circle_outline_rounded, size: 32),
-        color: kPrimaryColor,
-        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-        padding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _speedLabel(BuildContext context) {
-    return Builder(
-      builder: (context) {
-        final speed = context.select<DesktopPlayerBloc, double>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.speed ?? 1,
-        );
-        return GestureDetector(
-          onTap: () => context.read<DesktopPlayerBloc>().add(const CommPlayerResetSpeedEvent()),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(color: kPrimaryColor, borderRadius: BorderRadius.circular(6)),
-            child: Text(
-              '${speed}x',
-              style: const TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ),
-        );
-      },
-    );
-  }
 }
 
 class DesktopPlayerVideoRightUI extends StatelessWidget {
@@ -460,7 +490,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
-                      child: const Icon(Icons.subtitles_rounded, size: 44, color: Colors.white),
+                      child: const Icon(Icons.subtitles, size: 44, color: Colors.white),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -520,7 +550,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.subtitles_rounded, color: kPrimaryColor, size: 22),
+                          const Icon(Icons.subtitles, color: kPrimaryColor, size: 22),
                           const SizedBox(width: 8),
                           Text(
                             'Select Subtitle',
@@ -529,7 +559,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                           const Spacer(),
                           IconButton(
                             onPressed: () => Navigator.of(dialogContext).pop(),
-                            icon: Icon(Icons.close_rounded, color: kSecondaryTextColor, size: 18),
+                            icon: Icon(Icons.close, color: kSecondaryTextColor, size: 18),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                           ),
@@ -551,7 +581,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                                 child: Row(
                                   children: [
                                     Icon(
-                                      isSelected ? Icons.check_circle_rounded : Icons.subtitles_outlined,
+                                      isSelected ? Icons.check_circle : Icons.subtitles_outlined,
                                       size: 18,
                                       color: isSelected ? kPrimaryColor : kSecondaryTextColor,
                                     ),

@@ -64,8 +64,9 @@ class SentenceCardUI extends StatelessWidget {
                                     (bloc) => bloc.state.text,
                                   );
                               return Text(
-                                content,
+                                content,                                
                                 style: kTextStyle(
+                                  backgroundColor: playing ? Colors.black.withValues(alpha: 0.5) : null,
                                   size: 20,
                                   color: playing
                                       ? kPrimaryTextColor

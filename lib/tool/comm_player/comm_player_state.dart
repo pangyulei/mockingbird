@@ -45,11 +45,8 @@ class CommPlayerDataState extends CommPlayerState {
 
   final VideoPlayerController player;
 
-  final bool subtitleListButtonVisible;
-
   const CommPlayerDataState({
     required this.aspectRatio,
-    required this.subtitleListButtonVisible,
     required this.subtitleList,
     required this.subtitleListVisible,
     required this.player,
@@ -73,7 +70,6 @@ class CommPlayerDataState extends CommPlayerState {
     SubtitleState? subtitleState,
     AssetType? mediaType,
     bool? subtitleListVisible,
-    bool? subtitleListButtonVisible,
     Duration? position,
     Duration? duration,
     String? title,
@@ -81,7 +77,6 @@ class CommPlayerDataState extends CommPlayerState {
   }) {
     return CommPlayerDataState(
       aspectRatio: aspectRatio ?? this.aspectRatio,
-      subtitleListButtonVisible: subtitleListButtonVisible ?? this.subtitleListButtonVisible,
       subtitleList: subtitleList ?? this.subtitleList,
       subtitleListVisible: subtitleListVisible ?? this.subtitleListVisible,
       loopIndex: loopIndex == null ? this.loopIndex : loopIndex(),
@@ -111,7 +106,6 @@ class CommPlayerDataState extends CommPlayerState {
     SubtitleState? subtitleState,
     AssetType? mediaType,
     bool? subtitleListVisible,
-    bool? subtitleListButtonVisible,
     Duration? position,
     Duration? duration,
     String? title,
@@ -125,7 +119,6 @@ class CommPlayerDataState extends CommPlayerState {
     subtitleState: subtitleState,
     mediaType: mediaType,
     subtitleListVisible: subtitleListVisible,
-    subtitleListButtonVisible: subtitleListButtonVisible,
     position: position,
     duration: duration,
     title: title,
@@ -134,4 +127,6 @@ class CommPlayerDataState extends CommPlayerState {
 
   Subtitle? get subtitle => subtitleState.as<SubtitleDataState>()?.subtitle;
   Sentence? get playingSentence => subtitle?.sentenceList.spot(position)?.sentence;
+  bool get subtitleListButtonVisible => subtitleList.length > 1;
+  bool get sentenceButtonVisible => subtitle != null && subtitle!.sentenceList.length > 1;
 }

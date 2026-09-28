@@ -153,7 +153,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
         ? data.subtitleList.map((s) => s == subtitle ? subtitle : s).toList()
         : [...data.subtitleList, subtitle];
 
-    final (:subtitleList, :subtitleState, :subtitleListButtonVisible) = await reloadSubtitle(
+    final (:subtitleList, :subtitleState) = await reloadSubtitle(
       argSubtitleList,
       subtitle,
       data.position,
@@ -163,7 +163,6 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       data.rCopyWith(
         subtitleList: subtitleList,
         subtitleState: subtitleState,
-        subtitleListButtonVisible: subtitleListButtonVisible,
       ),
     );
     EasyLoading.showSuccess('Subtitle added successfully');

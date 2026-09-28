@@ -27,7 +27,7 @@ const double _kStepPlaySpeed = 0.1;
 abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   bool _mediaPlayingBeforeDrag = false;
   File? mediaFile;
-  final scroller = ItemScrollController();
+  final _scroller = ItemScrollController();
   SpotType? _prevSpot;
 
   List<StreamSubscription> subscriptionList = [];
@@ -50,19 +50,16 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     on<CommPlayerMediaSliderChangingEvent>(_onMediaSliderChanging);
     on<CommPlayerMediaSliderEndChangeEvent>(_onMediaSliderEndChange);
     on<CommPlayerVolumeChangeEvent>(_onVolumeChange);
+    on<CommPlayerPlayPreviousSentenceEvent>(_onPlayPreviousSentence);
+    on<CommPlayerPlayNextSentenceEvent>(_onPlayNextSentence);
     subscriptionList.addAll([
-      EventHub.on<HubSubtitleChangeEvent>(
-        (event) => add(CommPlayerPickSubtitleFromListEvent(event.subtitle)),
-      ),
+      EventHub.on<HubSubtitleChangeEvent>((event) => add(CommPlayerPickSubtitleFromListEvent(event.subtitle))),
     ]);
   }
 
   SubtitleListBloc get subtitleListBloc {
     final data = state.as<CommPlayerDataState>();
-    return SubtitleListBloc(
-      subtitleList: data?.subtitleList ?? [],
-      subtitle: data?.subtitle,
-    );
+    return SubtitleListBloc(subtitleList: data?.subtitleList ?? [], subtitle: data?.subtitle);
   }
 
   SpotType? get _spot {
@@ -85,15 +82,10 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     return super.close();
   }
 
-  void onPickSubtitleFromList(
-    CommPlayerPickSubtitleFromListEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void onPickSubtitleFromList(CommPlayerPickSubtitleFromListEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
-    final subtitle = data.subtitleList.firstWhereOrNull(
-      (s) => s == event.subtitle,
-    );
+    final subtitle = data.subtitleList.firstWhereOrNull((s) => s == event.subtitle);
     data = data.rCopyWith(
       subtitleListVisible: false,
       subtitleState: subtitle == null
@@ -102,7 +94,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
               subtitle: subtitle,
               initialAlignment: _spot?.alignment ?? 0,
               initialIndex: _spot?.index ?? 0,
-              scroller: scroller,
+              scroller: _scroller,
             ),
     );
     emit(data);
@@ -138,16 +130,8 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
         //because of this is read and have to await, this has to be a AsyncNotifier
         final player = VideoPlayerController.file(args.mediaFile);
         await player.initialize();
-        player.addListener(
-          () => add(
-            CommPlayerPositionChangeByPlayingEvent(player.value.position),
-          ),
-        );
-        final (
-          :subtitleList,
-          :subtitleState,
-          :subtitleListButtonVisible,
-        ) = await reloadSubtitle(
+        player.addListener(() => add(CommPlayerPositionChangeByPlayingEvent(player.value.position)));
+        final (:subtitleList, :subtitleState) = await reloadSubtitle(
           await args.mediaFile.subtitleList,
           args.subtitle,
           args.position,
@@ -161,11 +145,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
           loopIndex = null;
         } else {
           final sentenceList = subtitleList
-              .firstWhereOrNull(
-                (s) =>
-                    s.path ==
-                    subtitleState.as<SubtitleDataState>()?.subtitle.path,
-              )
+              .firstWhereOrNull((s) => s.path == subtitleState.as<SubtitleDataState>()?.subtitle.path)
               ?.sentenceList;
           loopIndex = sentenceList?.spot(args.position)?.index;
         }
@@ -173,7 +153,6 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
           aspectRatio: player.value.aspectRatio,
           subtitleList: subtitleList,
           subtitleListVisible: false,
-          subtitleListButtonVisible: subtitleListButtonVisible,
           loopIndex: loopIndex,
           playing: args.playing,
           subtitleState: subtitleState,
@@ -190,14 +169,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     return newState;
   }
 
-  Future<
-    ({
-      List<Subtitle> subtitleList,
-      SubtitleState subtitleState,
-      bool subtitleListButtonVisible,
-    })
-  >
-  reloadSubtitle(
+  Future<({List<Subtitle> subtitleList, SubtitleState subtitleState})> reloadSubtitle(
     List<Subtitle> subtitleList,
     Subtitle? subtitle,
     Duration position,
@@ -214,30 +186,21 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       subtitleState = SubtitleDataState(
         initialAlignment: spot.alignment,
         initialIndex: spot.index,
-        scroller: scroller,
+        scroller: _scroller,
         subtitle: subtitle,
       );
     }
-    return (
-      subtitleList: subtitleList,
-      subtitleState: subtitleState,
-      subtitleListButtonVisible: subtitleList.length > 1,
-    );
+    return (subtitleList: subtitleList, subtitleState: subtitleState);
   }
 
   SentenceCardBloc sentenceCardBlocAtIndex(int index) {
-    final sentence =
-        (state as CommPlayerDataState).subtitle!.sentenceList[index];
+    final sentence = (state as CommPlayerDataState).subtitle!.sentenceList[index];
     final playing = _spot?.index == index;
     //TODO maybe no need to init playing, card bloc can read the latest playing value to emit right state
-    return SentenceCardBloc(sentence, this)
-      ..add(SentenceCardInitEvent(playing));
+    return SentenceCardBloc(sentence, this)..add(SentenceCardInitEvent(playing));
   }
 
-  void _onClickSentence(
-    CommPlayerClickSentenceEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onClickSentence(CommPlayerClickSentenceEvent event, Emitter<CommPlayerState> emit) async {
     /*Fix loop mode, tap sentence bug
     in loop mode, you seek from s(n)->s(n+1),
     because it beyond s(n) end, so it trigger reseek to start
@@ -247,9 +210,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
      */
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
-    final sentenceIndex = data.subtitle?.sentenceList.firstIndexWhereOrNull(
-      (sen) => sen.id == event.sentenceId,
-    );
+    final sentenceIndex = data.subtitle?.sentenceList.firstIndexWhereOrNull((sen) => sen.id == event.sentenceId);
     if (sentenceIndex == null) return;
     final sentence = data.subtitle?.sentenceList[sentenceIndex];
     if (sentence == null) return;
@@ -258,60 +219,41 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     }
     EventHub.emit(HubPlayingSentenceChangeEvent(sentence.id));
     final double alignment = sentenceIndex == 0 ? 0 : 0.3;
-    scroller.safeScrollTo(sentenceIndex, alignment: alignment);
+    _scroller.safeScrollTo(sentenceIndex, alignment: alignment);
     emit(data.rCopyWith(playing: true));
     await data.player.seekTo(sentence.start);
     await data.player.play();
   }
 
-  void _onDecSpeed(
-    CommPlayerDecSpeedEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onDecSpeed(CommPlayerDecSpeedEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
-    final double nextSpeed = (data.speed - _kStepPlaySpeed)
-        .clamp(_kMinPlaySpeed, _kMaxPlaySpeed)
-        .digits(1);
+    final double nextSpeed = (data.speed - _kStepPlaySpeed).clamp(_kMinPlaySpeed, _kMaxPlaySpeed).digits(1);
     data = data.rCopyWith(speed: nextSpeed);
     emit(data);
     await data.player.setPlaybackSpeed(nextSpeed);
   }
 
-  void _onHideSubtitleList(
-    CommPlayerHideSubtitleListEvent event,
-    Emitter<CommPlayerState> emit,
-  ) {
+  void _onHideSubtitleList(CommPlayerHideSubtitleListEvent event, Emitter<CommPlayerState> emit) {
     final state = this.state;
     if (state is! CommPlayerDataState) return;
     emit(state.rCopyWith(subtitleListVisible: false));
   }
 
-  void _onIncSpeed(
-    CommPlayerIncSpeedEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onIncSpeed(CommPlayerIncSpeedEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
-    final double nextSpeed = (data.speed + _kStepPlaySpeed)
-        .clamp(_kMinPlaySpeed, _kMaxPlaySpeed)
-        .digits(1);
+    final double nextSpeed = (data.speed + _kStepPlaySpeed).clamp(_kMinPlaySpeed, _kMaxPlaySpeed).digits(1);
     data = data.rCopyWith(speed: nextSpeed);
     emit(data);
     await data.player.setPlaybackSpeed(nextSpeed);
   }
 
-  void _onMediaSliderChanging(
-    CommPlayerMediaSliderChangingEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onMediaSliderChanging(CommPlayerMediaSliderChangingEvent event, Emitter<CommPlayerState> emit) async {
     await _onPositionChangeByDragging(event.position, emit);
   }
 
-  void _onMediaSliderEndChange(
-    CommPlayerMediaSliderEndChangeEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onMediaSliderEndChange(CommPlayerMediaSliderEndChangeEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
     await _onPositionChangeByDragging(event.position, emit);
@@ -322,20 +264,14 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     }
   }
 
-  void _onMediaSliderStartChange(
-    CommPlayerMediaSliderStartChangeEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onMediaSliderStartChange(CommPlayerMediaSliderStartChangeEvent event, Emitter<CommPlayerState> emit) async {
     final state = this.state;
     if (state is! CommPlayerDataState) return;
     _mediaPlayingBeforeDrag = state.playing;
     await _onPositionChangeByDragging(event.position, emit);
   }
 
-  void _onPause(
-    CommPlayerPauseEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onPause(CommPlayerPauseEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
     emit(data.rCopyWith(playing: false));
@@ -354,10 +290,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     await data.player.play();
   }
 
-  Future<void> _onPositionChangeByDragging(
-    Duration position,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  Future<void> _onPositionChangeByDragging(Duration position, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
     if (data.playing) {
@@ -366,10 +299,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       await data.player.pause();
     }
     await data.player.seekTo(position);
-    final playerProperties = _updatePropertiesWithPosition(
-      position: position,
-      emit: emit,
-    );
+    final playerProperties = _updatePropertiesWithPosition(position: position, emit: emit);
     if (data.loopIndex != null) {
       data = data.rCopyWith(loopIndex: () => _spot?.index);
       emit(state);
@@ -378,15 +308,12 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       //handle scroll
       final spot = _spot;
       if (spot != null) {
-        scroller.safeJumpTo(spot.index, alignment: spot.alignment);
+        _scroller.safeJumpTo(spot.index, alignment: spot.alignment);
       }
     }
   }
 
-  void _onPositionChangeByPlaying(
-    CommPlayerPositionChangeByPlayingEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onPositionChangeByPlaying(CommPlayerPositionChangeByPlayingEvent event, Emitter<CommPlayerState> emit) async {
     //Fix switch media, old listener still execute bug
     if (mediaFile == null) return;
     //Seperate dragging and playing position change listener
@@ -394,10 +321,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     var state = this.state;
     if (state is! CommPlayerDataState) return;
     if (!state.playing) return;
-    final playerProperties = _updatePropertiesWithPosition(
-      position: event.position,
-      emit: emit,
-    );
+    final playerProperties = _updatePropertiesWithPosition(position: event.position, emit: emit);
     if (playerProperties.mediaCompleted) {
       //audo re-play media
       state = state.rCopyWith(playing: true);
@@ -414,15 +338,12 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       //handle scroll
       if (state.loopIndex == null) {
         //playing auto scroll to next sentence, not for loop mode
-        scroller.safeScrollTo(_spot?.index, alignment: _spot?.alignment ?? 0);
+        _scroller.safeScrollTo(_spot?.index, alignment: _spot?.alignment ?? 0);
       }
     }
   }
 
-  void _onResetSpeed(
-    CommPlayerResetSpeedEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onResetSpeed(CommPlayerResetSpeedEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     var data = state as CommPlayerDataState;
     final nextSpeed = (1.0).clamp(_kMinPlaySpeed, _kMaxPlaySpeed);
@@ -431,37 +352,25 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     await data.player.setPlaybackSpeed(nextSpeed);
   }
 
-  void _onScrollToBottom(
-    CommPlayerScrollToBottomEvent event,
-    Emitter<CommPlayerState> emit,
-  ) {
+  void _onScrollToBottom(CommPlayerScrollToBottomEvent event, Emitter<CommPlayerState> emit) {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
     final subtitle = data.subtitle;
     if (subtitle == null || subtitle.sentenceList.isEmpty) return;
-    scroller.safeScrollTo(subtitle.sentenceList.length - 1);
+    _scroller.safeScrollTo(subtitle.sentenceList.length - 1);
   }
 
-  void _onScrollToPlayingSentence(
-    CommPlayerScrollToPlayingSentenceEvent event,
-    Emitter<CommPlayerState> emit,
-  ) {
+  void _onScrollToPlayingSentence(CommPlayerScrollToPlayingSentenceEvent event, Emitter<CommPlayerState> emit) {
     final index = _spot?.index;
     if (index == null) return;
-    scroller.safeScrollTo(index, alignment: 0.3);
+    _scroller.safeScrollTo(index, alignment: 0.3);
   }
 
-  void _onScrollToTop(
-    CommPlayerScrollToTopEvent event,
-    Emitter<CommPlayerState> emit,
-  ) {
-    scroller.safeScrollTo(0);
+  void _onScrollToTop(CommPlayerScrollToTopEvent event, Emitter<CommPlayerState> emit) {
+    _scroller.safeScrollTo(0);
   }
 
-  void _onShowSubtitleList(
-    CommPlayerShowSubtitleListEvent event,
-    Emitter<CommPlayerState> emit,
-  ) {
+  void _onShowSubtitleList(CommPlayerShowSubtitleListEvent event, Emitter<CommPlayerState> emit) {
     final state = this.state;
     if (state is! CommPlayerDataState) return;
     emit(state.rCopyWith(subtitleListVisible: true));
@@ -474,20 +383,14 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     emit(data.rCopyWith(loopIndex: () => loopIndex));
   }
 
-  void _onVolumeChange(
-    CommPlayerVolumeChangeEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onVolumeChange(CommPlayerVolumeChangeEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
     emit(data.rCopyWith(volume: event.volume));
     await data.player.setVolume(event.volume);
   }
 
-  PlayerProperties _updatePropertiesWithPosition({
-    required Duration position,
-    required Emitter<CommPlayerState> emit,
-  }) {
+  PlayerProperties _updatePropertiesWithPosition({required Duration position, required Emitter<CommPlayerState> emit}) {
     // var result = (mediaCompleted: false, completedLoopSentence: null, sentenceChanged: false);
     // if (state is! CommPlayerDataState) return result;
 
@@ -500,9 +403,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
 
     //handle loop reseek
     final loopIndex = data.loopIndex;
-    final loopSentence = loopIndex == null
-        ? null
-        : data.subtitle?.sentenceList.elementAtOrNull(loopIndex);
+    final loopSentence = loopIndex == null ? null : data.subtitle?.sentenceList.elementAtOrNull(loopIndex);
     Sentence? completedLoopSentence;
     if (loopSentence != null && position > loopSentence.end) {
       //if repeat one is turn on, while sentence finished, seek to beginning
@@ -520,5 +421,35 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       completedLoopSentence: completedLoopSentence,
       sentenceChanged: sentenceChanged,
     );
+  }
+
+  Future<void> _onPlayPreviousSentence(CommPlayerPlayPreviousSentenceEvent event, Emitter<CommPlayerState> emit) async {
+    final index = _spot?.index;
+    if (index == null) return;
+    var data = state.as<CommPlayerDataState>();
+    if (data == null) return;
+    final previousIndex = index - 1;
+    final previousSentence = data.subtitle?.sentenceList.elementAtOrNull(previousIndex);
+    if (previousSentence == null) return;
+    data = data.copyWith(position: previousSentence.start);
+    await data.player.seekTo(previousSentence.start);
+    emit(data);
+    EventHub.emit(HubPlayingSentenceChangeEvent(previousSentence.id));
+    _scroller.safeScrollTo(previousIndex, alignment: previousIndex == 0 ? 0 : 0.3);
+  }
+
+  Future<void> _onPlayNextSentence(CommPlayerPlayNextSentenceEvent event, Emitter<CommPlayerState> emit) async {
+    final index = _spot?.index;
+    if (index == null) return;
+    var data = state.as<CommPlayerDataState>();
+    if (data == null) return;
+    final nextIndex = index + 1;
+    final nextSentence = data.subtitle?.sentenceList.elementAtOrNull(nextIndex);
+    if (nextSentence == null) return;
+    data = data.copyWith(position: nextSentence.start);
+    await data.player.seekTo(nextSentence.start);
+    emit(data);
+    EventHub.emit(HubPlayingSentenceChangeEvent(nextSentence.id));
+    _scroller.safeScrollTo(nextIndex, alignment: nextIndex == 0 ? 0 : 0.3);
   }
 }
