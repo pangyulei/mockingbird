@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
+import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
@@ -446,7 +450,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                   );
               switch (subtitleState) {
                 case null || SubtitleEmptyState():
-                  return _noSubtitle();
+                  return _noSubtitle(context);
                 case SubtitleDataState data:
                   return ScrollablePositionedList.builder(
                     key: ValueKey(data),
@@ -469,31 +473,76 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
     );
   }
 
-  Widget _noSubtitle() {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {},
-        child: glassContainer(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.subtitles_off_rounded,
-                  size: 48,
-                  color: kSecondaryTextColor,
+  Widget _noSubtitle(BuildContext context) {
+    return DropTarget(
+      onDragDone: (details) {
+        final path = details.files.firstOrNull?.path;
+        if (path != null) {
+          final file = File(path);
+          context.read<DesktopPlayerBloc>().add(
+            DesktopPlayerDropSubtitleEvent(file),
+          );
+        }
+      },
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            context.read<DesktopPlayerBloc>().add(
+              const DesktopPlayerPickSubtitleFromFileExplorerEvent(),
+            );
+          },
+          child: glassContainer(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.subtitles_rounded,
+                        size: 44,
+                        color: kPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Subtitles Track',
+                      style: kTextStyle(
+                        color: kPrimaryTextColor,
+                        size: 16,
+                        weight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Click or Drag & Drop subtitle file here',
+                      style: kTextStyle(
+                        color: kSecondaryTextColor,
+                        size: 13,
+                        weight: FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Supports .srt and .vtt formats',
+                      style: kTextStyle(
+                        color: kSecondaryTextColor.withValues(alpha: 0.6),
+                        size: 11,
+                        weight: FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  'No Subtitles Found',
-                  style: kTextStyle(
-                    color: kSecondaryTextColor,
-                    size: 16,
-                    weight: .bold,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),

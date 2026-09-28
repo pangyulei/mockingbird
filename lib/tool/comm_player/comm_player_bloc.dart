@@ -27,7 +27,7 @@ const double _kStepPlaySpeed = 0.1;
 abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   bool _mediaPlayingBeforeDrag = false;
   File? mediaFile;
-  final _scroller = ItemScrollController();
+  final scroller = ItemScrollController();
   SpotType? _prevSpot;
 
   List<StreamSubscription> subscriptionList = [];
@@ -105,7 +105,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
               subtitle: subtitle,
               initialAlignment: _spot?.alignment ?? 0,
               initialIndex: _spot?.index ?? 0,
-              scroller: _scroller,
+              scroller: scroller,
             ),
     );
     emit(data);
@@ -151,7 +151,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
           :subtitleList,
           :subtitleState,
           :subtitleListButtonVisible,
-        ) = await _reloadSubtitle(
+        ) = await reloadSubtitle(
           await args.mediaFile.subtitleList,
           args.subtitle,
           args.position,
@@ -201,7 +201,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       bool subtitleListButtonVisible,
     })
   >
-  _reloadSubtitle(
+  reloadSubtitle(
     List<Subtitle> subtitleList,
     Subtitle? subtitle,
     Duration position,
@@ -218,7 +218,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       subtitleState = SubtitleDataState(
         initialAlignment: spot.alignment,
         initialIndex: spot.index,
-        scroller: _scroller,
+        scroller: scroller,
         subtitle: subtitle,
       );
     }
@@ -262,7 +262,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     }
     EventHub.emit(HubPlayingSentenceChangeEvent(sentence.id));
     final double alignment = sentenceIndex == 0 ? 0 : 0.3;
-    _scroller.safeScrollTo(sentenceIndex, alignment: alignment);
+    scroller.safeScrollTo(sentenceIndex, alignment: alignment);
     emit(data.rCopyWith(playing: true));
     await data.player.seekTo(sentence.start);
     await data.player.play();
@@ -382,7 +382,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       //handle scroll
       final spot = _spot;
       if (spot != null) {
-        _scroller.safeJumpTo(spot.index, alignment: spot.alignment);
+        scroller.safeJumpTo(spot.index, alignment: spot.alignment);
       }
     }
   }
@@ -418,7 +418,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
       //handle scroll
       if (state.loopIndex == null) {
         //playing auto scroll to next sentence, not for loop mode
-        _scroller.safeScrollTo(_spot?.index, alignment: _spot?.alignment ?? 0);
+        scroller.safeScrollTo(_spot?.index, alignment: _spot?.alignment ?? 0);
       }
     }
   }
@@ -443,7 +443,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     final data = state as CommPlayerDataState;
     final subtitle = data.subtitle;
     if (subtitle == null || subtitle.sentenceList.isEmpty) return;
-    _scroller.safeScrollTo(subtitle.sentenceList.length - 1);
+    scroller.safeScrollTo(subtitle.sentenceList.length - 1);
   }
 
   void _onScrollToPlayingSentence(
@@ -452,14 +452,14 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   ) {
     final index = _spot?.index;
     if (index == null) return;
-    _scroller.safeScrollTo(index, alignment: 0.3);
+    scroller.safeScrollTo(index, alignment: 0.3);
   }
 
   void _onScrollToTop(
     CommPlayerScrollToTopEvent event,
     Emitter<CommPlayerState> emit,
   ) {
-    _scroller.safeScrollTo(0);
+    scroller.safeScrollTo(0);
   }
 
   void _onShowSubtitleList(

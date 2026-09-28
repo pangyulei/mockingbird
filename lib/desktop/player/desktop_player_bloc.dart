@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
@@ -9,6 +10,7 @@ import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/desktop/player/ui/desktop_player_video_ui.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
+import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
@@ -23,6 +25,10 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     on<DesktopPlayerSelectMediaFromFileExplorerEvent>(
       _onSelectMediaFromFileExplorer,
     );
+    on<DesktopPlayerPickSubtitleFromFileExplorerEvent>(
+      _onPickSubtitleFromFileExplorer,
+    );
+    on<DesktopPlayerDropSubtitleEvent>(_onDropSubtitle);
   }
 
   void _onInit(
@@ -109,6 +115,62 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       emit(commState);
     }
     EasyLoading.dismiss();
+  }
+
+  void _onPickSubtitleFromFileExplorer(
+    DesktopPlayerPickSubtitleFromFileExplorerEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
+    if (state is! CommPlayerDataState) return;
+    final xfile = await FilePicker.pickFile(
+      type: FileType.custom,
+      allowedExtensions: [...kSubtitleExtensions],
+    );
+    final path = xfile?.path;
+    if (path == null) return;
+    await _addSubtitleFile(File(path), emit);
+  }
+
+  void _onDropSubtitle(
+    DesktopPlayerDropSubtitleEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
+    if (state is! CommPlayerDataState) return;
+    await _addSubtitleFile(event.file, emit);
+  }
+
+  Future<void> _addSubtitleFile(
+    File file,
+    Emitter<CommPlayerState> emit,
+  ) async {
+    final extension = p.extension(file.path).replaceAll('.', '').toLowerCase();
+    if (!kSubtitleExtensions.contains(extension)) {
+      EasyLoading.showError('Invalid subtitle format. Supported: .srt, .vtt');
+      return;
+    }
+
+    final subtitle = await SubtitleParser.parseFile(file);
+    if (subtitle == null) {
+      EasyLoading.showError('Failed to parse subtitle file');
+      return;
+    }
+
+    var data = state as CommPlayerDataState;
+    var argSubtitleList = data.subtitleList.contains(subtitle)
+        ? data.subtitleList.map((s) => s == subtitle ? subtitle : s).toList()
+        : [...data.subtitleList, subtitle];
+
+    final (:subtitleList, :subtitleState, :subtitleListButtonVisible) =
+        await reloadSubtitle(argSubtitleList, subtitle, data.position);
+
+    emit(
+      data.rCopyWith(
+        subtitleList: subtitleList,
+        subtitleState: subtitleState,
+        subtitleListButtonVisible: subtitleListButtonVisible,
+      ),
+    );
+    EasyLoading.showSuccess('Subtitle added successfully');
   }
 
   @override
