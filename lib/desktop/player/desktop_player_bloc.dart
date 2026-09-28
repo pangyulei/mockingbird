@@ -22,9 +22,10 @@ class DesktopPlayerBloc extends CommPlayerBloc {
 
   DesktopPlayerBloc._() : super() {
     on<DesktopPlayerInitEvent>(_onInit);
-    on<DesktopPlayerSelectMediaFromFileExplorerEvent>(
-      _onSelectMediaFromFileExplorer,
+    on<DesktopPlayerPickMediaFromFileExplorerEvent>(
+      _onPickMediaFromFileExplorer,
     );
+    on<DesktopPlayerDropMediaEvent>(_onDropMedia);
     on<DesktopPlayerPickSubtitleFromFileExplorerEvent>(
       _onPickSubtitleFromFileExplorer,
     );
@@ -50,8 +51,8 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     await windowManager.center();
   }
 
-  void _onSelectMediaFromFileExplorer(
-    DesktopPlayerSelectMediaFromFileExplorerEvent event,
+  void _onPickMediaFromFileExplorer(
+    DesktopPlayerPickMediaFromFileExplorerEvent event,
     Emitter<CommPlayerState> emit,
   ) async {
     final xfile = await FilePicker.pickFile(
@@ -62,8 +63,30 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     if (filePath == null) {
       return;
     }
+    await _loadMediaFile(File(filePath), emit);
+  }
+
+  void _onDropMedia(
+    DesktopPlayerDropMediaEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
+    final extension = p
+        .extension(event.file.path)
+        .replaceAll('.', '')
+        .toLowerCase();
+    if (!kVideoExtensions.contains(extension) &&
+        !kAudioExtensions.contains(extension)) {
+      EasyLoading.showError('Unsupported media format');
+      return;
+    }
+    await _loadMediaFile(event.file, emit);
+  }
+
+  Future<void> _loadMediaFile(
+    File mediaFile,
+    Emitter<CommPlayerState> emit,
+  ) async {
     EasyLoading.show(maskType: .clear);
-    final mediaFile = File(filePath);
     final prevState = state;
     final commState = await reload((
       loopIndex: null,
@@ -128,7 +151,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     );
     final path = xfile?.path;
     if (path == null) return;
-    await _addSubtitleFile(File(path), emit);
+    await _loadSubtitleFile(File(path), emit);
   }
 
   void _onDropSubtitle(
@@ -136,10 +159,10 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     Emitter<CommPlayerState> emit,
   ) async {
     if (state is! CommPlayerDataState) return;
-    await _addSubtitleFile(event.file, emit);
+    await _loadSubtitleFile(event.file, emit);
   }
 
-  Future<void> _addSubtitleFile(
+  Future<void> _loadSubtitleFile(
     File file,
     Emitter<CommPlayerState> emit,
   ) async {

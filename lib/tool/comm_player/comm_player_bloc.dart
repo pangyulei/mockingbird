@@ -32,9 +32,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
 
   List<StreamSubscription> subscriptionList = [];
   CommPlayerBloc() : super(const CommPlayerInitState()) {
-    on<CommPlayerSelectAnotherSubtitleFromListEvent>(
-      onSelectAnotherSubtitleFromList,
-    );
+    on<CommPlayerPickSubtitleFromListEvent>(onPickSubtitleFromList);
     on<CommPlayerShowSubtitleListEvent>(_onShowSubtitleList);
     on<CommPlayerHideSubtitleListEvent>(_onHideSubtitleList);
     on<CommPlayerClickSentenceEvent>(_onClickSentence);
@@ -54,8 +52,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     on<CommPlayerVolumeChangeEvent>(_onVolumeChange);
     subscriptionList.addAll([
       EventHub.on<HubSubtitleChangeEvent>(
-        (event) =>
-            add(CommPlayerSelectAnotherSubtitleFromListEvent(event.subtitle)),
+        (event) => add(CommPlayerPickSubtitleFromListEvent(event.subtitle)),
       ),
     ]);
   }
@@ -88,8 +85,8 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     return super.close();
   }
 
-  void onSelectAnotherSubtitleFromList(
-    CommPlayerSelectAnotherSubtitleFromListEvent event,
+  void onPickSubtitleFromList(
+    CommPlayerPickSubtitleFromListEvent event,
     Emitter<CommPlayerState> emit,
   ) async {
     if (state is! CommPlayerDataState) return;
@@ -128,19 +125,18 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   ) async {
     final newState = await defer<CommPlayerState>(
       () async {
-        this.mediaFile = args?.mediaFile;
+        mediaFile = args?.mediaFile;
       },
       () async {
         //Fix switch media, old listener still execute bug
-        this.mediaFile = null;
+        mediaFile = null;
         //Fix media deleted but still can here voice
         state.as<CommPlayerDataState>()?.player.dispose();
         if (args == null) {
           return const CommPlayerEmptyState();
         }
         //because of this is read and have to await, this has to be a AsyncNotifier
-        final mediaFile = args.mediaFile;
-        final player = VideoPlayerController.file(mediaFile);
+        final player = VideoPlayerController.file(args.mediaFile);
         await player.initialize();
         player.addListener(
           () => add(

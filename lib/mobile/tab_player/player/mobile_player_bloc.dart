@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:defer/defer.dart';
@@ -7,8 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mockingbird/db/db.dart';
-import 'package:mockingbird/db/entities/mobile_media_history.dart';
-import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:mockingbird/mobile/app/mobile_app_route.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_event.dart';
 import 'package:mockingbird/mobile/tab_player/player/mobile_player_state.dart';
@@ -18,6 +15,7 @@ import 'package:mockingbird/tool/extensions.dart';
 import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../../db/entities/mobile_media_history.dart';
 import '../../../tool/comm_player/comm_player_event.dart';
 import '../../../tool/event_hub.dart';
 
@@ -33,20 +31,27 @@ class MobilePlayerBloc extends CommPlayerBloc {
     subscriptionList.addAll([
       EventHub.on<HubAppPauseEvent>(_onAppPause),
       EventHub.on<HubSyncBackgroundAudioToPlayerEvent>(
-        (event) => add(MobilePlayerSyncFromBackgroundAudioEvent(playing: event.playing, position: event.position)),
+        (event) => add(
+          MobilePlayerSyncFromBackgroundAudioEvent(
+            playing: event.playing,
+            position: event.position,
+          ),
+        ),
       ),
     ]);
   }
 
   @override
-  void onSelectAnotherSubtitleFromList(
-    CommPlayerSelectAnotherSubtitleFromListEvent event,
+  void onPickSubtitleFromList(
+    CommPlayerPickSubtitleFromListEvent event,
     Emitter<CommPlayerState> emit,
   ) async {
-    super.onSelectAnotherSubtitleFromList(event, emit);
+    super.onPickSubtitleFromList(event, emit);
 
     var metadata = await DB.loadMobileMetadata();
-    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == _media?.id);
+    var history = metadata.historyList.firstWhereOrNull(
+      (h) => h.mediaId == _media?.id,
+    );
     if (history != null) {
       history = history.copyWith(subtitlePath: () => event.subtitle.path);
       await DB.updateMobileHistory(history);
@@ -77,7 +82,9 @@ class MobilePlayerBloc extends CommPlayerBloc {
 
   Future<void> _updateHistoryPosition(Duration position) async {
     final metadata = await DB.loadMobileMetadata();
-    var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == _media?.id);
+    var history = metadata.historyList.firstWhereOrNull(
+      (h) => h.mediaId == _media?.id,
+    );
     if (history != null) {
       history = history.copyWith(positionMs: position.inMilliseconds);
       await DB.updateMobileHistory(history);
@@ -115,18 +122,27 @@ class MobilePlayerBloc extends CommPlayerBloc {
   //   );
   // }
 
-  void _onGoToAlbumList(MobilePlayerGoToAlbumListEvent event, Emitter<CommPlayerState> emit) {
+  void _onGoToAlbumList(
+    MobilePlayerGoToAlbumListEvent event,
+    Emitter<CommPlayerState> emit,
+  ) {
     event.context.go(MobileAppRoute.albumList);
   }
 
-  void _onToggleVolumeSlider(MobilePlayerToggleVolumeSliderEvent event, Emitter<CommPlayerState> emit) async {
+  void _onToggleVolumeSlider(
+    MobilePlayerToggleVolumeSliderEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
     if (state is! MobilePlayerDataState) return;
     var data = state as MobilePlayerDataState;
     data = (data).copyWith(volumeSliderVisible: !data.volumeSliderVisible);
     emit(data);
   }
 
-  void _onInit(MobilePlayerInitEvent event, Emitter<CommPlayerState> emit) async {
+  void _onInit(
+    MobilePlayerInitEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
     EasyLoading.show(maskType: .clear);
     //before switch media, update old media's history position
     if (state is CommPlayerDataState) {
@@ -143,10 +159,14 @@ class MobilePlayerBloc extends CommPlayerBloc {
       commState = await reload(null);
       metadata = metadata.copyWith(playingMediaId: () => null);
     } else {
-      var history = metadata.historyList.firstWhereOrNull((h) => h.mediaId == media.id);
+      var history = metadata.historyList.firstWhereOrNull(
+        (h) => h.mediaId == media.id,
+      );
       final position = history?.position ?? Duration.zero;
       final subtitlePath = history?.subtitlePath;
-      final subtitle = subtitlePath == null ? null : await SubtitleParser.parsePath(subtitlePath);
+      final subtitle = subtitlePath == null
+          ? null
+          : await SubtitleParser.parsePath(subtitlePath);
       commState = await reload((
         mediaFile: mediaFile,
         mediaType: media.type,
@@ -166,20 +186,29 @@ class MobilePlayerBloc extends CommPlayerBloc {
         );
         metadata.historyList.add(history);
       } else {
-        history = history.copyWith(subtitlePath: () => commState.as<CommPlayerDataState>()?.subtitle?.path);
+        history = history.copyWith(
+          subtitlePath: () =>
+              commState.as<CommPlayerDataState>()?.subtitle?.path,
+        );
         await DB.updateMobileHistory(history);
       }
       metadata = metadata.copyWith(playingMediaId: () => media.id);
     }
     await DB.updateMobileMetadata(metadata);
     if (commState is CommPlayerDataState) {
-      commState = MobilePlayerDataState.commData(volumeSliderVisible: false, commData: commState);
+      commState = MobilePlayerDataState.commData(
+        volumeSliderVisible: false,
+        commData: commState,
+      );
     }
     emit(commState);
     EasyLoading.dismiss();
   }
 
-  void _onSyncFromBackgroundAudio(MobilePlayerSyncFromBackgroundAudioEvent event, Emitter<CommPlayerState> emit) async {
+  void _onSyncFromBackgroundAudio(
+    MobilePlayerSyncFromBackgroundAudioEvent event,
+    Emitter<CommPlayerState> emit,
+  ) async {
     await defer(
       () async {
         EasyLoading.dismiss();
@@ -198,7 +227,9 @@ class MobilePlayerBloc extends CommPlayerBloc {
         if (media == null || mediaFile == null) {
           newState = await reload(null);
           final metadata = await DB.loadMobileMetadata();
-          await DB.updateMobileMetadata(metadata.copyWith(playingMediaId: () => null));
+          await DB.updateMobileMetadata(
+            metadata.copyWith(playingMediaId: () => null),
+          );
         } else {
           final data = state as CommPlayerDataState;
           newState = await reload((

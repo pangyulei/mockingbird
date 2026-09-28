@@ -17,9 +17,9 @@ class CommPlayerHideSubtitleListEvent extends CommPlayerEvent {
   const CommPlayerHideSubtitleListEvent();
 }
 
-class CommPlayerSelectAnotherSubtitleFromListEvent extends CommPlayerEvent {
+class CommPlayerPickSubtitleFromListEvent extends CommPlayerEvent {
   final Subtitle subtitle;
-  const CommPlayerSelectAnotherSubtitleFromListEvent(this.subtitle);
+  const CommPlayerPickSubtitleFromListEvent(this.subtitle);
 }
 
 class CommPlayerScrollToTopEvent extends CommPlayerEvent {
