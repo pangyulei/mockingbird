@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/db/entities/subtitle.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
+import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
@@ -13,7 +14,6 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../mobile/tab_player/sentence_card/sentence_card_ui.dart';
 import '../../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../desktop_player_state.dart';
 
@@ -398,19 +398,31 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
   }
 
   Widget _subtitleWidget(SubtitleDataState data) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(1, 8, 8, 8),
-      child: ScrollablePositionedList.builder(
-        key: ValueKey(data),
-        itemCount: data.subtitle.sentenceList.length,
-        itemScrollController: data.scroller,
-        initialAlignment: data.initialAlignment,
-        initialScrollIndex: data.initialIndex,
-        itemBuilder: (context, i) {
-          final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
-          return SentenceCardUI(sentenceCardBloc);
-        },
-      ),
+    return Builder(
+      builder: (context) {
+        return DropTarget(
+          onDragDone: (details) {
+            final path = details.files.firstOrNull?.path;
+            if (path != null) {
+              context.read<DesktopPlayerBloc>().add(DesktopPlayerDropSubtitleEvent(File(path)));
+            }
+          },
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(1, 8, 8, 8),
+            child: ScrollablePositionedList.builder(
+              key: ValueKey(data),
+              itemCount: data.subtitle.sentenceList.length,
+              itemScrollController: data.scroller,
+              initialAlignment: data.initialAlignment,
+              initialScrollIndex: data.initialIndex,
+              itemBuilder: (context, i) {
+                final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
+                return SentenceCardUI(sentenceCardBloc);
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 
