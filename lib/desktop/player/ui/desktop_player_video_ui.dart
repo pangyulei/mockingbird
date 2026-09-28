@@ -501,14 +501,14 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor.withValues(alpha: 0.15),
+                      decoration: const BoxDecoration(
+                        color: kPrimaryColor,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.subtitles_rounded,
                         size: 44,
-                        color: kPrimaryColor,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
