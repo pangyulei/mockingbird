@@ -1,3 +1,4 @@
+import 'package:mockingbird/db/entities/sentence.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:video_player/video_player.dart';
@@ -80,8 +81,7 @@ class CommPlayerDataState extends CommPlayerState {
   }) {
     return CommPlayerDataState(
       aspectRatio: aspectRatio ?? this.aspectRatio,
-      subtitleListButtonVisible:
-          subtitleListButtonVisible ?? this.subtitleListButtonVisible,
+      subtitleListButtonVisible: subtitleListButtonVisible ?? this.subtitleListButtonVisible,
       subtitleList: subtitleList ?? this.subtitleList,
       subtitleListVisible: subtitleListVisible ?? this.subtitleListVisible,
       loopIndex: loopIndex == null ? this.loopIndex : loopIndex(),
@@ -133,4 +133,5 @@ class CommPlayerDataState extends CommPlayerState {
   );
 
   Subtitle? get subtitle => subtitleState.as<SubtitleDataState>()?.subtitle;
+  Sentence? get playingSentence => subtitle?.sentenceList.spot(position)?.sentence;
 }

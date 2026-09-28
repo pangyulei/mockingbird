@@ -76,15 +76,14 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           mainAxisSize: .min,
           children: [
             Flexible(
-              child: glassContainer(
-                child: Padding(padding: const EdgeInsets.all(8), child: _videoDisplayer()),
-              ),
+              child: glassContainer(padding: const EdgeInsets.all(8), child: _videoDisplayer()),
             ),
             const SizedBox(height: 8),
-            glassContainer(
-              child: SizedBox(
-                height: 44,
-                child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), child: _controlBar()),
+            SizedBox(
+              height: 44,
+              child: glassContainer(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                child: _controlBar(),
               ),
             ),
           ],
@@ -99,16 +98,44 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
       mainAxisSize: .min,
       children: [
         Flexible(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Builder(
-              builder: (context) {
-                final aspectRatio = context.select<DesktopPlayerBloc, double>(
-                  (bloc) => bloc.state.as<CommPlayerDataState>()?.aspectRatio ?? 16 / 9,
-                );
-                return AspectRatio(aspectRatio: aspectRatio, child: _player());
-              },
-            ),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Builder(
+                  builder: (context) {
+                    final aspectRatio = context.select<DesktopPlayerBloc, double>(
+                      (bloc) => bloc.state.as<CommPlayerDataState>()?.aspectRatio ?? 16 / 9,
+                    );
+                    return AspectRatio(aspectRatio: aspectRatio, child: _player());
+                  },
+                ),
+              ),
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: Builder(
+                  builder: (context) {
+                    final text =
+                        context.select<DesktopPlayerBloc, String?>(
+                          (bloc) => bloc.state.as<CommPlayerDataState>()?.playingSentence?.text,
+                        ) ??
+                        '';
+                    return Text(
+                      text,
+                      textAlign: .center,
+                      style: kTextStyle(
+                        size: 14,
+                        color: kPrimaryTextColor,
+                        weight: .bold,
+                        backgroundColor: Colors.black.withValues(alpha: 0.5),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
         _progressSlider(),
@@ -422,43 +449,41 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
           onTap: () {
             context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
           },
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(1, 8, 8, 8),
-            child: glassContainer(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
-                        child: const Icon(Icons.subtitles_rounded, size: 44, color: Colors.white),
+          child: glassContainer(
+            margin: const EdgeInsets.fromLTRB(1, 8, 8, 8),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
+                      child: const Icon(Icons.subtitles_rounded, size: 44, color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Subtitles Track',
+                      style: kTextStyle(color: kPrimaryTextColor, size: 16, weight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Click or Drag & Drop subtitle file here',
+                      style: kTextStyle(color: kSecondaryTextColor, size: 13, weight: FontWeight.normal),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Supports .srt and .vtt formats',
+                      style: kTextStyle(
+                        color: kSecondaryTextColor.withValues(alpha: 0.6),
+                        size: 11,
+                        weight: FontWeight.normal,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No Subtitles Track',
-                        style: kTextStyle(color: kPrimaryTextColor, size: 16, weight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Click or Drag & Drop subtitle file here',
-                        style: kTextStyle(color: kSecondaryTextColor, size: 13, weight: FontWeight.normal),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Supports .srt and .vtt formats',
-                        style: kTextStyle(
-                          color: kSecondaryTextColor.withValues(alpha: 0.6),
-                          size: 11,
-                          weight: FontWeight.normal,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
             ),
