@@ -151,9 +151,9 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           },
         ),
         Positioned(
-          left: 16,
-          right: 16,
-          bottom: 8,
+          left: 0,
+          right: 0,
+          bottom: -10,
           // child: Expanded(child: _progressSlider(context)),
           child: _progressSlider(),
         ),
@@ -175,12 +175,12 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
 
   Widget _progressSlider() {
     return SliderTheme(
-      data: SliderThemeData(
+      data: const SliderThemeData(
         trackHeight: 3.0,
         activeTrackColor: kPrimaryColor,
         inactiveTrackColor: kPrimaryTextColor,
         thumbColor: kPrimaryColor,
-        thumbSize: WidgetStateProperty.all(const Size(14, 14)),
+        // thumbSize: WidgetStateProperty.all(const Size(14, 14)),
       ),
       child: Builder(
         builder: (context) {
@@ -193,7 +193,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           final max = duration.inMilliseconds.toDouble();
           final val = position.inMilliseconds.clamp(0, max).toDouble();
           return Slider(
-            allowedInteraction: SliderInteraction.slideThumb,
+            allowedInteraction: .tapAndSlide,
             value: val,
             max: max,
             onChangeStart: (val) {
