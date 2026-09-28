@@ -33,21 +33,21 @@ class DesktopPlayerEmptyUI extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: const BoxDecoration(
-                                color: kPrimaryBlue,
+                                color: kPrimaryColor,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.cloud_upload_outlined,
                                 size: 48,
-                                color: kPrimaryWhite,
+                                color: kPrimaryTextColor,
                               ),
                             ),
                             const SizedBox(height: 24),
                             Text(
                               'Drag & Drop Media File Here',
-                              style: mbTextStyle(
+                              style: kTextStyle(
                                 size: 24,
-                                color: kPrimaryWhite,
+                                color: kPrimaryTextColor,
                                 weight: .bold,
                               ),
                               textAlign: TextAlign.center,
@@ -55,9 +55,9 @@ class DesktopPlayerEmptyUI extends StatelessWidget {
                             const SizedBox(height: 8),
                             Text(
                               'or click anywhere in this area to browse your video/audio files',
-                              style: mbTextStyle(
+                              style: kTextStyle(
                                 size: 16,
-                                color: kSecondaryWhite,
+                                color: kSecondaryTextColor,
                                 weight: .normal,
                               ),
                               textAlign: TextAlign.center,

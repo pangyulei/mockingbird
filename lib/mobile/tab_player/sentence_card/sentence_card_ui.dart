@@ -65,11 +65,11 @@ class SentenceCardUI extends StatelessWidget {
                                   );
                               return Text(
                                 content,
-                                style: mbTextStyle(
+                                style: kTextStyle(
                                   size: 20,
                                   color: playing
-                                      ? kPrimaryWhite
-                                      : kSecondaryWhite,
+                                      ? kPrimaryTextColor
+                                      : kSecondaryTextColor,
                                   weight: playing ? .bold : .normal,
                                 ),
                               );
@@ -90,11 +90,11 @@ class SentenceCardUI extends StatelessWidget {
                                       );
                                   return Text(
                                     period,
-                                    style: mbTextStyle(
+                                    style: kTextStyle(
                                       size: 12,
                                       color: playing
-                                          ? kPrimaryWhite
-                                          : kSecondaryWhite,
+                                          ? kPrimaryTextColor
+                                          : kSecondaryTextColor,
                                       weight: .normal,
                                     ),
                                   );

@@ -292,12 +292,13 @@ final kGlassGradient = LinearGradient(
 );
 final kGlassBorderColor = Colors.white.withValues(alpha: 0.3);
 
-const kPrimaryGreen = Color(0xFF7fff00);
-const kPrimaryBlue = Color(0xFF2349e7);
-const kPrimaryWhite = Colors.white;
-final kSecondaryWhite = kPrimaryWhite.withValues(alpha: 0.8);
+//iOS green Color(0xFF34c759);
+//iOS blue Color(0xFF0088ff);
+const kPrimaryColor = Color(0xFF34c759);
+const kPrimaryTextColor = Colors.white;
+final kSecondaryTextColor = kPrimaryTextColor.withValues(alpha: 0.8);
 const kFontFamily = 'Inter';
-TextStyle mbTextStyle({
+TextStyle kTextStyle({
   required double size,
   required Color color,
   required FontWeight weight,

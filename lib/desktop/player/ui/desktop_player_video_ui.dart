@@ -33,8 +33,8 @@ class DesktopPlayerVideoUI extends StatelessWidget {
             data: MultiSplitViewThemeData(
               dividerThickness: kDesktopPlayerDividerThickness,
               dividerPainter: DividerPainters.grooved1(
-                color: kPrimaryBlue,
-                highlightedColor: kPrimaryBlue,
+                color: kPrimaryColor,
+                highlightedColor: kPrimaryColor,
                 thickness: 4,
               ),
             ),
@@ -177,9 +177,9 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
     return SliderTheme(
       data: SliderThemeData(
         trackHeight: 3.0,
-        activeTrackColor: kPrimaryBlue,
-        inactiveTrackColor: kPrimaryWhite,
-        thumbColor: kPrimaryBlue,
+        activeTrackColor: kPrimaryColor,
+        inactiveTrackColor: kPrimaryTextColor,
+        thumbColor: kPrimaryColor,
         thumbSize: WidgetStateProperty.all(const Size(14, 14)),
       ),
       child: Builder(
@@ -293,8 +293,8 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
             size: 20,
           ),
           style: IconButton.styleFrom(
-            backgroundColor: kPrimaryBlue,
-            foregroundColor: kPrimaryWhite,
+            backgroundColor: kPrimaryColor,
+            foregroundColor: kPrimaryTextColor,
             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
@@ -324,7 +324,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           },
           icon: Icon(
             loop ? Icons.repeat_one_rounded : Icons.repeat_rounded,
-            color: loop ? kPrimaryBlue : kPrimaryWhite,
+            color: loop ? kPrimaryColor : kPrimaryTextColor,
             size: 36,
           ),
           style: IconButton.styleFrom(
@@ -344,7 +344,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           const CommPlayerShowSubtitleListEvent(),
         );
       },
-      icon: const Icon(Icons.subtitles_rounded, color: kPrimaryBlue, size: 36),
+      icon: const Icon(Icons.subtitles_rounded, color: kPrimaryColor, size: 36),
       style: IconButton.styleFrom(
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
@@ -362,7 +362,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           );
         },
         icon: const Icon(Icons.add_circle_outline_rounded, size: 32),
-        color: kPrimaryBlue,
+        color: kPrimaryColor,
         style: IconButton.styleFrom(
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
@@ -381,7 +381,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           );
         },
         icon: const Icon(Icons.remove_circle_outline_rounded, size: 32),
-        color: kPrimaryBlue,
+        color: kPrimaryColor,
         style: IconButton.styleFrom(
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
@@ -404,13 +404,13 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: kPrimaryBlue,
+              color: kPrimaryColor,
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               '${speed}x',
               style: const TextStyle(
-                color: kPrimaryWhite,
+                color: kPrimaryTextColor,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -482,13 +482,13 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                 Icon(
                   Icons.subtitles_off_rounded,
                   size: 48,
-                  color: kSecondaryWhite,
+                  color: kSecondaryTextColor,
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'No Subtitles Found',
-                  style: mbTextStyle(
-                    color: kSecondaryWhite,
+                  style: kTextStyle(
+                    color: kSecondaryTextColor,
                     size: 16,
                     weight: .bold,
                   ),
@@ -530,15 +530,15 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                         children: [
                           const Icon(
                             Icons.subtitles_rounded,
-                            color: kPrimaryBlue,
+                            color: kPrimaryColor,
                             size: 22,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Select Subtitle',
-                            style: mbTextStyle(
+                            style: kTextStyle(
                               size: 16,
-                              color: kPrimaryWhite,
+                              color: kPrimaryTextColor,
                               weight: .bold,
                             ),
                           ),
@@ -547,7 +547,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                             onPressed: () => Navigator.of(dialogContext).pop(),
                             icon: Icon(
                               Icons.close_rounded,
-                              color: kSecondaryWhite,
+                              color: kSecondaryTextColor,
                               size: 18,
                             ),
                             padding: EdgeInsets.zero,
@@ -583,18 +583,18 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                                           : Icons.subtitles_outlined,
                                       size: 18,
                                       color: isSelected
-                                          ? kPrimaryBlue
-                                          : kSecondaryWhite,
+                                          ? kPrimaryColor
+                                          : kSecondaryTextColor,
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
                                         subtitle.name,
-                                        style: mbTextStyle(
+                                        style: kTextStyle(
                                           size: 14,
                                           color: isSelected
-                                              ? kPrimaryWhite
-                                              : kSecondaryWhite,
+                                              ? kPrimaryTextColor
+                                              : kSecondaryTextColor,
                                           weight: isSelected ? .bold : .normal,
                                         ),
                                       ),
