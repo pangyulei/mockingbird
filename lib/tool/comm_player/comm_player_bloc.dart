@@ -49,7 +49,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     on<CommPlayerMediaSliderStartChangeEvent>(_onMediaSliderStartChange);
     on<CommPlayerMediaSliderChangingEvent>(_onMediaSliderChanging);
     on<CommPlayerMediaSliderEndChangeEvent>(_onMediaSliderEndChange);
-    on<CommPlayerVolumeChangeEvent>(_onVolumeChange);
+    on<CommPlayerVolumeChangeEvent>(onVolumeChange);
     on<CommPlayerPlayPreviousSentenceEvent>(_onPlayPreviousSentence);
     on<CommPlayerPlayNextSentenceEvent>(_onPlayNextSentence);
     subscriptionList.addAll([
@@ -383,7 +383,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     emit(data.rCopyWith(loopIndex: () => loopIndex));
   }
 
-  void _onVolumeChange(CommPlayerVolumeChangeEvent event, Emitter<CommPlayerState> emit) async {
+  Future<void> onVolumeChange(CommPlayerVolumeChangeEvent event, Emitter<CommPlayerState> emit) async {
     if (state is! CommPlayerDataState) return;
     final data = state as CommPlayerDataState;
     emit(data.rCopyWith(volume: event.volume));

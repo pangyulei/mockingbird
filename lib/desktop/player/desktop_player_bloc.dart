@@ -9,6 +9,7 @@ import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/desktop/player/ui/desktop_player_video_ui.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
+import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/subtitle_parser.dart';
 import 'package:multi_split_view/multi_split_view.dart';
@@ -26,6 +27,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     on<DesktopPlayerDropMediaEvent>(_onDropMedia);
     on<DesktopPlayerPickSubtitleFromFileExplorerEvent>(_onPickSubtitleFromFileExplorer);
     on<DesktopPlayerDropSubtitleEvent>(_onDropSubtitle);
+    on<DesktopPlayerToggleMuteEvent>(_onToggleMute);
   }
 
   void _onInit(DesktopPlayerInitEvent event, Emitter<CommPlayerState> emit) async {
@@ -111,7 +113,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
         splitter = (state as DesktopPlayerDataState).splitter;
       }
       await windowManager.setTitle('Mockingbird - ${commData.title}');
-      emit(DesktopPlayerDataState.commData(splitter: splitter, commData: commData));
+      emit(DesktopPlayerDataState.commData(splitter: splitter, commData: commData, muting: false));
     } else {
       await _setWindowForEmpty();
       emit(commState);
@@ -153,18 +155,9 @@ class DesktopPlayerBloc extends CommPlayerBloc {
         ? data.subtitleList.map((s) => s == subtitle ? subtitle : s).toList()
         : [...data.subtitleList, subtitle];
 
-    final (:subtitleList, :subtitleState) = await reloadSubtitle(
-      argSubtitleList,
-      subtitle,
-      data.position,
-    );
+    final (:subtitleList, :subtitleState) = await reloadSubtitle(argSubtitleList, subtitle, data.position);
 
-    emit(
-      data.rCopyWith(
-        subtitleList: subtitleList,
-        subtitleState: subtitleState,
-      ),
-    );
+    emit(data.rCopyWith(subtitleList: subtitleList, subtitleState: subtitleState));
     EasyLoading.showSuccess('Subtitle added successfully');
   }
 
@@ -172,5 +165,27 @@ class DesktopPlayerBloc extends CommPlayerBloc {
   Future<void> close() {
     state.as<DesktopPlayerDataState>()?.splitter.dispose();
     return super.close();
+  }
+
+  Future<void> _onToggleMute(DesktopPlayerToggleMuteEvent event, Emitter<CommPlayerState> emit) async {
+    var data = state.as<DesktopPlayerDataState>();
+    if (data == null) return;
+    if (data.muting) {
+      //re-assign volume back
+      await data.player.setVolume(data.volume);
+    } else {
+      //silent
+      await data.player.setVolume(0);
+    }
+    data = data.copyWith(muting: !data.muting);
+    emit(data);
+  }
+
+  @override
+  Future<void> onVolumeChange(CommPlayerVolumeChangeEvent event, Emitter<CommPlayerState> emit) async {
+    await super.onVolumeChange(event, emit);
+    if (state case DesktopPlayerDataState data) {
+      emit(data.copyWith(muting: false));
+    }
   }
 }

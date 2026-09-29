@@ -7,24 +7,23 @@ import '../../mobile/tab_player/subtitle/subtitle_state.dart';
 
 class DesktopPlayerDataState extends CommPlayerDataState {
   final MultiSplitViewController splitter;
-  DesktopPlayerDataState.commData({
-    required this.splitter,
-    required CommPlayerDataState commData,
-  }) : super(
-         aspectRatio: commData.aspectRatio,
-         duration: commData.duration,
-         loopIndex: commData.loopIndex,
-         mediaType: commData.mediaType,
-         player: commData.player,
-         playing: commData.playing,
-         position: commData.position,
-         speed: commData.speed,
-         subtitleList: commData.subtitleList,
-         subtitleListVisible: commData.subtitleListVisible,
-         subtitleState: commData.subtitleState,
-         title: commData.title,
-         volume: commData.volume,
-       );
+  final bool muting;
+  DesktopPlayerDataState.commData({required this.splitter, required this.muting, required CommPlayerDataState commData})
+    : super(
+        aspectRatio: commData.aspectRatio,
+        duration: commData.duration,
+        loopIndex: commData.loopIndex,
+        mediaType: commData.mediaType,
+        player: commData.player,
+        playing: commData.playing,
+        position: commData.position,
+        speed: commData.speed,
+        subtitleList: commData.subtitleList,
+        subtitleListVisible: commData.subtitleListVisible,
+        subtitleState: commData.subtitleState,
+        title: commData.title,
+        volume: commData.volume,
+      );
 
   @override
   DesktopPlayerDataState copyWith({
@@ -32,6 +31,7 @@ class DesktopPlayerDataState extends CommPlayerDataState {
     bool? playing,
     double? aspectRatio,
     double? volume,
+    bool? muting,
     double? speed,
     SubtitleState? subtitleState,
     AssetType? mediaType,
@@ -55,9 +55,6 @@ class DesktopPlayerDataState extends CommPlayerDataState {
       title: title,
       subtitleList: subtitleList,
     );
-    return DesktopPlayerDataState.commData(
-      splitter: splitter,
-      commData: commData,
-    );
+    return DesktopPlayerDataState.commData(splitter: splitter, commData: commData, muting: muting ?? this.muting);
   }
 }

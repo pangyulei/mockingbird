@@ -19,6 +19,10 @@ class DesktopPlayerPickSubtitleFromFileExplorerEvent extends CommPlayerEvent {
   const DesktopPlayerPickSubtitleFromFileExplorerEvent();
 }
 
+class DesktopPlayerToggleMuteEvent extends CommPlayerEvent {
+  const DesktopPlayerToggleMuteEvent();
+}
+
 class DesktopPlayerDropSubtitleEvent extends CommPlayerEvent {
   final File file;
   const DesktopPlayerDropSubtitleEvent(this.file);

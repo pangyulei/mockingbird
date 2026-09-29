@@ -32,7 +32,7 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       value: DesktopPlayerBloc.shared,
       child: Scaffold(
         body: ImageContainer(
-          image:Image.asset('assets/desktop/main_window_background.jpg').image,
+          image: Image.asset('assets/desktop/main_window_background.jpg').image,
           child: MultiSplitViewTheme(
             data: MultiSplitViewThemeData(
               dividerThickness: kDesktopPlayerDividerThickness,
@@ -44,10 +44,14 @@ class DesktopPlayerVideoUI extends StatelessWidget {
             ),
             child: Builder(
               builder: (context) {
-                final splitter = context.select<DesktopPlayerBloc, MultiSplitViewController>(
-                  (bloc) => (bloc.state as DesktopPlayerDataState).splitter,
+                final splitter = context
+                    .select<DesktopPlayerBloc, MultiSplitViewController>(
+                      (bloc) => (bloc.state as DesktopPlayerDataState).splitter,
+                    );
+                return MultiSplitView(
+                  controller: splitter,
+                  axis: Axis.horizontal,
                 );
-                return MultiSplitView(controller: splitter, axis: Axis.horizontal);
               },
             ),
           ),
@@ -66,7 +70,9 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
       onDragDone: (details) {
         final path = details.files.firstOrNull?.path;
         if (path != null) {
-          context.read<DesktopPlayerBloc>().add(DesktopPlayerDropMediaEvent(File(path)));
+          context.read<DesktopPlayerBloc>().add(
+            DesktopPlayerDropMediaEvent(File(path)),
+          );
         }
       },
       child: Padding(
@@ -76,7 +82,10 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           mainAxisSize: .min,
           children: [
             Flexible(
-              child: GlassContainer(padding: const EdgeInsets.fromLTRB(8, 8, 8, 0), child: _videoDisplayer()),
+              child: GlassContainer(
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+                child: _videoDisplayer(),
+              ),
             ),
             const SizedBox(height: 8),
             SizedBox(
@@ -104,15 +113,28 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
                 child: Builder(
                   builder: (context) {
-                    final aspectRatio = context.select<DesktopPlayerBloc, double>(
-                      (bloc) => bloc.state.as<CommPlayerDataState>()?.aspectRatio ?? 16 / 9,
+                    final aspectRatio = context
+                        .select<DesktopPlayerBloc, double>(
+                          (bloc) =>
+                              bloc.state
+                                  .as<CommPlayerDataState>()
+                                  ?.aspectRatio ??
+                              16 / 9,
+                        );
+                    return AspectRatio(
+                      aspectRatio: aspectRatio,
+                      child: _player(),
                     );
-                    return AspectRatio(aspectRatio: aspectRatio, child: _player());
                   },
                 ),
               ),
               //current subtitle sentence text widget
-              Positioned(left: 8, right: 8, bottom: 8, child: _playingSentenceWidget()),
+              Positioned(
+                left: 8,
+                right: 8,
+                bottom: 8,
+                child: _playingSentenceWidget(),
+              ),
             ],
           ),
         ),
@@ -126,7 +148,8 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
       builder: (context) {
         final text =
             context.select<DesktopPlayerBloc, String?>(
-              (bloc) => bloc.state.as<CommPlayerDataState>()?.playingSentence?.text,
+              (bloc) =>
+                  bloc.state.as<CommPlayerDataState>()?.playingSentence?.text,
             ) ??
             '';
         return Text(
@@ -146,9 +169,10 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _player() {
     return Builder(
       builder: (context) {
-        final player = context.select<DesktopPlayerBloc, VideoPlayerController?>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.player,
-        );
+        final player = context
+            .select<DesktopPlayerBloc, VideoPlayerController?>(
+              (bloc) => bloc.state.as<CommPlayerDataState>()?.player,
+            );
         if (player == null) return const SizedBox.shrink();
         return VideoPlayer(player);
       },
@@ -166,7 +190,10 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
       ),
       child: Builder(
         builder: (context) {
-          final (position, duration) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
+          final (
+            position,
+            duration,
+          ) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
             (bloc) => (
               bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
               bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
@@ -180,17 +207,26 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
             max: max,
             onChangeStart: (val) {
               context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
+                CommPlayerMediaSliderStartChangeEvent(
+                  Duration(milliseconds: val.toInt()),
+                  duration,
+                ),
               );
             },
             onChanged: (val) {
               context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
+                CommPlayerMediaSliderChangingEvent(
+                  Duration(milliseconds: val.toInt()),
+                  duration,
+                ),
               );
             },
             onChangeEnd: (val) {
               context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
+                CommPlayerMediaSliderEndChangeEvent(
+                  Duration(milliseconds: val.toInt()),
+                  duration,
+                ),
               );
             },
           );
@@ -202,13 +238,16 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _controlBar() {
     return Builder(
       builder: (context) {
-        final (subtitleListButtonVisible, sentenceButtonVisible) = context.select<DesktopPlayerBloc, (bool, bool)>((
-          bloc,
-        ) {
-          final data = bloc.state.as<CommPlayerDataState>();
-          return (data?.subtitleListButtonVisible ?? false, data?.sentenceButtonVisible ?? false);
-        });
+        final (subtitleListButtonVisible, sentenceButtonVisible) = context
+            .select<DesktopPlayerBloc, (bool, bool)>((bloc) {
+              final data = bloc.state.as<CommPlayerDataState>();
+              return (
+                data?.subtitleListButtonVisible ?? false,
+                data?.sentenceButtonVisible ?? false,
+              );
+            });
         return Row(
+          crossAxisAlignment: .center,
           children: [
             _playOrPauseButton(context),
             if (sentenceButtonVisible) ...[
@@ -219,8 +258,14 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
               const SizedBox(width: 8),
               _nextSentenceButton(context),
             ],
-            if (subtitleListButtonVisible) ...[const SizedBox(width: 16), _subtitleListButton(context)],
+            if (subtitleListButtonVisible) ...[
+              const SizedBox(width: 16),
+              _subtitleListButton(context),
+            ],
             const Spacer(),
+            _volumeButton(),
+            SizedBox(width: 150, child: _volumeSlider()),
+            const SizedBox(width: 8),
             _speedDownButton(),
             const SizedBox(width: 8),
             _speedLabel(context),
@@ -229,6 +274,60 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _volumeButton() {
+    return Builder(
+      builder: (context) {
+        final muting = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<DesktopPlayerDataState>()?.muting ?? false,
+        );
+        return IconButton(
+          onPressed: () {
+            context.read<DesktopPlayerBloc>().add(
+              const DesktopPlayerToggleMuteEvent(),
+            );
+          },
+          icon: Icon(muting ? Icons.volume_off : Icons.volume_up, size: 32),
+          color: kPrimaryColor,
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          padding: EdgeInsets.zero,
+        );
+      },
+    );
+  }
+
+  Widget _volumeSlider() {
+    return SliderTheme(
+      data: const SliderThemeData(
+        trackHeight: 3.0,
+        activeTrackColor: kPrimaryColor,
+        inactiveTrackColor: Colors.white,
+        thumbColor: kPrimaryColor,
+      ),
+      child: Builder(
+        builder: (context) {
+          const double maxVolume = 1;
+          final (muting, volume) = context
+              .select<DesktopPlayerBloc, (bool, double)>((bloc) {
+                final data = bloc.state.as<DesktopPlayerDataState>();
+                return (data?.muting ?? false, data?.volume ?? maxVolume);
+              });
+          return Slider(
+            value: muting ? 0 : volume,
+            max: maxVolume,
+            onChanged: (volume) {
+              context.read<DesktopPlayerBloc>().add(
+                CommPlayerVolumeChangeEvent(volume),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -241,9 +340,13 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         return IconButton.filled(
           onPressed: () {
             if (playing) {
-              context.read<DesktopPlayerBloc>().add(const CommPlayerPauseEvent());
+              context.read<DesktopPlayerBloc>().add(
+                const CommPlayerPauseEvent(),
+              );
             } else {
-              context.read<DesktopPlayerBloc>().add(const CommPlayerPlayEvent());
+              context.read<DesktopPlayerBloc>().add(
+                const CommPlayerPlayEvent(),
+              );
             }
           },
           icon: Icon(playing ? Icons.pause : Icons.play_arrow, size: 20),
@@ -263,7 +366,9 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
     return Builder(
       builder: (context) {
         final hasSubtitle = context.select<DesktopPlayerBloc, bool>(
-          (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState is SubtitleDataState,
+          (bloc) =>
+              bloc.state.as<CommPlayerDataState>()?.subtitleState
+                  is SubtitleDataState,
         );
         if (!hasSubtitle) return const SizedBox.shrink();
         final loop = context.select<DesktopPlayerBloc, bool>(
@@ -271,10 +376,18 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         );
         return IconButton(
           onPressed: () {
-            context.read<DesktopPlayerBloc>().add(const CommPlayerToggleLoopEvent());
+            context.read<DesktopPlayerBloc>().add(
+              const CommPlayerToggleLoopEvent(),
+            );
           },
-          icon: Icon(loop ? Icons.repeat_one : Icons.repeat, color: loop ? kPrimaryColor : kPrimaryTextColor, size: 32),
-          style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          icon: Icon(
+            loop ? Icons.repeat_one : Icons.repeat,
+            color: loop ? kPrimaryColor : kPrimaryTextColor,
+            size: 32,
+          ),
+          style: IconButton.styleFrom(
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           padding: EdgeInsets.zero,
         );
@@ -285,10 +398,14 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _prevSentenceButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayPreviousSentenceEvent());
+        context.read<DesktopPlayerBloc>().add(
+          const CommPlayerPlayPreviousSentenceEvent(),
+        );
       },
       icon: const Icon(Icons.skip_previous, color: kPrimaryColor, size: 36),
-      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       padding: EdgeInsets.zero,
     );
@@ -297,10 +414,14 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _nextSentenceButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayNextSentenceEvent());
+        context.read<DesktopPlayerBloc>().add(
+          const CommPlayerPlayNextSentenceEvent(),
+        );
       },
       icon: const Icon(Icons.skip_next, color: kPrimaryColor, size: 36),
-      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       padding: EdgeInsets.zero,
     );
@@ -309,10 +430,14 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _subtitleListButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        context.read<DesktopPlayerBloc>().add(const CommPlayerShowSubtitleListEvent());
+        context.read<DesktopPlayerBloc>().add(
+          const CommPlayerShowSubtitleListEvent(),
+        );
       },
       icon: const Icon(Icons.subtitles, color: kPrimaryColor, size: 32),
-      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       padding: EdgeInsets.zero,
     );
@@ -322,11 +447,15 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<DesktopPlayerBloc>().add(const CommPlayerIncSpeedEvent());
+          context.read<DesktopPlayerBloc>().add(
+            const CommPlayerIncSpeedEvent(),
+          );
         },
         icon: const Icon(Icons.add_circle_outline, size: 32),
         color: kPrimaryColor,
-        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
         constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         padding: EdgeInsets.zero,
       ),
@@ -337,11 +466,15 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
     return Builder(
       builder: (context) => IconButton(
         onPressed: () {
-          context.read<DesktopPlayerBloc>().add(const CommPlayerDecSpeedEvent());
+          context.read<DesktopPlayerBloc>().add(
+            const CommPlayerDecSpeedEvent(),
+          );
         },
         icon: const Icon(Icons.remove_circle_outline, size: 32),
         color: kPrimaryColor,
-        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        style: IconButton.styleFrom(
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
         constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
         padding: EdgeInsets.zero,
       ),
@@ -355,13 +488,22 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           (bloc) => bloc.state.as<CommPlayerDataState>()?.speed ?? 1,
         );
         return GestureDetector(
-          onTap: () => context.read<DesktopPlayerBloc>().add(const CommPlayerResetSpeedEvent()),
+          onTap: () => context.read<DesktopPlayerBloc>().add(
+            const CommPlayerResetSpeedEvent(),
+          ),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(color: kPrimaryColor, borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(
+              color: kPrimaryColor,
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Text(
               '${speed}x',
-              style: const TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.bold, fontSize: 12),
+              style: const TextStyle(
+                color: kPrimaryTextColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ),
         );
@@ -416,14 +558,16 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
       value: DesktopPlayerBloc.shared,
       child: BlocListener<DesktopPlayerBloc, CommPlayerState>(
         listenWhen: (previous, current) =>
-            (previous is! CommPlayerDataState || !previous.subtitleListVisible) &&
+            (previous is! CommPlayerDataState ||
+                !previous.subtitleListVisible) &&
             (current is CommPlayerDataState && current.subtitleListVisible),
         listener: (context, state) => _showSubtitleList(context),
         child: Builder(
           builder: (context) {
-            final subtitleState = context.select<DesktopPlayerBloc, SubtitleState?>(
-              (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState,
-            );
+            final subtitleState = context
+                .select<DesktopPlayerBloc, SubtitleState?>(
+                  (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState,
+                );
             switch (subtitleState) {
               case null || SubtitleEmptyState():
                 return _noSubtitleWidget(context);
@@ -443,7 +587,9 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
           onDragDone: (details) {
             final path = details.files.firstOrNull?.path;
             if (path != null) {
-              context.read<DesktopPlayerBloc>().add(DesktopPlayerDropSubtitleEvent(File(path)));
+              context.read<DesktopPlayerBloc>().add(
+                DesktopPlayerDropSubtitleEvent(File(path)),
+              );
             }
           },
           child: Padding(
@@ -455,7 +601,9 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
               initialAlignment: data.initialAlignment,
               initialScrollIndex: data.initialIndex,
               itemBuilder: (context, i) {
-                final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
+                final sentenceCardBloc = context
+                    .read<DesktopPlayerBloc>()
+                    .sentenceCardBlocAtIndex(i);
                 return SentenceCardUI(sentenceCardBloc);
               },
             ),
@@ -470,14 +618,18 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
       onDragDone: (details) {
         final path = details.files.firstOrNull?.path;
         if (path != null) {
-          context.read<DesktopPlayerBloc>().add(DesktopPlayerDropSubtitleEvent(File(path)));
+          context.read<DesktopPlayerBloc>().add(
+            DesktopPlayerDropSubtitleEvent(File(path)),
+          );
         }
       },
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: () {
-            context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
+            context.read<DesktopPlayerBloc>().add(
+              const DesktopPlayerPickSubtitleFromFileExplorerEvent(),
+            );
           },
           child: GlassContainer(
             margin: const EdgeInsets.fromLTRB(1, 8, 8, 8),
@@ -489,18 +641,33 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
-                      child: const Icon(Icons.subtitles, size: 44, color: Colors.white),
+                      decoration: const BoxDecoration(
+                        color: kPrimaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.subtitles,
+                        size: 44,
+                        color: Colors.white,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No Subtitles Track',
-                      style: kTextStyle(color: kPrimaryTextColor, size: 16, weight: FontWeight.bold),
+                      style: kTextStyle(
+                        color: kPrimaryTextColor,
+                        size: 16,
+                        weight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Click or Drag & Drop subtitle file here',
-                      style: kTextStyle(color: kSecondaryTextColor, size: 13, weight: FontWeight.normal),
+                      style: kTextStyle(
+                        color: kSecondaryTextColor,
+                        size: 13,
+                        weight: FontWeight.normal,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 4),
@@ -550,18 +717,33 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.subtitles, color: kPrimaryColor, size: 22),
+                          const Icon(
+                            Icons.subtitles,
+                            color: kPrimaryColor,
+                            size: 22,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Select Subtitle',
-                            style: kTextStyle(size: 16, color: kPrimaryTextColor, weight: .bold),
+                            style: kTextStyle(
+                              size: 16,
+                              color: kPrimaryTextColor,
+                              weight: .bold,
+                            ),
                           ),
                           const Spacer(),
                           IconButton(
                             onPressed: () => Navigator.of(dialogContext).pop(),
-                            icon: Icon(Icons.close, color: kSecondaryTextColor, size: 18),
+                            icon: Icon(
+                              Icons.close,
+                              color: kSecondaryTextColor,
+                              size: 18,
+                            ),
                             padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                            constraints: const BoxConstraints(
+                              minWidth: 28,
+                              minHeight: 28,
+                            ),
                           ),
                         ],
                       ),
@@ -575,15 +757,23 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                             final isSelected = subtitle == currentSubtitle;
                             return InkWell(
                               borderRadius: BorderRadius.circular(8),
-                              onTap: () => Navigator.of(dialogContext).pop(subtitle),
+                              onTap: () =>
+                                  Navigator.of(dialogContext).pop(subtitle),
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 10,
+                                ),
                                 child: Row(
                                   children: [
                                     Icon(
-                                      isSelected ? Icons.check_circle : Icons.subtitles_outlined,
+                                      isSelected
+                                          ? Icons.check_circle
+                                          : Icons.subtitles_outlined,
                                       size: 18,
-                                      color: isSelected ? kPrimaryColor : kSecondaryTextColor,
+                                      color: isSelected
+                                          ? kPrimaryColor
+                                          : kSecondaryTextColor,
                                     ),
                                     const SizedBox(width: 10),
                                     Expanded(
@@ -591,7 +781,9 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
                                         subtitle.name,
                                         style: kTextStyle(
                                           size: 14,
-                                          color: isSelected ? kPrimaryTextColor : kSecondaryTextColor,
+                                          color: isSelected
+                                              ? kPrimaryTextColor
+                                              : kSecondaryTextColor,
                                           weight: isSelected ? .bold : .normal,
                                         ),
                                       ),
