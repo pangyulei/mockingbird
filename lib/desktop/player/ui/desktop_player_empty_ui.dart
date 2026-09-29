@@ -26,8 +26,8 @@ class DesktopPlayerEmptyUI extends StatelessWidget {
           },
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
-            child: imageContainer(
-              Image.asset('assets/desktop/main_window_background.jpg').image,
+            child: ImageContainer(
+              image:Image.asset('assets/desktop/main_window_background.jpg').image,
               child: Padding(
                 padding: const EdgeInsets.all(8),
                 child: Builder(
@@ -36,7 +36,7 @@ class DesktopPlayerEmptyUI extends StatelessWidget {
                       onTap: () => context.read<DesktopPlayerBloc>().add(
                         const DesktopPlayerPickMediaFromFileExplorerEvent(),
                       ),
-                      child: glassContainer(
+                      child: GlassContainer(
                         child: Center(
                           child: Column(
                             mainAxisSize: MainAxisSize.min,

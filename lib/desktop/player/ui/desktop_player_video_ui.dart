@@ -31,8 +31,8 @@ class DesktopPlayerVideoUI extends StatelessWidget {
     return BlocProvider.value(
       value: DesktopPlayerBloc.shared,
       child: Scaffold(
-        body: imageContainer(
-          Image.asset('assets/desktop/main_window_background.jpg').image,
+        body: ImageContainer(
+          image:Image.asset('assets/desktop/main_window_background.jpg').image,
           child: MultiSplitViewTheme(
             data: MultiSplitViewThemeData(
               dividerThickness: kDesktopPlayerDividerThickness,
@@ -76,12 +76,12 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
           mainAxisSize: .min,
           children: [
             Flexible(
-              child: glassContainer(padding: const EdgeInsets.all(8), child: _videoDisplayer()),
+              child: GlassContainer(padding: const EdgeInsets.fromLTRB(8, 8, 8, 0), child: _videoDisplayer()),
             ),
             const SizedBox(height: 8),
             SizedBox(
               height: 44,
-              child: glassContainer(
+              child: GlassContainer(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                 child: _controlBar(),
               ),
@@ -112,12 +112,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
                 ),
               ),
               //current subtitle sentence text widget
-              Positioned(
-                left: 8,
-                right: 8,
-                bottom: 8,
-                child: _playingSentenceWidget(),
-              ),
+              Positioned(left: 8, right: 8, bottom: 8, child: _playingSentenceWidget()),
             ],
           ),
         ),
@@ -484,7 +479,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
           onTap: () {
             context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
           },
-          child: glassContainer(
+          child: GlassContainer(
             margin: const EdgeInsets.fromLTRB(1, 8, 8, 8),
             child: Center(
               child: Padding(
@@ -545,7 +540,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 360, maxHeight: 400),
             child: Material(
               color: Colors.transparent,
-              child: glassContainer(
+              child: GlassContainer(
                 radius: 16,
                 child: Padding(
                   padding: const EdgeInsets.all(16),

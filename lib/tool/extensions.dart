@@ -229,36 +229,56 @@ Future<Store> initDB({Store? store}) async {
 
 typedef PlayerProperties = ({bool mediaCompleted, Sentence? completedLoopSentence, bool sentenceChanged});
 
-Widget imageContainer(ImageProvider image, {required Widget child}) => Container(
-  decoration: BoxDecoration(
-    image: DecorationImage(image: image, fit: BoxFit.cover),
-  ),
-  child: child,
-);
-
-Widget glassContainer({
-  required Widget child,
-  double radius = 8,
-  EdgeInsets padding = EdgeInsets.zero,
-  EdgeInsets margin = EdgeInsets.zero,
-}) => ClipRRect(
-  borderRadius: BorderRadius.circular(radius),
-  child: BackdropFilter(
-    filter: kGlassFilter,
-    child: Container(
-      padding: padding,
-      margin: margin,
+class ImageContainer extends StatelessWidget {
+  final ImageProvider _image;
+  final Widget _child;
+  const ImageContainer({required this._image, required this._child, super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Container(
       decoration: BoxDecoration(
-        image: kGlassDecorationImage,
-        gradient: kGlassGradient,
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: kGlassBorderColor, width: 1),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0), blurRadius: 5, spreadRadius: -5)],
+        image: DecorationImage(image: _image, fit: BoxFit.cover),
       ),
-      child: child,
-    ),
-  ),
-);
+      child: _child,
+    );
+  }
+}
+
+class GlassContainer extends StatelessWidget {
+  final Widget _child;
+  final double _radius;
+  final EdgeInsetsGeometry _padding;
+  final EdgeInsetsGeometry _margin;
+  const GlassContainer({
+    super.key,
+    required this._child,
+    this._margin = EdgeInsets.zero,
+    this._padding = EdgeInsets.zero,
+    this._radius = 8,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(_radius),
+      child: BackdropFilter(
+        filter: kGlassFilter,
+        child: Container(
+          padding: _padding,
+          margin: _margin,
+          decoration: BoxDecoration(
+            image: kGlassDecorationImage,
+            gradient: kGlassGradient,
+            borderRadius: BorderRadius.circular(_radius),
+            border: Border.all(color: kGlassBorderColor, width: 1),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0), blurRadius: 5, spreadRadius: -5)],
+          ),
+          child: _child,
+        ),
+      ),
+    );
+  }
+}
 
 final kGlassDecorationImage = DecorationImage(
   image: Image.asset('assets/glass_blur_noise.png').image,
