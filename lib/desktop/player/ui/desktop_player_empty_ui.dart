@@ -28,59 +28,57 @@ class DesktopPlayerEmptyUI extends StatelessWidget {
             cursor: SystemMouseCursors.click,
             child: ImageContainer(
               image:Image.asset('assets/desktop/main_window_background.jpg').image,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Builder(
-                  builder: (context) {
-                    return GestureDetector(
-                      onTap: () => context.read<DesktopPlayerBloc>().add(
-                        const DesktopPlayerPickMediaFromFileExplorerEvent(),
-                      ),
-                      child: GlassContainer(
-                        child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: const BoxDecoration(
-                                  color: kPrimaryColor,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.cloud_upload_outlined,
-                                  size: 48,
-                                  color: kPrimaryTextColor,
-                                ),
+              padding: const EdgeInsets.all(8),
+              child: Builder(
+                builder: (context) {
+                  return GestureDetector(
+                    onTap: () => context.read<DesktopPlayerBloc>().add(
+                      const DesktopPlayerPickMediaFromFileExplorerEvent(),
+                    ),
+                    child: GlassContainer(
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: const BoxDecoration(
+                                color: kPrimaryColor,
+                                shape: BoxShape.circle,
                               ),
-                              const SizedBox(height: 24),
-                              Text(
-                                'Drag & Drop Media File Here',
-                                style: kTextStyle(
-                                  size: 24,
-                                  color: kPrimaryTextColor,
-                                  weight: .bold,
-                                ),
-                                textAlign: TextAlign.center,
+                              child: const Icon(
+                                Icons.cloud_upload_outlined,
+                                size: 48,
+                                color: kPrimaryTextColor,
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'or click anywhere in this area to browse your video/audio files',
-                                style: kTextStyle(
-                                  size: 16,
-                                  color: kSecondaryTextColor,
-                                  weight: .normal,
-                                ),
-                                textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Drag & Drop Media File Here',
+                              style: kTextStyle(
+                                size: 24,
+                                color: kPrimaryTextColor,
+                                weight: .bold,
                               ),
-                            ],
-                          ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'or click anywhere in this area to browse your video/audio files',
+                              style: kTextStyle(
+                                size: 16,
+                                color: kSecondaryTextColor,
+                                weight: .normal,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

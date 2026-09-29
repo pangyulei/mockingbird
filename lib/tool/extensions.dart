@@ -232,10 +232,20 @@ typedef PlayerProperties = ({bool mediaCompleted, Sentence? completedLoopSentenc
 class ImageContainer extends StatelessWidget {
   final ImageProvider _image;
   final Widget _child;
-  const ImageContainer({required this._image, required this._child, super.key});
+  final EdgeInsetsGeometry _padding;
+  final EdgeInsetsGeometry _margin;
+  const ImageContainer({
+    required this._image,
+    required this._child,
+    this._padding = EdgeInsets.zero,
+    this._margin = EdgeInsets.zero,
+    super.key,
+  });
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: _padding,
+      margin: _margin,
       decoration: BoxDecoration(
         image: DecorationImage(image: _image, fit: BoxFit.cover),
       ),

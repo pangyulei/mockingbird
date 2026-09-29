@@ -7,8 +7,8 @@ import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import 'desktop_player_audio_ui.dart';
 import 'desktop_player_video_ui.dart';
-import 'destop_player_audio_ui.dart';
 
 class DesktopPlayerUI extends StatelessWidget {
   const DesktopPlayerUI({super.key});

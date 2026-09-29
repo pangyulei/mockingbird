@@ -17,34 +17,35 @@ class MobilePlayerSubtitleUI extends StatelessWidget {
       value: MobilePlayerBloc.shared,
       child: Builder(
         builder: (context) {
-          final subtitleState = context
-              .select<MobilePlayerBloc, SubtitleState?>(
-                (bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState,
-              );
+          final subtitleState = context.select<MobilePlayerBloc, SubtitleState?>(
+            (bloc) => bloc.state.as<MobilePlayerDataState>()?.subtitleState,
+          );
           switch (subtitleState) {
             case null || SubtitleEmptyState():
-              return _noSubtitle(context);
+              return _subtitleEmptyWidget(context);
             case SubtitleDataState data:
-              return ScrollablePositionedList.builder(
-                key: ValueKey(data),
-                itemCount: data.subtitle.sentenceList.length,
-                itemScrollController: data.scroller,
-                initialAlignment: data.initialAlignment,
-                initialScrollIndex: data.initialIndex,
-                itemBuilder: (context, i) {
-                  final sentenceCardBloc = context
-                      .read<MobilePlayerBloc>()
-                      .sentenceCardBlocAtIndex(i);
-                  return SentenceCardUI(sentenceCardBloc);
-                },
-              );
+              return _subtitleDataWidget(data);
           }
         },
       ),
     );
   }
 
-  Widget _noSubtitle(BuildContext context) {
+  Widget _subtitleDataWidget(SubtitleDataState data) {
+    return ScrollablePositionedList.builder(
+      key: ValueKey(data),
+      itemCount: data.subtitle.sentenceList.length,
+      itemScrollController: data.scroller,
+      initialAlignment: data.initialAlignment,
+      initialScrollIndex: data.initialIndex,
+      itemBuilder: (context, i) {
+        final sentenceCardBloc = context.read<MobilePlayerBloc>().sentenceCardBlocAtIndex(i);
+        return SentenceCardUI(sentenceCardBloc);
+      },
+    );
+  }
+
+  Widget _subtitleEmptyWidget(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     return InkWell(
@@ -55,18 +56,11 @@ class MobilePlayerSubtitleUI extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.subtitles_off_rounded,
-              size: 48,
-              color: colorScheme.outline.withValues(alpha: 0.4),
-            ),
+            Icon(Icons.subtitles_off_rounded, size: 48, color: colorScheme.outline.withValues(alpha: 0.4)),
             const SizedBox(height: 16),
             Text(
               'No Subtitles Found',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colorScheme.outline,
-                fontWeight: FontWeight.bold,
-              ),
+              style: theme.textTheme.titleMedium?.copyWith(color: colorScheme.outline, fontWeight: FontWeight.bold),
             ),
           ],
         ),
