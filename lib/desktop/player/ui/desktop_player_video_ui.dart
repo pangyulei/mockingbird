@@ -111,35 +111,40 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
                   },
                 ),
               ),
+              //current subtitle sentence text widget
               Positioned(
                 left: 8,
                 right: 8,
                 bottom: 8,
-                child: Builder(
-                  builder: (context) {
-                    final text =
-                        context.select<DesktopPlayerBloc, String?>(
-                          (bloc) => bloc.state.as<CommPlayerDataState>()?.playingSentence?.text,
-                        ) ??
-                        '';
-                    return Text(
-                      text,
-                      textAlign: .center,
-                      style: kTextStyle(
-                        size: 14,
-                        color: kPrimaryTextColor,
-                        weight: .bold,
-                        backgroundColor: Colors.black.withValues(alpha: 0.5),
-                      ),
-                    );
-                  },
-                ),
+                child: _playingSentenceWidget(),
               ),
             ],
           ),
         ),
         _progressSlider(),
       ],
+    );
+  }
+
+  Widget _playingSentenceWidget() {
+    return Builder(
+      builder: (context) {
+        final text =
+            context.select<DesktopPlayerBloc, String?>(
+              (bloc) => bloc.state.as<CommPlayerDataState>()?.playingSentence?.text,
+            ) ??
+            '';
+        return Text(
+          text,
+          textAlign: .center,
+          style: kTextStyle(
+            size: 20,
+            color: kPrimaryTextColor,
+            weight: .bold,
+            backgroundColor: Colors.black.withValues(alpha: 0.5),
+          ),
+        );
+      },
     );
   }
 
