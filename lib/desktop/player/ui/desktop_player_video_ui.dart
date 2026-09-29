@@ -180,57 +180,61 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   }
 
   Widget _progressSlider() {
-    return SliderTheme(
-      data: const SliderThemeData(
-        trackHeight: 3.0,
-        activeTrackColor: kPrimaryColor,
-        inactiveTrackColor: kPrimaryTextColor,
-        thumbColor: kPrimaryColor,
-        // thumbSize: WidgetStateProperty.all(const Size(14, 14)),
-      ),
-      child: Builder(
-        builder: (context) {
-          final (
-            position,
-            duration,
-          ) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
-            (bloc) => (
-              bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
-              bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
-            ),
-          );
-          final max = duration.inMilliseconds.toDouble();
-          final val = position.inMilliseconds.clamp(0, max).toDouble();
-          return Slider(
-            allowedInteraction: .tapAndSlide,
-            value: val,
-            max: max,
-            onChangeStart: (val) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderStartChangeEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
-              );
-            },
-            onChanged: (val) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderChangingEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
-              );
-            },
-            onChangeEnd: (val) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderEndChangeEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
-              );
-            },
-          );
-        },
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      child: SliderTheme(
+        data: const SliderThemeData(
+          trackHeight: 3.0,
+          activeTrackColor: kPrimaryColor,
+          inactiveTrackColor: kPrimaryTextColor,
+          thumbColor: kPrimaryColor,
+          padding: EdgeInsets.zero,
+          // thumbSize: WidgetStateProperty.all(const Size(14, 14)),
+        ),
+        child: Builder(
+          builder: (context) {
+            final (
+              position,
+              duration,
+            ) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
+              (bloc) => (
+                bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
+                bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
+              ),
+            );
+            final max = duration.inMilliseconds.toDouble();
+            final val = position.inMilliseconds.clamp(0, max).toDouble();
+            return Slider(
+              allowedInteraction: .tapAndSlide,
+              value: val,
+              max: max,
+              onChangeStart: (val) {
+                context.read<DesktopPlayerBloc>().add(
+                  CommPlayerMediaSliderStartChangeEvent(
+                    Duration(milliseconds: val.toInt()),
+                    duration,
+                  ),
+                );
+              },
+              onChanged: (val) {
+                context.read<DesktopPlayerBloc>().add(
+                  CommPlayerMediaSliderChangingEvent(
+                    Duration(milliseconds: val.toInt()),
+                    duration,
+                  ),
+                );
+              },
+              onChangeEnd: (val) {
+                context.read<DesktopPlayerBloc>().add(
+                  CommPlayerMediaSliderEndChangeEvent(
+                    Duration(milliseconds: val.toInt()),
+                    duration,
+                  ),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -264,8 +268,9 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
             ],
             const Spacer(),
             _volumeButton(),
+            const SizedBox(width: 16),
             SizedBox(width: 150, child: _volumeSlider()),
-            const SizedBox(width: 8),
+            const SizedBox(width: 16),
             _speedDownButton(),
             const SizedBox(width: 8),
             _speedLabel(context),
@@ -308,6 +313,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         activeTrackColor: kPrimaryColor,
         inactiveTrackColor: Colors.white,
         thumbColor: kPrimaryColor,
+        padding: EdgeInsets.zero,
       ),
       child: Builder(
         builder: (context) {
