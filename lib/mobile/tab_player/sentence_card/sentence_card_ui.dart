@@ -14,7 +14,7 @@ class SentenceCardUI extends StatelessWidget {
     return BlocProvider.value(
       value: _bloc,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(1, 4, 8, 4),
+        padding: const EdgeInsets.fromLTRB(2, 4, 8, 4),
         child: Builder(
           builder: (context) {
             final playing = context.select<SentenceCardBloc, bool>(

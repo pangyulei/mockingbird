@@ -447,7 +447,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
             }
           },
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(1, 8, 8, 8),
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
             child: ScrollablePositionedList.builder(
               key: ValueKey(data),
               itemCount: data.subtitle.sentenceList.length,
