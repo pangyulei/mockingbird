@@ -4,9 +4,12 @@ import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/desktop_player_state.dart';
 import 'package:mockingbird/desktop/player/ui/desktop_player_subtitle_list.dart';
+import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle/subtitle_state.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 class DesktopPlayerAudioUI extends StatelessWidget {
   const DesktopPlayerAudioUI({super.key});
@@ -23,8 +26,17 @@ class DesktopPlayerAudioUI extends StatelessWidget {
         child: Scaffold(
           body: ImageContainer(
             image: Image.asset('assets/desktop/main_window_background.jpg').image,
-            padding: const EdgeInsets.all(8),
-            child: Column(children: [_displayerWidget(), const SizedBox(height: 8), _subtitleWidget()]),
+            child: Column(
+              children: [
+                const SizedBox(height: 8),
+                _displayerWidget(),
+                const SizedBox(height: 8),
+                _controlBar(),
+                const SizedBox(height: 8),
+                _subtitleWidget(),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ),
@@ -32,18 +44,114 @@ class DesktopPlayerAudioUI extends StatelessWidget {
   }
 
   Widget _subtitleWidget() {
-    return const SizedBox.shrink();
+    return Builder(
+      builder: (context) {
+        final subtitleState = context.select<DesktopPlayerBloc, SubtitleState?>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState,
+        );
+        switch (subtitleState) {
+          case null || SubtitleEmptyState():
+            return _subtitleEmptyWidget(context);
+          case SubtitleDataState data:
+            return _subtitleDataWidget(data);
+        }
+      },
+    );
+  }
+
+  Widget _subtitleDataWidget(SubtitleDataState data) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Builder(
+            builder: (context) {
+              return ScrollablePositionedList.builder(
+                key: ValueKey(data),
+                itemCount: data.subtitle.sentenceList.length,
+                itemScrollController: data.scroller,
+                initialAlignment: data.initialAlignment,
+                initialScrollIndex: data.initialIndex,
+                itemBuilder: (context, i) {
+                  final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
+                  return Padding(
+                    padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+                    child: SentenceCardUI(sentenceCardBloc),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _subtitleEmptyWidget(BuildContext context) {
+    return Expanded(
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: () {
+            context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: GlassContainer(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
+                      child: const Icon(Icons.subtitles, size: 44, color: Colors.white),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No Subtitles Track',
+                      style: kTextStyle(color: kPrimaryTextColor, size: 16, weight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Click or Drag & Drop subtitle file here',
+                      style: kTextStyle(color: kSecondaryTextColor, size: 13, weight: FontWeight.normal),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Supports .srt and .vtt formats',
+                      style: kTextStyle(
+                        color: kSecondaryTextColor.withValues(alpha: 0.6),
+                        size: 11,
+                        weight: FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _displayerWidget() {
-    return GlassContainer(
-      child: Column(
-        mainAxisAlignment: .center,
-        children: [
-          Padding(padding: const EdgeInsets.fromLTRB(8, 8, 20, 0), child: _volumeWidget()),
-          const SizedBox(height: 8),
-          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _progressSlider()),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: GlassContainer(
+        child: Column(
+          mainAxisAlignment: .center,
+          children: [
+            Padding(padding: const EdgeInsets.fromLTRB(8, 8, 20, 0), child: _volumeWidget()),
+            const SizedBox(height: 8),
+            Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _progressSlider()),
+          ],
+        ),
       ),
     );
   }
@@ -148,6 +256,184 @@ class DesktopPlayerAudioUI extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _controlBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: GlassContainer(
+        padding: const EdgeInsets.all(8),
+        child: Builder(
+          builder: (context) {
+            final (subtitleListButtonVisible, sentenceButtonVisible) = context.select<DesktopPlayerBloc, (bool, bool)>((
+              bloc,
+            ) {
+              final data = bloc.state.as<CommPlayerDataState>();
+              return (data?.subtitleListButtonVisible ?? false, data?.sentenceButtonVisible ?? false);
+            });
+            return Row(
+              crossAxisAlignment: .center,
+              children: [
+                _playOrPauseButton(context),
+                if (sentenceButtonVisible) ...[
+                  const SizedBox(width: 16),
+                  _loopButton(context),
+                  const SizedBox(width: 8),
+                  _prevSentenceButton(context),
+                  const SizedBox(width: 8),
+                  _nextSentenceButton(context),
+                ],
+                if (subtitleListButtonVisible) ...[const SizedBox(width: 16), _subtitleListButton(context)],
+                const Spacer(),
+                const SizedBox(width: 16),
+                _speedDownButton(),
+                const SizedBox(width: 8),
+                _speedLabel(context),
+                const SizedBox(width: 8),
+                _speedUpButton(),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _playOrPauseButton(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final playing = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.playing ?? false,
+        );
+        return IconButton.filled(
+          onPressed: () {
+            if (playing) {
+              context.read<DesktopPlayerBloc>().add(const CommPlayerPauseEvent());
+            } else {
+              context.read<DesktopPlayerBloc>().add(const CommPlayerPlayEvent());
+            }
+          },
+          icon: Icon(playing ? Icons.pause : Icons.play_arrow, size: 20),
+          style: IconButton.styleFrom(
+            backgroundColor: kPrimaryColor,
+            foregroundColor: kPrimaryTextColor,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+          padding: EdgeInsets.zero,
+        );
+      },
+    );
+  }
+
+  Widget _loopButton(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final hasSubtitle = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.subtitleState is SubtitleDataState,
+        );
+        if (!hasSubtitle) return const SizedBox.shrink();
+        final loop = context.select<DesktopPlayerBloc, bool>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.loopIndex != null,
+        );
+        return IconButton(
+          onPressed: () {
+            context.read<DesktopPlayerBloc>().add(const CommPlayerToggleLoopEvent());
+          },
+          icon: Icon(loop ? Icons.repeat_one : Icons.repeat, color: loop ? kPrimaryColor : kPrimaryTextColor, size: 32),
+          style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+          constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          padding: EdgeInsets.zero,
+        );
+      },
+    );
+  }
+
+  Widget _prevSentenceButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayPrevSentenceEvent());
+      },
+      icon: const Icon(Icons.skip_previous, color: kPrimaryColor, size: 36),
+      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _nextSentenceButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayNextSentenceEvent());
+      },
+      icon: const Icon(Icons.skip_next, color: kPrimaryColor, size: 36),
+      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _subtitleListButton(BuildContext context) {
+    return IconButton(
+      onPressed: () {
+        context.read<DesktopPlayerBloc>().add(const CommPlayerShowSubtitleListEvent());
+      },
+      icon: const Icon(Icons.subtitles, color: kPrimaryColor, size: 32),
+      style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _speedUpButton() {
+    return Builder(
+      builder: (context) => IconButton(
+        onPressed: () {
+          context.read<DesktopPlayerBloc>().add(const CommPlayerIncSpeedEvent());
+        },
+        icon: const Icon(Icons.add_circle_outline, size: 32),
+        color: kPrimaryColor,
+        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _speedDownButton() {
+    return Builder(
+      builder: (context) => IconButton(
+        onPressed: () {
+          context.read<DesktopPlayerBloc>().add(const CommPlayerDecSpeedEvent());
+        },
+        icon: const Icon(Icons.remove_circle_outline, size: 32),
+        color: kPrimaryColor,
+        style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        padding: EdgeInsets.zero,
+      ),
+    );
+  }
+
+  Widget _speedLabel(BuildContext context) {
+    return Builder(
+      builder: (context) {
+        final speed = context.select<DesktopPlayerBloc, double>(
+          (bloc) => bloc.state.as<CommPlayerDataState>()?.speed ?? 1,
+        );
+        return GestureDetector(
+          onTap: () => context.read<DesktopPlayerBloc>().add(const CommPlayerResetSpeedEvent()),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(color: kPrimaryColor, borderRadius: BorderRadius.circular(6)),
+            child: Text(
+              '${speed}x',
+              style: const TextStyle(color: kPrimaryTextColor, fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -72,16 +72,10 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
         mainAxisSize: .min,
         children: [
           Flexible(
-            child: GlassContainer(padding: const EdgeInsets.fromLTRB(8, 8, 8, 0), child: _videoDisplayer()),
+            child: GlassContainer(padding: const EdgeInsets.all(8), child: _videoDisplayer()),
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            height: 44,
-            child: GlassContainer(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-              child: _controlBar(),
-            ),
-          ),
+          _controlBar(),
         ],
       ),
     );
@@ -152,7 +146,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
 
   Widget _progressSlider() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
       child: SliderTheme(
         data: const SliderThemeData(
           trackHeight: 3.0,
@@ -199,40 +193,43 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   }
 
   Widget _controlBar() {
-    return Builder(
-      builder: (context) {
-        final (subtitleListButtonVisible, sentenceButtonVisible) = context.select<DesktopPlayerBloc, (bool, bool)>((
-          bloc,
-        ) {
-          final data = bloc.state.as<CommPlayerDataState>();
-          return (data?.subtitleListButtonVisible ?? false, data?.sentenceButtonVisible ?? false);
-        });
-        return Row(
-          crossAxisAlignment: .center,
-          children: [
-            _playOrPauseButton(context),
-            if (sentenceButtonVisible) ...[
+    return GlassContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      child: Builder(
+        builder: (context) {
+          final (subtitleListButtonVisible, sentenceButtonVisible) = context.select<DesktopPlayerBloc, (bool, bool)>((
+            bloc,
+          ) {
+            final data = bloc.state.as<CommPlayerDataState>();
+            return (data?.subtitleListButtonVisible ?? false, data?.sentenceButtonVisible ?? false);
+          });
+          return Row(
+            crossAxisAlignment: .center,
+            children: [
+              _playOrPauseButton(context),
+              if (sentenceButtonVisible) ...[
+                const SizedBox(width: 16),
+                _loopButton(context),
+                const SizedBox(width: 8),
+                _prevSentenceButton(context),
+                const SizedBox(width: 8),
+                _nextSentenceButton(context),
+              ],
+              if (subtitleListButtonVisible) ...[const SizedBox(width: 16), _subtitleListButton(context)],
+              const Spacer(),
+              _volumeButton(),
               const SizedBox(width: 16),
-              _loopButton(context),
+              SizedBox(width: 150, child: _volumeSlider()),
+              const SizedBox(width: 16),
+              _speedDownButton(),
               const SizedBox(width: 8),
-              _prevSentenceButton(context),
+              _speedLabel(context),
               const SizedBox(width: 8),
-              _nextSentenceButton(context),
+              _speedUpButton(),
             ],
-            if (subtitleListButtonVisible) ...[const SizedBox(width: 16), _subtitleListButton(context)],
-            const Spacer(),
-            _volumeButton(),
-            const SizedBox(width: 16),
-            SizedBox(width: 150, child: _volumeSlider()),
-            const SizedBox(width: 16),
-            _speedDownButton(),
-            const SizedBox(width: 8),
-            _speedLabel(context),
-            const SizedBox(width: 8),
-            _speedUpButton(),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -337,7 +334,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
   Widget _prevSentenceButton(BuildContext context) {
     return IconButton(
       onPressed: () {
-        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayPreviousSentenceEvent());
+        context.read<DesktopPlayerBloc>().add(const CommPlayerPlayPrevSentenceEvent());
       },
       icon: const Icon(Icons.skip_previous, color: kPrimaryColor, size: 36),
       style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
@@ -484,38 +481,40 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
 
   Widget _subtitleDataWidget(SubtitleDataState data) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 8, 0, 8),
-      child: Builder(
-        builder: (context) {
-          return ScrollablePositionedList.builder(
-            key: ValueKey(data),
-            itemCount: data.subtitle.sentenceList.length,
-            itemScrollController: data.scroller,
-            padding: const EdgeInsets.only(right: 12),
-            initialAlignment: data.initialAlignment,
-            initialScrollIndex: data.initialIndex,
-            itemBuilder: (context, i) {
-              final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
-              return Padding(
-                padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
-                child: SentenceCardUI(sentenceCardBloc),
-              );
-            },
-          );
-        },
+      padding: const EdgeInsets.fromLTRB(2, 8, 8, 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Builder(
+          builder: (context) {
+            return ScrollablePositionedList.builder(
+              key: ValueKey(data),
+              itemCount: data.subtitle.sentenceList.length,
+              itemScrollController: data.scroller,
+              initialAlignment: data.initialAlignment,
+              initialScrollIndex: data.initialIndex,
+              itemBuilder: (context, i) {
+                final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
+                return Padding(
+                  padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+                  child: SentenceCardUI(sentenceCardBloc),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _subtitleEmptyWidget(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(2, 8, 8, 8),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: () {
-            context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
-          },
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
+        },
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(2, 8, 8, 8),
           child: GlassContainer(
             padding: const EdgeInsets.all(24),
             child: Center(

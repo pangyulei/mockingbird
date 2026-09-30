@@ -100,6 +100,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       const minimumSize = Size(400, 800);
       await windowManager.setMinimumSize(minimumSize);
       await windowManager.setSize(minimumSize);
+      await windowManager.center();
     }
     emit(DesktopPlayerDataState(commData: commData, muting: false));
   }
@@ -115,6 +116,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
       );
       await windowManager.setMinimumSize(minimumSize);
       await windowManager.setSize(minimumSize);
+      await windowManager.center();
 
       splitter = MultiSplitViewController();
       splitter.addArea(

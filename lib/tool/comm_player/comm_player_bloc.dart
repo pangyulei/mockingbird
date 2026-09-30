@@ -50,7 +50,7 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     on<CommPlayerMediaSliderChangingEvent>(_onMediaSliderChanging);
     on<CommPlayerMediaSliderEndChangeEvent>(_onMediaSliderEndChange);
     on<CommPlayerVolumeChangeEvent>(onVolumeChange);
-    on<CommPlayerPlayPreviousSentenceEvent>(_onPlayPreviousSentence);
+    on<CommPlayerPlayPrevSentenceEvent>(_onPlayPrevSentence);
     on<CommPlayerPlayNextSentenceEvent>(_onPlayNextSentence);
     subscriptionList.addAll([
       EventHub.on<HubSubtitleChangeEvent>((event) => add(CommPlayerPickSubtitleFromListEvent(event.subtitle))),
@@ -426,19 +426,22 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     );
   }
 
-  Future<void> _onPlayPreviousSentence(CommPlayerPlayPreviousSentenceEvent event, Emitter<CommPlayerState> emit) async {
+  Future<void> _onPlayPrevSentence(CommPlayerPlayPrevSentenceEvent event, Emitter<CommPlayerState> emit) async {
     final index = _spot?.index;
     if (index == null) return;
     var data = state.as<CommPlayerDataState>();
     if (data == null) return;
-    final previousIndex = index - 1;
-    final previousSentence = data.subtitle?.sentenceList.elementAtOrNull(previousIndex);
-    if (previousSentence == null) return;
-    data = data.copyWith(position: previousSentence.start);
-    await data.player.seekTo(previousSentence.start);
+    final prevIndex = index - 1;
+    final prevSentence = data.subtitle?.sentenceList.elementAtOrNull(prevIndex);
+    if (prevSentence == null) return;
+    if (data.loopIndex != null) {
+      data = data.copyWith(loopIndex: () => prevIndex);
+    }
+    data = data.copyWith(position: prevSentence.start);
+    await data.player.seekTo(prevSentence.start);
     emit(data);
-    EventHub.emit(HubPlayingSentenceChangeEvent(previousSentence.id));
-    _scroller.safeScrollTo(previousIndex, alignment: previousIndex == 0 ? 0 : 0.3);
+    EventHub.emit(HubPlayingSentenceChangeEvent(prevSentence.id));
+    _scroller.safeScrollTo(prevIndex, alignment: prevIndex == 0 ? 0 : 0.3);
   }
 
   Future<void> _onPlayNextSentence(CommPlayerPlayNextSentenceEvent event, Emitter<CommPlayerState> emit) async {
@@ -449,6 +452,9 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
     final nextIndex = index + 1;
     final nextSentence = data.subtitle?.sentenceList.elementAtOrNull(nextIndex);
     if (nextSentence == null) return;
+    if (data.loopIndex != null) {
+      data = data.copyWith(loopIndex: () => nextIndex);
+    }
     data = data.copyWith(position: nextSentence.start);
     await data.player.seekTo(nextSentence.start);
     emit(data);

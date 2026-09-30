@@ -13,8 +13,8 @@ class CommPlayerShowSubtitleListEvent extends CommPlayerEvent {
   const CommPlayerShowSubtitleListEvent();
 }
 
-class CommPlayerPlayPreviousSentenceEvent extends CommPlayerEvent {
-  const CommPlayerPlayPreviousSentenceEvent();
+class CommPlayerPlayPrevSentenceEvent extends CommPlayerEvent {
+  const CommPlayerPlayPrevSentenceEvent();
 }
 
 class CommPlayerPlayNextSentenceEvent extends CommPlayerEvent {
