@@ -97,7 +97,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
   Future<void> _setWindowForAudioUI(CommPlayerDataState commData, Emitter<CommPlayerState> emit) async {
     if (state is CommPlayerEmptyState || state.as<CommPlayerDataState>()?.mediaType == .video) {
       //transform from empty to data, should setup window size
-      const minimumSize = Size(400, 800);
+      const minimumSize = Size(450, 800);
       await windowManager.setMinimumSize(minimumSize);
       await windowManager.setSize(minimumSize);
       await windowManager.center();
@@ -173,7 +173,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     final (:subtitleList, :subtitleState) = await reloadSubtitle(argSubtitleList, subtitle, data.position);
 
     emit(data.rCopyWith(subtitleList: subtitleList, subtitleState: subtitleState));
-    EasyLoading.showSuccess('Subtitle added successfully');
+    EasyLoading.dismiss();
   }
 
   @override

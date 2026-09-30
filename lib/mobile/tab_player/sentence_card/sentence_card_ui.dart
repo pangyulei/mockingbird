@@ -10,7 +10,7 @@ class SentenceCardUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double radius = 12;
+    const double radius = 8;
     return BlocProvider.value(
       value: _bloc,
       child: Builder(

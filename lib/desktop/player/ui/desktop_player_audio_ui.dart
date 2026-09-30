@@ -64,7 +64,7 @@ class DesktopPlayerAudioUI extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
           child: Builder(
             builder: (context) {
               return ScrollablePositionedList.builder(
@@ -147,9 +147,11 @@ class DesktopPlayerAudioUI extends StatelessWidget {
         child: Column(
           mainAxisAlignment: .center,
           children: [
-            Padding(padding: const EdgeInsets.fromLTRB(8, 8, 20, 0), child: _volumeWidget()),
             const SizedBox(height: 8),
-            Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _progressSlider()),
+            _volumeWidget(),
+            const SizedBox(height: 8),
+            _progressSlider(),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -157,12 +159,15 @@ class DesktopPlayerAudioUI extends StatelessWidget {
   }
 
   Widget _volumeWidget() {
-    return Row(
-      children: [
-        _volumeButton(),
-        const SizedBox(width: 20),
-        Expanded(child: _volumeSlider()),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, right: 20),
+      child: Row(
+        children: [
+          _volumeButton(),
+          const SizedBox(width: 20),
+          Expanded(child: _volumeSlider()),
+        ],
+      ),
     );
   }
 
@@ -215,46 +220,49 @@ class DesktopPlayerAudioUI extends StatelessWidget {
   }
 
   Widget _progressSlider() {
-    return SliderTheme(
-      data: const SliderThemeData(
-        trackHeight: 3.0,
-        activeTrackColor: kPrimaryColor,
-        inactiveTrackColor: kPrimaryTextColor,
-        thumbColor: kPrimaryColor,
-        padding: EdgeInsets.zero,
-        // thumbSize: WidgetStateProperty.all(const Size(14, 14)),
-      ),
-      child: Builder(
-        builder: (context) {
-          final (position, duration) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
-            (bloc) => (
-              bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
-              bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
-            ),
-          );
-          final max = duration.inMilliseconds.toDouble();
-          final val = position.inMilliseconds.clamp(0, max).toDouble();
-          return Slider(
-            allowedInteraction: .tapAndSlide,
-            value: val,
-            max: max,
-            onChangeStart: (val) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
-              );
-            },
-            onChanged: (val) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
-              );
-            },
-            onChangeEnd: (val) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
-              );
-            },
-          );
-        },
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: SliderTheme(
+        data: const SliderThemeData(
+          trackHeight: 3.0,
+          activeTrackColor: kPrimaryColor,
+          inactiveTrackColor: kPrimaryTextColor,
+          thumbColor: kPrimaryColor,
+          padding: EdgeInsets.zero,
+          // thumbSize: WidgetStateProperty.all(const Size(14, 14)),
+        ),
+        child: Builder(
+          builder: (context) {
+            final (position, duration) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
+              (bloc) => (
+                bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
+                bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
+              ),
+            );
+            final max = duration.inMilliseconds.toDouble();
+            final val = position.inMilliseconds.clamp(0, max).toDouble();
+            return Slider(
+              allowedInteraction: .tapAndSlide,
+              value: val,
+              max: max,
+              onChangeStart: (val) {
+                context.read<DesktopPlayerBloc>().add(
+                  CommPlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
+                );
+              },
+              onChanged: (val) {
+                context.read<DesktopPlayerBloc>().add(
+                  CommPlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
+                );
+              },
+              onChangeEnd: (val) {
+                context.read<DesktopPlayerBloc>().add(
+                  CommPlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

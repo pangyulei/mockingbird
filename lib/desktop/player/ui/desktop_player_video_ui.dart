@@ -194,7 +194,7 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
 
   Widget _controlBar() {
     return GlassContainer(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+      padding: const EdgeInsets.all(8),
       child: Builder(
         builder: (context) {
           final (subtitleListButtonVisible, sentenceButtonVisible) = context.select<DesktopPlayerBloc, (bool, bool)>((
@@ -483,7 +483,7 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.fromLTRB(2, 8, 8, 8),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Builder(
           builder: (context) {
             return ScrollablePositionedList.builder(
