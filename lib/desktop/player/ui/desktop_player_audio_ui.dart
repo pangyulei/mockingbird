@@ -17,23 +17,22 @@ class DesktopPlayerAudioUI extends StatelessWidget {
       value: DesktopPlayerBloc.shared,
       child: BlocListener<DesktopPlayerBloc, CommPlayerState>(
         listenWhen: (previous, current) =>
-            (previous is! CommPlayerDataState ||
-                !previous.subtitleListVisible) &&
+            (previous is! CommPlayerDataState || !previous.subtitleListVisible) &&
             (current is CommPlayerDataState && current.subtitleListVisible),
         listener: (context, state) => showSubtitleList(context),
         child: Scaffold(
           body: ImageContainer(
-            image: Image.asset(
-              'assets/desktop/main_window_background.jpg',
-            ).image,
+            image: Image.asset('assets/desktop/main_window_background.jpg').image,
             padding: const EdgeInsets.all(8),
-            child: Column(
-              children: [_displayerWidget(), const SizedBox(height: 8)],
-            ),
+            child: Column(children: [_displayerWidget(), const SizedBox(height: 8), _subtitleWidget()]),
           ),
         ),
       ),
     );
+  }
+
+  Widget _subtitleWidget() {
+    return const SizedBox.shrink();
   }
 
   Widget _displayerWidget() {
@@ -41,15 +40,9 @@ class DesktopPlayerAudioUI extends StatelessWidget {
       child: Column(
         mainAxisAlignment: .center,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 20, 0),
-            child: _volumeWidget(),
-          ),
+          Padding(padding: const EdgeInsets.fromLTRB(8, 8, 20, 0), child: _volumeWidget()),
           const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-            child: _progressSlider(),
-          ),
+          Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12), child: _progressSlider()),
         ],
       ),
     );
@@ -73,15 +66,11 @@ class DesktopPlayerAudioUI extends StatelessWidget {
         );
         return IconButton(
           onPressed: () {
-            context.read<DesktopPlayerBloc>().add(
-              const DesktopPlayerToggleMuteEvent(),
-            );
+            context.read<DesktopPlayerBloc>().add(const DesktopPlayerToggleMuteEvent());
           },
           icon: Icon(muting ? Icons.volume_off : Icons.volume_up, size: 32),
           color: kPrimaryColor,
-          style: IconButton.styleFrom(
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
+          style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
           constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
           padding: EdgeInsets.zero,
         );
@@ -101,18 +90,15 @@ class DesktopPlayerAudioUI extends StatelessWidget {
       child: Builder(
         builder: (context) {
           const double maxVolume = 1;
-          final (muting, volume) = context
-              .select<DesktopPlayerBloc, (bool, double)>((bloc) {
-                final data = bloc.state.as<DesktopPlayerDataState>();
-                return (data?.muting ?? false, data?.volume ?? maxVolume);
-              });
+          final (muting, volume) = context.select<DesktopPlayerBloc, (bool, double)>((bloc) {
+            final data = bloc.state.as<DesktopPlayerDataState>();
+            return (data?.muting ?? false, data?.volume ?? maxVolume);
+          });
           return Slider(
             value: muting ? 0 : volume,
             max: maxVolume,
             onChanged: (volume) {
-              context.read<DesktopPlayerBloc>().add(
-                CommPlayerVolumeChangeEvent(volume),
-              );
+              context.read<DesktopPlayerBloc>().add(CommPlayerVolumeChangeEvent(volume));
             },
           );
         },
@@ -132,10 +118,7 @@ class DesktopPlayerAudioUI extends StatelessWidget {
       ),
       child: Builder(
         builder: (context) {
-          final (
-            position,
-            duration,
-          ) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
+          final (position, duration) = context.select<DesktopPlayerBloc, (Duration, Duration)>(
             (bloc) => (
               bloc.state.as<CommPlayerDataState>()?.position ?? Duration.zero,
               bloc.state.as<CommPlayerDataState>()?.duration ?? Duration.zero,
@@ -149,26 +132,17 @@ class DesktopPlayerAudioUI extends StatelessWidget {
             max: max,
             onChangeStart: (val) {
               context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderStartChangeEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
+                CommPlayerMediaSliderStartChangeEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
             onChanged: (val) {
               context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderChangingEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
+                CommPlayerMediaSliderChangingEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
             onChangeEnd: (val) {
               context.read<DesktopPlayerBloc>().add(
-                CommPlayerMediaSliderEndChangeEvent(
-                  Duration(milliseconds: val.toInt()),
-                  duration,
-                ),
+                CommPlayerMediaSliderEndChangeEvent(Duration(milliseconds: val.toInt()), duration),
               );
             },
           );

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/src/widgets/basic.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
@@ -23,29 +23,18 @@ class DesktopPlayerBloc extends CommPlayerBloc {
 
   DesktopPlayerBloc._() : super() {
     on<DesktopPlayerInitEvent>(_onInit);
-    on<DesktopPlayerPickMediaFromFileExplorerEvent>(
-      _onPickMediaFromFileExplorer,
-    );
-    on<DesktopPlayerDropMediaEvent>(_onDropMedia);
-    on<DesktopPlayerPickSubtitleFromFileExplorerEvent>(
-      _onPickSubtitleFromFileExplorer,
-    );
-    on<DesktopPlayerDropSubtitleEvent>(_onDropSubtitle);
+    on<DesktopPlayerPickMediaFromFileExplorerEvent>(_onPickMediaFromFileExplorer);
+    on<DesktopPlayerDropFileEvent>(_onDropFile);
+    on<DesktopPlayerPickSubtitleFromFileExplorerEvent>(_onPickSubtitleFromFileExplorer);
     on<DesktopPlayerToggleMuteEvent>(_onToggleMute);
   }
 
-  void _onInit(
-    DesktopPlayerInitEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  void _onInit(DesktopPlayerInitEvent event, Emitter<CommPlayerState> emit) async {
     await _setWindowForEmpty(emit);
   }
 
   Future<void> _setWindowForEmpty(Emitter<CommPlayerState> emit) async {
-    const minimumSize = Size(
-      kDesktopPlayerLeftWidth,
-      kDesktopPlayerEmptyHeight,
-    );
+    const minimumSize = Size(kDesktopPlayerLeftWidth, kDesktopPlayerEmptyHeight);
     await windowManager.setTitle('Mockingbird');
     await windowManager.setMinimumSize(minimumSize);
     await windowManager.setSize(minimumSize);
@@ -68,26 +57,18 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     await _loadMediaFile(File(filePath), emit);
   }
 
-  void _onDropMedia(
-    DesktopPlayerDropMediaEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
-    final extension = p
-        .extension(event.file.path)
-        .replaceAll('.', '')
-        .toLowerCase();
-    if (!kVideoExtensions.contains(extension) &&
-        !kAudioExtensions.contains(extension)) {
-      EasyLoading.showError('Unsupported media format');
-      return;
+  void _onDropFile(DesktopPlayerDropFileEvent event, Emitter<CommPlayerState> emit) async {
+    final extension = p.extension(event.file.path).replaceAll('.', '').toLowerCase();
+    if (kVideoExtensions.contains(extension) || kAudioExtensions.contains(extension)) {
+      await _loadMediaFile(event.file, emit);
+    } else if (kSubtitleExtensions.contains(extension)) {
+      await _loadSubtitleFile(event.file, emit);
+    } else {
+      EasyLoading.showError('Unsupported file format $extension');
     }
-    await _loadMediaFile(event.file, emit);
   }
 
-  Future<void> _loadMediaFile(
-    File mediaFile,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  Future<void> _loadMediaFile(File mediaFile, Emitter<CommPlayerState> emit) async {
     EasyLoading.show(maskType: .clear);
     final commState = await reload((
       loopIndex: null,
@@ -113,33 +94,23 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     EasyLoading.dismiss();
   }
 
-  Future<void> _setWindowForAudioUI(
-    CommPlayerDataState commData,
-    Emitter<CommPlayerState> emit,
-  ) async {
-    if (state is CommPlayerEmptyState ||
-        state.as<CommPlayerDataState>()?.mediaType == .video) {
+  Future<void> _setWindowForAudioUI(CommPlayerDataState commData, Emitter<CommPlayerState> emit) async {
+    if (state is CommPlayerEmptyState || state.as<CommPlayerDataState>()?.mediaType == .video) {
       //transform from empty to data, should setup window size
-      const minimumSize = Size(400, 700);
+      const minimumSize = Size(400, 800);
       await windowManager.setMinimumSize(minimumSize);
       await windowManager.setSize(minimumSize);
     }
     emit(DesktopPlayerDataState(commData: commData, muting: false));
   }
 
-  Future<void> _setWindowForVideoUI(
-    CommPlayerDataState commData,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  Future<void> _setWindowForVideoUI(CommPlayerDataState commData, Emitter<CommPlayerState> emit) async {
     //TODO read db to get window frame, size
     final MultiSplitViewController? splitter;
-    if (state is CommPlayerEmptyState ||
-        state.as<CommPlayerDataState>()?.mediaType == .audio) {
+    if (state is CommPlayerEmptyState || state.as<CommPlayerDataState>()?.mediaType == .audio) {
       //transform from empty to data, should setup window size
       const minimumSize = Size(
-        kDesktopPlayerLeftWidth +
-            kDesktopPlayerRightWidth +
-            kDesktopPlayerDividerThickness,
+        kDesktopPlayerLeftWidth + kDesktopPlayerRightWidth + kDesktopPlayerDividerThickness,
         kDesktopPlayerDataHeight,
       );
       await windowManager.setMinimumSize(minimumSize);
@@ -178,33 +149,14 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     Emitter<CommPlayerState> emit,
   ) async {
     if (state is! CommPlayerDataState) return;
-    final xfile = await FilePicker.pickFile(
-      type: FileType.custom,
-      allowedExtensions: [...kSubtitleExtensions],
-    );
+    final xfile = await FilePicker.pickFile(type: FileType.custom, allowedExtensions: [...kSubtitleExtensions]);
     final path = xfile?.path;
     if (path == null) return;
     await _loadSubtitleFile(File(path), emit);
   }
 
-  void _onDropSubtitle(
-    DesktopPlayerDropSubtitleEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
-    if (state is! CommPlayerDataState) return;
-    await _loadSubtitleFile(event.file, emit);
-  }
-
-  Future<void> _loadSubtitleFile(
-    File file,
-    Emitter<CommPlayerState> emit,
-  ) async {
-    final extension = p.extension(file.path).replaceAll('.', '').toLowerCase();
-    if (!kSubtitleExtensions.contains(extension)) {
-      EasyLoading.showError('Invalid subtitle format. Supported: .srt, .vtt');
-      return;
-    }
-
+  Future<void> _loadSubtitleFile(File file, Emitter<CommPlayerState> emit) async {
+    EasyLoading.show(maskType: .clear);
     final subtitle = await SubtitleParser.parseFile(file);
     if (subtitle == null) {
       EasyLoading.showError('Failed to parse subtitle file');
@@ -216,15 +168,9 @@ class DesktopPlayerBloc extends CommPlayerBloc {
         ? data.subtitleList.map((s) => s == subtitle ? subtitle : s).toList()
         : [...data.subtitleList, subtitle];
 
-    final (:subtitleList, :subtitleState) = await reloadSubtitle(
-      argSubtitleList,
-      subtitle,
-      data.position,
-    );
+    final (:subtitleList, :subtitleState) = await reloadSubtitle(argSubtitleList, subtitle, data.position);
 
-    emit(
-      data.rCopyWith(subtitleList: subtitleList, subtitleState: subtitleState),
-    );
+    emit(data.rCopyWith(subtitleList: subtitleList, subtitleState: subtitleState));
     EasyLoading.showSuccess('Subtitle added successfully');
   }
 
@@ -234,10 +180,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
     return super.close();
   }
 
-  Future<void> _onToggleMute(
-    DesktopPlayerToggleMuteEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  Future<void> _onToggleMute(DesktopPlayerToggleMuteEvent event, Emitter<CommPlayerState> emit) async {
     var data = state.as<DesktopPlayerDataState>();
     if (data == null) return;
     if (data.muting) {
@@ -252,10 +195,7 @@ class DesktopPlayerBloc extends CommPlayerBloc {
   }
 
   @override
-  Future<void> onVolumeChange(
-    CommPlayerVolumeChangeEvent event,
-    Emitter<CommPlayerState> emit,
-  ) async {
+  Future<void> onVolumeChange(CommPlayerVolumeChangeEvent event, Emitter<CommPlayerState> emit) async {
     await super.onVolumeChange(event, emit);
     if (state case DesktopPlayerDataState data) {
       emit(data.copyWith(muting: false));

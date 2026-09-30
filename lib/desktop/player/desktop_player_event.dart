@@ -10,9 +10,9 @@ class DesktopPlayerPickMediaFromFileExplorerEvent extends CommPlayerEvent {
   const DesktopPlayerPickMediaFromFileExplorerEvent();
 }
 
-class DesktopPlayerDropMediaEvent extends CommPlayerEvent {
+class DesktopPlayerDropFileEvent extends CommPlayerEvent {
   final File file;
-  const DesktopPlayerDropMediaEvent(this.file);
+  const DesktopPlayerDropFileEvent(this.file);
 }
 
 class DesktopPlayerPickSubtitleFromFileExplorerEvent extends CommPlayerEvent {
@@ -21,9 +21,4 @@ class DesktopPlayerPickSubtitleFromFileExplorerEvent extends CommPlayerEvent {
 
 class DesktopPlayerToggleMuteEvent extends CommPlayerEvent {
   const DesktopPlayerToggleMuteEvent();
-}
-
-class DesktopPlayerDropSubtitleEvent extends CommPlayerEvent {
-  final File file;
-  const DesktopPlayerDropSubtitleEvent(this.file);
 }

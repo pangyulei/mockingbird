@@ -3,28 +3,23 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_event.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_state.dart';
-import 'package:mockingbird/tool/comm_player/comm_player_bloc.dart';
 import 'package:mockingbird/tool/event_hub.dart';
 import 'package:mockingbird/tool/extensions.dart';
 
 import '../../../db/entities/sentence.dart';
-import '../../../tool/comm_player/comm_player_event.dart';
 
 class SentenceCardBloc extends Bloc<SentenceCardEvent, SentenceCardState> {
   final _subList = <StreamSubscription>[];
   final Sentence _sentence;
-  final CommPlayerBloc _playerBloc;
+  final void Function() _clickCallback;
 
-  SentenceCardBloc(this._sentence, this._playerBloc)
-    : super(const SentenceCardState.empty()) {
+  SentenceCardBloc(this._sentence, this._clickCallback) : super(const SentenceCardState.empty()) {
     on<SentenceCardInitEvent>(_onInit);
     on<SentenceCardPlayingSentenceChangeEvent>(_onPlayingSentenceChange);
     on<SentenceCardClickEvent>(_onClick);
     _subList.add(
       EventHub.on<HubPlayingSentenceChangeEvent>(
-        (event) => add(
-          SentenceCardPlayingSentenceChangeEvent(event.playingSentenceId),
-        ),
+        (event) => add(SentenceCardPlayingSentenceChangeEvent(event.playingSentenceId)),
       ),
     );
   }
@@ -33,7 +28,7 @@ class SentenceCardBloc extends Bloc<SentenceCardEvent, SentenceCardState> {
     // event.context.read<CommPlayerBloc>().add(
     //   CommPlayerClickSentenceEvent(_sentence.id),
     // );
-    _playerBloc.add(CommPlayerClickSentenceEvent(_sentence.id));
+    _clickCallback();
   }
 
   @override
@@ -54,10 +49,7 @@ class SentenceCardBloc extends Bloc<SentenceCardEvent, SentenceCardState> {
     );
   }
 
-  void _onPlayingSentenceChange(
-    SentenceCardPlayingSentenceChangeEvent event,
-    Emitter<SentenceCardState> emit,
-  ) {
+  void _onPlayingSentenceChange(SentenceCardPlayingSentenceChangeEvent event, Emitter<SentenceCardState> emit) {
     emit(state.copyWith(playing: _sentence.id == event.playingSentenceId));
   }
 }

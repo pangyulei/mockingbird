@@ -1,12 +1,10 @@
-import 'dart:io';
-
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_bloc.dart';
 import 'package:mockingbird/desktop/player/desktop_player_event.dart';
 import 'package:mockingbird/desktop/player/ui/desktop_player_subtitle_list.dart';
 import 'package:mockingbird/mobile/tab_player/sentence_card/sentence_card_ui.dart';
+import 'package:mockingbird/mobile/tab_player/subtitle/subtitle_state.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_event.dart';
 import 'package:mockingbird/tool/comm_player/comm_player_state.dart';
 import 'package:mockingbird/tool/extensions.dart';
@@ -14,7 +12,6 @@ import 'package:multi_split_view/multi_split_view.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:video_player/video_player.dart';
 
-import '../../../mobile/tab_player/subtitle/subtitle_state.dart';
 import '../desktop_player_state.dart';
 
 const double kDesktopPlayerLeftWidth = 600;
@@ -61,7 +58,6 @@ class DesktopPlayerVideoUI extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class DesktopPlayerVideoLeftUI extends StatelessWidget {
@@ -69,32 +65,24 @@ class DesktopPlayerVideoLeftUI extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropTarget(
-      onDragDone: (details) {
-        final path = details.files.firstOrNull?.path;
-        if (path != null) {
-          context.read<DesktopPlayerBloc>().add(DesktopPlayerDropMediaEvent(File(path)));
-        }
-      },
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 8, 2, 8),
-        child: Column(
-          mainAxisAlignment: .center,
-          mainAxisSize: .min,
-          children: [
-            Flexible(
-              child: GlassContainer(padding: const EdgeInsets.fromLTRB(8, 8, 8, 0), child: _videoDisplayer()),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 8, 2, 8),
+      child: Column(
+        mainAxisAlignment: .center,
+        mainAxisSize: .min,
+        children: [
+          Flexible(
+            child: GlassContainer(padding: const EdgeInsets.fromLTRB(8, 8, 8, 0), child: _videoDisplayer()),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 44,
+            child: GlassContainer(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+              child: _controlBar(),
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 44,
-              child: GlassContainer(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: _controlBar(),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -495,42 +483,33 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
   }
 
   Widget _subtitleDataWidget(SubtitleDataState data) {
-    return Builder(
-      builder: (context) {
-        return DropTarget(
-          onDragDone: (details) {
-            final path = details.files.firstOrNull?.path;
-            if (path != null) {
-              context.read<DesktopPlayerBloc>().add(DesktopPlayerDropSubtitleEvent(File(path)));
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
-            child: ScrollablePositionedList.builder(
-              key: ValueKey(data),
-              itemCount: data.subtitle.sentenceList.length,
-              itemScrollController: data.scroller,
-              initialAlignment: data.initialAlignment,
-              initialScrollIndex: data.initialIndex,
-              itemBuilder: (context, i) {
-                final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
-                return SentenceCardUI(sentenceCardBloc);
-              },
-            ),
-          ),
-        );
-      },
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 8, 0, 8),
+      child: Builder(
+        builder: (context) {
+          return ScrollablePositionedList.builder(
+            key: ValueKey(data),
+            itemCount: data.subtitle.sentenceList.length,
+            itemScrollController: data.scroller,
+            padding: const EdgeInsets.only(right: 12),
+            initialAlignment: data.initialAlignment,
+            initialScrollIndex: data.initialIndex,
+            itemBuilder: (context, i) {
+              final sentenceCardBloc = context.read<DesktopPlayerBloc>().sentenceCardBlocAtIndex(i);
+              return Padding(
+                padding: EdgeInsets.only(top: i == 0 ? 0 : 8),
+                child: SentenceCardUI(sentenceCardBloc),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
   Widget _subtitleEmptyWidget(BuildContext context) {
-    return DropTarget(
-      onDragDone: (details) {
-        final path = details.files.firstOrNull?.path;
-        if (path != null) {
-          context.read<DesktopPlayerBloc>().add(DesktopPlayerDropSubtitleEvent(File(path)));
-        }
-      },
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(2, 8, 8, 8),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
@@ -538,41 +517,38 @@ class DesktopPlayerVideoRightUI extends StatelessWidget {
             context.read<DesktopPlayerBloc>().add(const DesktopPlayerPickSubtitleFromFileExplorerEvent());
           },
           child: GlassContainer(
-            margin: const EdgeInsets.fromLTRB(1, 8, 8, 8),
+            padding: const EdgeInsets.all(24),
             child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
-                      child: const Icon(Icons.subtitles, size: 44, color: Colors.white),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(color: kPrimaryColor, shape: BoxShape.circle),
+                    child: const Icon(Icons.subtitles, size: 44, color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Subtitles Track',
+                    style: kTextStyle(color: kPrimaryTextColor, size: 16, weight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Click or Drag & Drop subtitle file here',
+                    style: kTextStyle(color: kSecondaryTextColor, size: 13, weight: FontWeight.normal),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Supports .srt and .vtt formats',
+                    style: kTextStyle(
+                      color: kSecondaryTextColor.withValues(alpha: 0.6),
+                      size: 11,
+                      weight: FontWeight.normal,
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No Subtitles Track',
-                      style: kTextStyle(color: kPrimaryTextColor, size: 16, weight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Click or Drag & Drop subtitle file here',
-                      style: kTextStyle(color: kSecondaryTextColor, size: 13, weight: FontWeight.normal),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Supports .srt and .vtt formats',
-                      style: kTextStyle(
-                        color: kSecondaryTextColor.withValues(alpha: 0.6),
-                        size: 11,
-                        weight: FontWeight.normal,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),

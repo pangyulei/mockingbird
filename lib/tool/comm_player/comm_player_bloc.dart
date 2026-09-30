@@ -194,10 +194,13 @@ abstract class CommPlayerBloc extends Bloc<CommPlayerEvent, CommPlayerState> {
   }
 
   SentenceCardBloc sentenceCardBlocAtIndex(int index) {
-    final sentence = (state as CommPlayerDataState).subtitle!.sentenceList[index];
+    final sentenceList = (state as CommPlayerDataState).subtitle!.sentenceList;
+    final sentence = sentenceList[index];
     final playing = _spot?.index == index;
     //TODO maybe no need to init playing, card bloc can read the latest playing value to emit right state
-    return SentenceCardBloc(sentence, this)..add(SentenceCardInitEvent(playing));
+    return SentenceCardBloc(sentence, () {
+      add(CommPlayerClickSentenceEvent(sentence.id));
+    })..add(SentenceCardInitEvent(playing));
   }
 
   void _onClickSentence(CommPlayerClickSentenceEvent event, Emitter<CommPlayerState> emit) async {
